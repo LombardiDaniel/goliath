@@ -1,0 +1,120 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: forms
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: api-mongo-secret
+  namespace: forms
+type: Opaque
+data:
+  uri: MONGO_URI_B64_ENCODED
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forms-api
+  namespace: forms
+spec:
+  selector:
+    matchLabels:
+      app: forms-api
+  template:
+    metadata:
+      labels:
+        app: forms-api
+    spec:
+      containers:
+        - name: generic-forms-api
+          image: lombardi/generic-forms-api:latest
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 8080
+          env:
+            - name: HOST
+              value: forms.example.com
+            - name: GIN_MODE
+              value: release
+            - name: AUTH_TOKENS
+              value: MY_AUTH_TOKEN_0,MY_AUTH_TOKEN_1
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: api-mongo-secret
+                  key: uri
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: forms-api-svc
+  namespace: forms
+spec:
+  type: ClusterIP
+  selector:
+    app: forms-api
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: forms-api-https-ingress
+  namespace: forms
+
+  annotations:
+    spec.ingressClassName: traefik
+    cert-manager.io/cluster-issuer: letsencrypt
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+
+spec:
+  rules:
+    - host: forms.example.com
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: forms-api-svc
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - forms.example.cmo
+      secretName: forms-tls
+
+---
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: forms-api-http-ingress-redirect
+
+  annotations:
+    spec.ingressClassName: traefik
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirectscheme@kubernetescrd
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+    - host: forms.example.com
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: dummy-service
+                port:
+                  number: 80
