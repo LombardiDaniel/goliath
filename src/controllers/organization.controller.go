@@ -66,7 +66,7 @@ func (c *OrganizationController) CreateOrganization(ctx *gin.Context) {
 		return
 	}
 	org := models.Organization{
-		OrganizationId:   orgId[:5],
+		OrganizationId:   orgId[:5], // cut to 5 (size of field)
 		OrganizationName: createOrg.OrganizationName,
 		OwnerUserId:      &user.UserId,
 	}

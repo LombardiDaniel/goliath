@@ -1,16 +1,23 @@
 version: "3.7"
 
 services:
-  # go-gin-template:
-  #   container_name: go-gin-template
+  # app:
+  #   container_name: app
   #   build:
   #     context: .
   #     dockerfile: Dockerfile
   #     target: dev
-  #   environment:
-  #     GIN_MODE: release
   #   ports:
   #     - 8080:8080
+  #   environment:
+  #     GIN_MODE: debug # release
+  #     POSTGRES_URI: postgres://user:password@db:5432/db?sslmode=disable
+  #     JWT_SECRET_KEY: jw_secret_key
+  #     RESEND_API_KEY: re_123456
+  #     NOREPLY_EMAIL: noreply@example.com
+  #     API_HOST_URL: https://api.example.com/
+  #     APP_HOST_URL: https://app.example.com/
+  #     PROJECT_NAME: example-app
 
   db:
     image: postgres:latest
@@ -21,6 +28,8 @@ services:
       POSTGRES_DB: db
     ports:
       - 5432:5432
+    expose:
+      - 5432
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
