@@ -51,6 +51,7 @@ RUN apk add --no-cache gcompat=1.1.0-r4 libstdc++=13.2.1_git20231014-r0
 WORKDIR /app
 
 COPY --from=builder /bin/main ./main
+COPY --from=builder /app/templates ./templates
 
 RUN adduser --system --no-create-home nonroot
 USER nonroot

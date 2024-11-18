@@ -1,16 +1,16 @@
 version: "3.7"
 
 services:
-  go-gin-template:
-    container_name: go-gin-template
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: dev
-    environment:
-      GIN_MODE: release
-    ports:
-      - 8080:8080
+  # go-gin-template:
+  #   container_name: go-gin-template
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #     target: dev
+  #   environment:
+  #     GIN_MODE: release
+  #   ports:
+  #     - 8080:8080
 
   db:
     image: postgres:latest
@@ -20,9 +20,14 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: db
     ports:
-      - "5432:5432"
+      - 5432:5432
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer
+    ports:
+      - 8000:8080
 
 volumes:
   postgres_data:

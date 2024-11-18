@@ -1,43 +1,80 @@
 package services
 
 import (
-	"context"
+	"errors"
+	"fmt"
+	"log/slog"
+	"time"
 
+	"github.com/LombardiDaniel/go-gin-template/common"
 	"github.com/LombardiDaniel/go-gin-template/models"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
+	"github.com/golang-jwt/jwt"
 )
 
-type AuthServiceImpl struct {
-	sessionsCol *mongo.Collection
+type AuthServiceJwtImpl struct {
+	jwtSecretKey string
 }
 
-func NewAuthServiceImpl(sessionsCol *mongo.Collection) AuthService {
-	return &AuthServiceImpl{
-		sessionsCol: sessionsCol,
+func NewAuthServiceJwtImpl(jwtSecretKey string) AuthService {
+	return &AuthServiceJwtImpl{
+		jwtSecretKey: jwtSecretKey,
 	}
 }
 
-func (s *AuthServiceImpl) Authenticate(ctx context.Context, key string) error {
-	var token models.Token
-
-	query := bson.M{
-		"token": key,
+func (s *AuthServiceJwtImpl) InitToken(userId uint32, email string, organizationId *string) (string, error) {
+	claims := models.JwtClaims{
+		UserId:         userId,
+		Email:          email,
+		OrganizationId: organizationId,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Second * time.Duration(common.JWT_TIMEOUT_SECS)).Unix(),
+			Issuer:    common.PROJECT_NAME + "-auth",
+		},
 	}
 
-	err := s.sessionsCol.FindOne(ctx, query).Decode(&token)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	tokenString, err := token.SignedString([]byte(s.jwtSecretKey))
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
+}
+
+func (s *AuthServiceJwtImpl) ValidateToken(tokenString string) error {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return s.jwtSecretKey, nil
+	})
+
 	if err != nil {
 		return err
+	}
+
+	if !token.Valid {
+		return errors.New("invalid token")
 	}
 
 	return nil
 }
 
-func (s *AuthServiceImpl) CreateToken(ctx context.Context, token models.Token) error {
-	_, err := s.sessionsCol.InsertOne(ctx, token)
+func (s *AuthServiceJwtImpl) ParseToken(tokenString string) (models.JwtClaims, error) {
+	claims := models.JwtClaims{}
+	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(s.jwtSecretKey), nil
+	})
+
 	if err != nil {
-		return err
+		slog.Error(err.Error())
+		return claims, err
 	}
 
-	return err
+	slog.Debug(fmt.Sprintf("%+v", claims))
+	slog.Debug(fmt.Sprintf("%+v", token.Valid))
+
+	if !token.Valid {
+		return claims, errors.New("invalid token")
+	}
+
+	return claims, nil
 }

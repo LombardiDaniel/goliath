@@ -5,7 +5,7 @@ import "time"
 type Organization struct {
 	OrganizationID   string         `json:"organizationID" bson:"organizationID" binding:"required,min=1"`
 	OrganizationName string         `json:"organizationName" bson:"organizationName" binding:"required,min=1"`
-	BillingPlan      string         `json:"billingPlan" bson:"billingPlan" binding:"required"`
+	BillingPlanId    string         `json:"billingPlan" bson:"billingPlan" binding:"required"`
 	FrontendConfig   FrontendConfig `json:"frontendConfig" bson:"frontendConfig" binding:"required"`
 	CreatedTs        time.Time      `json:"createdTs" bson:"createdTs" binding:"required"`
 	Deleted          Deleted        `json:"deleted" bson:"deleted" binding:"required"`
@@ -20,6 +20,4 @@ type Deleted struct {
 type FrontendConfig struct {
 	PrimaryColor   string
 	SecondaryColor string
-	MinMsgAmmount  uint `json:"minMsgAmmount" bson:"minMsgAmmount" binding:"required"`
-	MsgCharLimit   uint `json:"msgCharLimit" bson:"msgCharLimit" binding:"required"`
 }

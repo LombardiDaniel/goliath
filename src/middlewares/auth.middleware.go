@@ -1,59 +1,47 @@
 package middlewares
 
-import (
-	"log/slog"
-	"net/http"
-	"strings"
+// import (
+// 	"log/slog"
+// 	"net/http"
 
-	"github.com/LombardiDaniel/go-gin-template/services"
-	"github.com/LombardiDaniel/go-gin-template/utils"
-	"github.com/gin-gonic/gin"
-)
+// 	"github.com/LombardiDaniel/go-gin-template/common"
+// 	"github.com/LombardiDaniel/go-gin-template/services"
+// 	"github.com/LombardiDaniel/go-gin-template/common"
+// 	"github.com/gin-gonic/gin"
+// )
 
-type AuthMiddleware struct {
-	authService services.AuthService
-}
+// type AuthMiddlewareJWT struct {
+// 	authService services.AuthService
+// }
 
-func NewAuthMiddleware(authService services.AuthService) AuthMiddleware {
-	return AuthMiddleware{
-		authService: authService,
-	}
-}
+// func NewAuthMiddlewareJWT(authService services.AuthService) AuthMiddlewareJWT {
+// 	return AuthMiddlewareJWT{
+// 		authService: authService,
+// 	}
+// }
 
-func (m *AuthMiddleware) Authorize() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		// authCookie, err := ctx.Cookie(auth_cookie_token_name)
-		// if err != nil {
-		// 	ctx.String(http.StatusUnauthorized, "Unauthorized")
-		// 	ctx.Abort()
-		// 	return
-		// }
-		// would still need to auth
+// // Authorizes the JWT, if it is valid, the attribute `common.GIN_CTX_JWT_CLAIM_KEY_NAME` is set with the `models.JwtClaimsOutput`
+// // allows use of JWT in cookie
+// func (m *AuthMiddlewareJWT) AuthorizeJwt() gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		tokenStr, err := c.Cookie(common.COOKIE_NAME)
+// 		if err != nil && err != http.ErrNoCookie {
+// 			c.String(http.StatusUnauthorized, "Unauthorized")
+// 			common.ClearAuthCookie(c)
+// 			c.Abort()
+// 			return
+// 		}
 
-		apiKey := ctx.GetHeader("Authorization")
-		if apiKey == "" {
-			ctx.String(http.StatusUnauthorized, "Unauthorized")
-			ctx.Abort()
-			return
-		}
+// 		jwtClaims, err := m.authService.ParseToken(tokenStr)
+// 		if err != nil {
+// 			slog.Info(err.Error())
+// 			c.String(http.StatusUnauthorized, "Unauthorized")
+// 			common.ClearAuthCookie(c)
+// 			c.Abort()
+// 			return
+// 		}
 
-		tokenStrs := strings.SplitN(apiKey, " ", 2)
-		if len(tokenStrs) != 2 {
-			ctx.String(http.StatusUnauthorized, "Unauthorized")
-			ctx.Abort()
-			return
-		}
-
-		err := m.authService.Authenticate(ctx.Request.Context(), tokenStrs[1])
-		if err != nil {
-			if err != utils.ErrAuth {
-				slog.Error(err.Error())
-			}
-			ctx.String(http.StatusUnauthorized, "Unauthorized")
-			ctx.Abort()
-			return
-		}
-
-		ctx.Next()
-	}
-}
+// 		c.Set(common.GIN_CTX_JWT_CLAIM_KEY_NAME, jwtClaims)
+// 		c.Next()
+// 	}
+// }

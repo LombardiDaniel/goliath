@@ -1,9 +1,10 @@
-package utils
+package common
 
 import (
 	"log/slog"
 	"os"
 	"strings"
+	"text/template"
 )
 
 var LOG_LEVEL string = strings.ToUpper(GetEnvVarDefault("LOG_LEVEL", "INFO"))
@@ -29,11 +30,22 @@ func InitSlogger() {
 	slog.SetDefault(logger)
 }
 
+func LoadHTMLTemplate(templatePath string) *template.Template {
+
+	t, err := template.ParseFiles(templatePath)
+	if err != nil {
+		slog.Error(err.Error())
+		panic(err)
+	}
+
+	return t
+}
+
 // Gets the `envVarName`, returns defaultVal if envvar is non-existant.
 func GetEnvVarDefault(envVarName string, defaultVal string) string {
-	envVar := os.Getenv(envVarName)
+	envVar, ok := os.LookupEnv(envVarName)
 
-	if envVar == "" {
+	if !ok {
 		return defaultVal
 	}
 

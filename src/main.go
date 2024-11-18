@@ -10,14 +10,13 @@ import (
 
 	_ "github.com/lib/pq"
 
+	"github.com/LombardiDaniel/go-gin-template/common"
 	"github.com/LombardiDaniel/go-gin-template/controllers"
 	"github.com/LombardiDaniel/go-gin-template/docs"
 	"github.com/LombardiDaniel/go-gin-template/middlewares"
 	"github.com/LombardiDaniel/go-gin-template/services"
-	"github.com/LombardiDaniel/go-gin-template/utils"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/mongo"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -26,31 +25,32 @@ import (
 var (
 	router *gin.Engine
 
-	usersCol    *mongo.Collection
-	sessionsCol *mongo.Collection
-
 	// Services
-	authService services.AuthService
+	authService  services.AuthService
+	userService  services.UserService
+	emailService services.EmailService
 
 	// Controllers
+	authController controllers.AuthController
 	userController controllers.UserController
-	// authController controllers.AuthController
 
 	// Middlewares
-	authMiddleware middlewares.AuthMiddleware
+	authMiddleware middlewares.AuthMiddlewareJWT
 
-	mongoClient *mongo.Client
-	ctx         context.Context
+	db *sql.DB
+
+	ctx context.Context
+	err error
 )
 
 func init() {
 	ctx = context.TODO()
 
-	utils.InitSlogger()
+	common.InitSlogger()
 
-	pgConnStr := utils.GetEnvVarDefault("POSTGRES_URI", "postgres://user:password@localhost:5432/db?sslmode=disable")
+	pgConnStr := common.GetEnvVarDefault("POSTGRES_URI", "postgres://user:password@localhost:5432/db?sslmode=disable")
 
-	db, err := sql.Open("postgres", pgConnStr)
+	db, err = sql.Open("postgres", pgConnStr)
 	if err != nil {
 		panic(err)
 	}
@@ -61,13 +61,16 @@ func init() {
 	}
 
 	// Services
-	authService = services.NewAuthServiceImpl(db)
+	authService = services.NewAuthServiceJwtImpl(os.Getenv("JWT_SECRET_KEY"))
+	userService = services.NewUserServicePgImpl(db)
+	emailService = services.NewEmailServiceResentImpl(os.Getenv("RESEND_API_KEY"), "./templates")
 
 	// Middleware
-	authMiddleware = middlewares.NewAuthMiddleware(db)
+	authMiddleware = middlewares.NewAuthMiddlewareJWT(authService)
 
 	// Controllers
-	// formsController = controllers.NewFormsController(formsService)
+	authController = controllers.NewAuthController(authService, userService)
+	userController = controllers.NewUserController(userService, emailService)
 
 	router = gin.Default()
 	router.SetTrustedProxies([]string{"*"})
@@ -96,19 +99,23 @@ func init() {
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }
 
+// @securityDefinitions.apiKey JWT
+// @in cookie
+// @name Authorization
+// @description JWT
 // @securityDefinitions.apiKey Bearer
 // @in header
 // @name Authorization
 // @description "Type 'Bearer $TOKEN' to correctly set the API Key"
 func main() {
-	defer mongoClient.Disconnect(ctx)
 
 	router.GET("/", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "OK")
 	})
 
 	basePath := router.Group("/v1")
-	formsController.RegisterRoutes(basePath, authMiddleware)
+	authController.RegisterRoutes(basePath, authMiddleware)
+	userController.RegisterRoutes(basePath, authMiddleware)
 
 	slog.Error(router.Run(":8080").Error())
 }
