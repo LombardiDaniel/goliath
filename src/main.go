@@ -62,7 +62,7 @@ func init() {
 	// Services
 	authService = services.NewAuthServiceJwtImpl(os.Getenv("JWT_SECRET_KEY"))
 	userService = services.NewUserServicePgImpl(db)
-	emailService = services.NewEmailServiceResentImpl(os.Getenv("RESEND_API_KEY"), "./templates")
+	emailService = services.NewEmailServiceResendImpl(os.Getenv("RESEND_API_KEY"), "./templates")
 	organizationService = services.NewOrganizationServicePgImpl(db)
 
 	// Middleware

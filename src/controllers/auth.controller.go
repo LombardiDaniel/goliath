@@ -190,6 +190,6 @@ func (c *AuthController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware midd
 
 	g.POST("/login", c.Login)
 	g.POST("/logout", c.Logout)
-	g.POST("/set-organization/:orgId", authMiddleware.Authorize(), c.SetOrg)
-	g.GET("/validate", authMiddleware.Authorize(), c.Validate)
+	g.POST("/set-organization/:orgId", authMiddleware.AuthorizeUser(), c.SetOrg)
+	g.GET("/validate", authMiddleware.AuthorizeUser(), c.Validate)
 }

@@ -5,7 +5,7 @@ import (
 )
 
 type AuthMiddleware interface {
-	Authorize() gin.HandlerFunc
-	// AuthorizeOrganiaztion(needAdmin bool) gin.HandlerFunc
+	AuthorizeUser() gin.HandlerFunc
+	AuthorizeOrganization(needAdmin bool) gin.HandlerFunc
 	// AuthorizeNoOrganization() gin.HandlerFunc
 }

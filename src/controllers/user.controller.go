@@ -153,5 +153,5 @@ func (c *UserController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware midd
 
 	r.PUT("", c.CreateUser)
 	r.GET("/confirm", c.ConfirmUser)
-	r.GET("/organizations", authMiddleware.Authorize(), c.GetUserOrgs)
+	r.GET("/organizations", authMiddleware.AuthorizeUser(), c.GetUserOrgs)
 }

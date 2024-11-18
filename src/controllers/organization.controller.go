@@ -85,8 +85,22 @@ func (c *OrganizationController) CreateOrganization(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "OK")
 }
 
+// @Summary TestAuth
+// @Tags Organization
+// @Produce plain
+// @Param orgId path string true "orgId"
+// @Success 200 		{string} 	OKResponse "OK"
+// @Failure 400 		{string} 	ErrorResponse "Bad Request"
+// @Failure 409 		{string} 	ErrorResponse "Conflict"
+// @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
+// @Router /v1/organizations/{orgId}/test-auth [GET]
+func (c *OrganizationController) TestAuth(ctx *gin.Context) {
+	ctx.String(http.StatusOK, "OK")
+}
+
 func (c *OrganizationController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware) {
 	r := rg.Group("/organizations")
 
-	r.PUT("", authMiddleware.Authorize(), c.CreateOrganization)
+	r.PUT("", authMiddleware.AuthorizeUser(), c.CreateOrganization)
+	r.GET("/:orgId/test-auth", authMiddleware.AuthorizeOrganization(true), c.TestAuth)
 }
