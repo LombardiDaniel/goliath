@@ -1,6 +1,9 @@
 package services
 
 import (
+	"bytes"
+	"log/slog"
+	"net/url"
 	"path/filepath"
 	"text/template"
 
@@ -22,16 +25,35 @@ func NewEmailServiceResentImpl(resendApiKey string, templatesDir string) EmailSe
 	}
 }
 
+type htmlConfirmationVars struct {
+	Name            string
+	ConfirmationUrl string
+}
+
 func (s *EmailServiceResentImpl) SendAccountConfirmation(name string, email string, otp string) error {
+
+	body := new(bytes.Buffer)
+	confirmUrl, err := url.JoinPath(common.HOST_URL, "/v1/users/confirm")
+	if err != nil {
+		return err
+	}
+	err = s.accountConfirmationTemplate.Execute(body, htmlConfirmationVars{
+		Name:            name,
+		ConfirmationUrl: confirmUrl + "?otp=" + otp,
+	})
+	if err != nil {
+		slog.Error(err.Error())
+		return err
+	}
 
 	params := &resend.SendEmailRequest{
 		From:    common.NOREPLY_EMAIL,
 		To:      []string{email},
 		Subject: "Confirm Your Account!",
-		Html:    "<p>Congrats on sending your <strong>" + otp + "</strong>!</p>",
+		Html:    body.String(),
 	}
 
-	_, err := s.resendClient.Emails.Send(params)
+	_, err = s.resendClient.Emails.Send(params)
 
 	return err
 }

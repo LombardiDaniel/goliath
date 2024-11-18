@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Confirme sua conta! - Quack!</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 20px auto;
+        background-color: #ffffff;
+        border: 3px solid #000000;
+        box-shadow: 8px 8px 0 #000000;
+      }
+      .header {
+        background-color: #ff6b6b;
+        color: #000000;
+        padding: 20px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+      .content {
+        padding: 30px;
+        font-size: 16px;
+        line-height: 1.5;
+      }
+      .button {
+        display: inline-block;
+        background-color: #4ecdc4;
+        color: #000000;
+        padding: 15px 30px;
+        text-decoration: none;
+        font-weight: bold;
+        text-transform: uppercase;
+        border: 2px solid #000000;
+        margin-top: 20px;
+      }
+      .footer {
+        background-color: #ffe66d;
+        color: #000000;
+        padding: 20px;
+        text-align: center;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">Confirme sua conta - Quack!</div>
+      <div class="content">
+        <p>Olá {{ .Name }},</p>
+        <p>
+          Thank you for signing up! We're excited to have you on board. To get
+          started, please confirm your account by clicking the button below:
+        </p>
+        <p style="text-align: center">
+          <a href="{{ .ConfirmationUrl }}" class="button">Confirm Account</a>
+        </p>
+        <p>
+          If you didn't create an account, you can safely ignore this email.
+        </p>
+        <p>Abraços,<br />time do patos.dev</p>
+      </div>
+      <div class="footer">&copy; 2023 PATOS. All rights reserved.</div>
+    </div>
+  </body>
+</html>

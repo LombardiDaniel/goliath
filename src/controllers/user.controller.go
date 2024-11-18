@@ -99,11 +99,11 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 // @Description Confirms the User
 // @Produce plain
 // @Param   otp 		query 		string true "OneTimePass sent in email"
-// @Success 200 		{string} 	OKResponse "OK"
+// @Success 301 		{string} 	OKResponse "MovedPermanently"
 // @Failure 400 		{string} 	ErrorResponse "Bad Request"
 // @Failure 409 		{string} 	ErrorResponse "Conflict"
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
-// @Router /v1/users/confirm [POST]
+// @Router /v1/users/confirm [GET]
 func (c *UserController) ConfirmUser(ctx *gin.Context) {
 	rCtx := ctx.Request.Context()
 	otp := ctx.Query("otp")
@@ -115,12 +115,13 @@ func (c *UserController) ConfirmUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.String(http.StatusOK, "OK")
+	ctx.Writer.Header().Set("location", "/")
+	ctx.String(http.StatusMovedPermanently, "MovedPermanently")
 }
 
 func (c *UserController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddlewareJWT) {
 	r := rg.Group("/users")
 
 	r.PUT("", c.CreateUser)
-	r.POST("/confirm", c.ConfirmUser)
+	r.GET("/confirm", c.ConfirmUser)
 }

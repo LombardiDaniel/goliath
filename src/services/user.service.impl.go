@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/LombardiDaniel/go-gin-template/common"
 	"github.com/LombardiDaniel/go-gin-template/models"
@@ -54,9 +53,6 @@ func (s *UserServicePgImpl) CreateUnconfirmedUser(ctx context.Context, unconfirm
 		`,
 		unconfirmedUser.Email,
 	).Scan(&userId)
-
-	fmt.Printf("err: %v\n", err)
-	fmt.Printf("userId: %v\n", userId)
 
 	if err != sql.ErrNoRows {
 		if err == nil {
