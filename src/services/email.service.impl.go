@@ -33,7 +33,7 @@ type htmlConfirmationVars struct {
 func (s *EmailServiceResentImpl) SendAccountConfirmation(name string, email string, otp string) error {
 
 	body := new(bytes.Buffer)
-	confirmUrl, err := url.JoinPath(common.HOST_URL, "/v1/users/confirm")
+	confirmUrl, err := url.JoinPath(common.API_HOST_URL, "/v1/users/confirm")
 	if err != nil {
 		return err
 	}

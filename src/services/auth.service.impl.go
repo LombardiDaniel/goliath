@@ -65,7 +65,6 @@ func (s *AuthServiceJwtImpl) ParseToken(tokenString string) (models.JwtClaims, e
 	})
 
 	if err != nil {
-		slog.Error(err.Error())
 		return claims, err
 	}
 

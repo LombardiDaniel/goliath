@@ -1,12 +1,12 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 
 	_ "github.com/lib/pq"
 
@@ -39,13 +39,10 @@ var (
 
 	db *sql.DB
 
-	ctx context.Context
 	err error
 )
 
 func init() {
-	ctx = context.TODO()
-
 	common.InitSlogger()
 
 	pgConnStr := common.GetEnvVarDefault("POSTGRES_URI", "postgres://user:password@localhost:5432/db?sslmode=disable")
@@ -76,10 +73,13 @@ func init() {
 	router.SetTrustedProxies([]string{"*"})
 
 	corsCfg := cors.DefaultConfig()
-	corsCfg.AllowAllOrigins = true
+	corsCfg.AllowOrigins = []string{common.API_HOST_URL, common.APP_HOST_URL}
+	corsCfg.AllowCredentials = true
 	corsCfg.AddAllowHeaders("Authorization")
 
-	slog.Info(fmt.Sprintf("corsCfg: %+v\n", corsCfg))
+	fmt.Printf("len(corsCfg.AllowOrigins): %v\n", len(corsCfg.AllowOrigins))
+
+	slog.Info(fmt.Sprintf("corsCfg: %+v", corsCfg))
 
 	router.Use(cors.New(corsCfg))
 
@@ -87,12 +87,11 @@ func init() {
 	docs.SwaggerInfo.Description = "Generic Forms API"
 	docs.SwaggerInfo.Version = "1.0"
 	docs.SwaggerInfo.BasePath = ""
+	docs.SwaggerInfo.Host = strings.Split(common.API_HOST_URL, "://")[1]
 
 	if os.Getenv("GIN_MODE") == "release" {
-		docs.SwaggerInfo.Host = os.Getenv("SWAGGER_HOST")
 		docs.SwaggerInfo.Schemes = []string{"https"}
 	} else {
-		docs.SwaggerInfo.Host = "localhost:8080"
 		docs.SwaggerInfo.Schemes = []string{"http"}
 	}
 
@@ -109,6 +108,7 @@ func init() {
 // @description "Type 'Bearer $TOKEN' to correctly set the API Key"
 func main() {
 
+	// LB healthcheck
 	router.GET("/", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "OK")
 	})

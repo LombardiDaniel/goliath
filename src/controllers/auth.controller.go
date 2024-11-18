@@ -30,6 +30,7 @@ func NewAuthController(
 }
 
 // @Summary Login
+// @Tags Auth
 // @Description Authenticates a user and provides a Token to Authorize API calls
 // @Consume multipart/form-data
 // @Produce json
@@ -86,6 +87,7 @@ func (c *AuthController) Login(ctx *gin.Context) {
 }
 
 // @Security JWT
+// @Tags Auth
 // @Summary Validate JWT
 // @Description Mock Endpoint to test validation of JSON Web Token (JWT) in Headers or Cookie
 // @Consume application/json
@@ -112,12 +114,13 @@ func (c *AuthController) Validate(ctx *gin.Context) {
 }
 
 // @Summary Logout
+// @Tags Auth
 // @Description Removes the cookie
 // @Success 200 string OK
 // @Failure 400 string BadRequest
 // @Failure 401 string Unauthorized
 // @Failure 502 string BadGateway
-// @Router /v1/logout [POST]
+// @Router /v1/auth/logout [POST]
 func (c *AuthController) Logout(ctx *gin.Context) {
 	common.ClearAuthCookie(ctx)
 	ctx.String(http.StatusOK, "OK")

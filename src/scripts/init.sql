@@ -11,8 +11,6 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
-
--- users idxs
 CREATE UNIQUE INDEX users_email_idx ON users (email);
 
 -- set user.is_updated trigger
