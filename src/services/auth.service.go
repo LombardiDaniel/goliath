@@ -6,7 +6,7 @@ import (
 
 type AuthService interface {
 	// InitToken(user models.User) (string, error)
-	InitToken(userId uint32, email string, organizationId *string) (string, error)
+	InitToken(userId uint32, email string, organizationId *string, isAdmin *bool) (string, error)
 	ValidateToken(tokenString string) error
 	ParseToken(tokenString string) (models.JwtClaims, error)
 }

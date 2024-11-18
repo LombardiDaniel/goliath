@@ -49,7 +49,7 @@ func (m *AuthMiddlewareJwt) Authorize() gin.HandlerFunc {
 
 		if expTTL > time.Minute*time.Duration(common.JWT_TIMEOUT_SECS/2) {
 			slog.Info(fmt.Sprintf("renewing jwt: %s", jwtClaims.Email))
-			token, err := m.authService.InitToken(jwtClaims.UserId, jwtClaims.Email, jwtClaims.OrganizationId)
+			token, err := m.authService.InitToken(jwtClaims.UserId, jwtClaims.Email, jwtClaims.OrganizationId, jwtClaims.IsAdmin)
 			if err != nil {
 				slog.Error(err.Error())
 				c.String(http.StatusBadGateway, "BadGateway")

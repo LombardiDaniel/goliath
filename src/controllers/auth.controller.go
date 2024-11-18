@@ -3,7 +3,6 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"slices"
 
 	"log/slog"
 
@@ -67,6 +66,7 @@ func (c *AuthController) Login(ctx *gin.Context) {
 	token, err := c.authService.InitToken(
 		user.UserId,
 		user.Email,
+		nil,
 		nil,
 	)
 	if err != nil {
@@ -154,17 +154,19 @@ func (c *AuthController) SetOrg(ctx *gin.Context) {
 		return
 	}
 
-	claimsOrgIds := []string{}
+	var claimsOrg *schemas.OrganizationOutput = nil
 	for _, org := range orgs {
-		claimsOrgIds = append(claimsOrgIds, org.OrganizationId)
+		if org.OrganizationId == orgId {
+			claimsOrg = &org
+		}
 	}
 
-	if !slices.Contains(claimsOrgIds, orgId) {
+	if claimsOrg == nil {
 		ctx.String(http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 
-	token, err := c.authService.InitToken(claims.UserId, claims.Email, &orgId)
+	token, err := c.authService.InitToken(claims.UserId, claims.Email, &claimsOrg.OrganizationId, &claimsOrg.IsAdmin)
 	if err != nil {
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return

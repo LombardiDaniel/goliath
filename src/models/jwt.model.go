@@ -8,6 +8,7 @@ type JwtClaims struct {
 	UserId         uint32  `json:"userId" binding:"required"`
 	Email          string  `json:"email" binding:"required"`
 	OrganizationId *string `json:"organizationId" binding:"required"`
+	IsAdmin        *bool   `json:"isAdmin" binding:"required"`
 
 	jwt.StandardClaims
 }

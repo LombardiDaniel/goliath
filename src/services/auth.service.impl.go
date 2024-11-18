@@ -21,11 +21,12 @@ func NewAuthServiceJwtImpl(jwtSecretKey string) AuthService {
 	}
 }
 
-func (s *AuthServiceJwtImpl) InitToken(userId uint32, email string, organizationId *string) (string, error) {
+func (s *AuthServiceJwtImpl) InitToken(userId uint32, email string, organizationId *string, isAdmin *bool) (string, error) {
 	claims := models.JwtClaims{
 		UserId:         userId,
 		Email:          email,
 		OrganizationId: organizationId,
+		IsAdmin:        isAdmin,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Second * time.Duration(common.JWT_TIMEOUT_SECS)).Unix(),
 			Issuer:    common.PROJECT_NAME + "-auth",
