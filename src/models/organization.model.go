@@ -3,21 +3,24 @@ package models
 import "time"
 
 type Organization struct {
-	OrganizationID   string         `json:"organizationID" bson:"organizationID" binding:"required,min=1"`
-	OrganizationName string         `json:"organizationName" bson:"organizationName" binding:"required,min=1"`
-	BillingPlanId    string         `json:"billingPlan" bson:"billingPlan" binding:"required"`
-	FrontendConfig   FrontendConfig `json:"frontendConfig" bson:"frontendConfig" binding:"required"`
-	CreatedTs        time.Time      `json:"createdTs" bson:"createdTs" binding:"required"`
-	Deleted          Deleted        `json:"deleted" bson:"deleted" binding:"required"`
-	Owner            string         `json:"owner" bson:"owner" binding:"required,email"`
-}
-
-type Deleted struct {
-	Deleted bool      `json:"createdTs" bson:"createdTs" binding:"required"`
-	Ts      time.Time `json:"ts" bson:"ts" binding:"required"`
+	OrganizationId   string     `json:"organizationId" binding:"required,min=1"`
+	OrganizationName string     `json:"organizationName" binding:"required,min=1"`
+	BillingPlanId    uint32     `json:"billingPlanId" binding:"required"`
+	CreatedAt        time.Time  `json:"createdAt" binding:"required"`
+	DeletedAt        *time.Time `json:"deletedAt,omitempty"`
+	OwnerUserId      *uint32    `json:"ownerUserId,omitempty"`
 }
 
 type FrontendConfig struct {
-	PrimaryColor   string
-	SecondaryColor string
+	OrganizationId string `json:"organizationId"`
+	PrimaryColor   string `json:"primaryColor"`
+	SecondaryColor string `json:"secondaryColor"`
+}
+
+type OrganizationInvite struct {
+	OrganizationId string     `json:"organizationId" binding:"required,min=1"`
+	UserId         uint32     `json:"userId" binding:"required"`
+	IsAdmin        bool       `json:"isAdmin" biding:"required"`
+	InviteOtp      *string    `json:"inviteOtp,omitempty"`
+	InviteExp      *time.Time `json:"inviteExp,omitempty"`
 }

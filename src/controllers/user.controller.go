@@ -119,9 +119,39 @@ func (c *UserController) ConfirmUser(ctx *gin.Context) {
 	ctx.String(http.StatusMovedPermanently, "MovedPermanently")
 }
 
-func (c *UserController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddlewareJWT) {
+// @Summary GetUserOrgs
+// @Tags User
+// @Security JWT
+// @Description Gets Orgs Users Belongs to
+// @Produce json
+// @Success 200 		{object} 	[]schemas.OrganizationOutput
+// @Failure 400 		{string} 	ErrorResponse "Bad Request"
+// @Failure 409 		{string} 	ErrorResponse "Conflict"
+// @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
+// @Router /v1/users/organizations [GET]
+func (c *UserController) GetUserOrgs(ctx *gin.Context) {
+	rCtx := ctx.Request.Context()
+
+	claims, err := common.GetClaimsFromGinCtx(ctx)
+	if err != nil {
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	orgs, err := c.userService.GetUserOrgs(rCtx, claims.UserId)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, orgs)
+}
+
+func (c *UserController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware) {
 	r := rg.Group("/users")
 
 	r.PUT("", c.CreateUser)
 	r.GET("/confirm", c.ConfirmUser)
+	r.GET("/organizations", authMiddleware.Authorize(), c.GetUserOrgs)
 }

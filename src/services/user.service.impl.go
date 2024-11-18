@@ -6,6 +6,7 @@ import (
 
 	"github.com/LombardiDaniel/go-gin-template/common"
 	"github.com/LombardiDaniel/go-gin-template/models"
+	"github.com/LombardiDaniel/go-gin-template/schemas"
 )
 
 type UserServicePgImpl struct {
@@ -138,7 +139,17 @@ func (s *UserServicePgImpl) ConfirmUser(ctx context.Context, otp string) error {
 
 func (s *UserServicePgImpl) GetUser(ctx context.Context, email string) (models.User, error) {
 	query := `
-		SELECT * FROM users WHERE email = $1
+		SELECT
+			user_id,
+			email,
+			password_hash,
+			first_name,
+			last_name,
+			date_of_birth,
+			created_at,
+			updated_at,
+			is_active
+		FROM users WHERE email = $1
 	`
 
 	user := models.User{}
@@ -163,4 +174,37 @@ func (s *UserServicePgImpl) GetUser(ctx context.Context, email string) (models.U
 
 func (s *UserServicePgImpl) GetUsers(ctx context.Context) ([]models.User, error) {
 	return nil, nil
+}
+
+func (s *UserServicePgImpl) GetUserOrgs(ctx context.Context, userId uint32) ([]schemas.OrganizationOutput, error) {
+	query := `
+		SELECT DISTINCT
+			o.organization_id,
+			o.organization_name,
+			ou.is_admin
+		FROM
+			organizations o
+		INNER JOIN
+			organizations_users ou ON o.organization_id = ou.organization_id
+		WHERE ou.user_id = $1;
+	`
+
+	orgs := []schemas.OrganizationOutput{}
+
+	rows, err := s.db.QueryContext(ctx, query, userId)
+	if err != nil {
+		return orgs, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		newOrg := schemas.OrganizationOutput{}
+		err := rows.Scan(&newOrg.OrganizationId, &newOrg.OrganizationName, &newOrg.IsAdmin)
+		if err != nil {
+			return orgs, err
+		}
+		orgs = append(orgs, newOrg)
+	}
+
+	return orgs, nil
 }

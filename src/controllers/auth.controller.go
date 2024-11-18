@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"slices"
 
 	"log/slog"
 
@@ -78,7 +79,7 @@ func (c *AuthController) Login(ctx *gin.Context) {
 
 	claims, err := c.authService.ParseToken(token)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error while generating token for user '%s': '%s'", loginForm.Email, err.Error()))
+		slog.Error(fmt.Sprintf("Error while parsing token for user '%s': '%s'", loginForm.Email, err.Error()))
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
 	}
@@ -126,12 +127,67 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "OK")
 }
 
+// @Summary SetOrg
+// @Tags Auth
+// @Security JWT
+// @Description Sets the current User Org on JWT
+// @Produce json
+// @Param orgId path string true "orgId"
+// @Success 200 		{object} 	models.JwtClaimsOutput
+// @Failure 400 		{string} 	ErrorResponse "Bad Request"
+// @Failure 409 		{string} 	ErrorResponse "Conflict"
+// @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
+// @Router /v1/auth/set-organization/{orgId} [POST]
+func (c *AuthController) SetOrg(ctx *gin.Context) {
+	rCtx := ctx.Request.Context()
+	orgId := ctx.Param("orgId")
+
+	claims, err := common.GetClaimsFromGinCtx(ctx)
+	if err != nil {
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	orgs, err := c.userService.GetUserOrgs(rCtx, claims.UserId)
+	if err != nil {
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	claimsOrgIds := []string{}
+	for _, org := range orgs {
+		claimsOrgIds = append(claimsOrgIds, org.OrganizationId)
+	}
+
+	if !slices.Contains(claimsOrgIds, orgId) {
+		ctx.String(http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	token, err := c.authService.InitToken(claims.UserId, claims.Email, &orgId)
+	if err != nil {
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	parsedClaims, err := c.authService.ParseToken(token)
+	if err != nil {
+		slog.Error(fmt.Sprintf("Error while parsing token for user '%s': '%s'", claims.Email, err.Error()))
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	common.SetAuthCookie(ctx, token)
+	ctx.JSON(http.StatusOK, parsedClaims)
+}
+
 // Register Routes, needs jwtService use on authentication middleware
-func (c *AuthController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddlewareJWT) {
+func (c *AuthController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware) {
 
 	g := rg.Group("/auth")
 
 	g.POST("/login", c.Login)
-	g.GET("/validate", authMiddleware.AuthorizeJwt(), c.Validate)
 	g.POST("/logout", c.Logout)
+	g.POST("/set-organization/:orgId", authMiddleware.Authorize(), c.SetOrg)
+	g.GET("/validate", authMiddleware.Authorize(), c.Validate)
 }

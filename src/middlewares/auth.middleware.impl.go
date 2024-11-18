@@ -11,19 +11,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type AuthMiddlewareJWT struct {
+type AuthMiddlewareJwt struct {
 	authService services.AuthService
 }
 
-func NewAuthMiddlewareJWT(authService services.AuthService) AuthMiddlewareJWT {
-	return AuthMiddlewareJWT{
+func NewAuthMiddlewareJwt(authService services.AuthService) AuthMiddleware {
+	return &AuthMiddlewareJwt{
 		authService: authService,
 	}
 }
 
 // Authorizes the JWT, if it is valid, the attribute `common.GIN_CTX_JWT_CLAIM_KEY_NAME` is set with the `models.JwtClaimsOutput`
 // allows use of JWT in cookie
-func (m *AuthMiddlewareJWT) AuthorizeJwt() gin.HandlerFunc {
+func (m *AuthMiddlewareJwt) Authorize() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenStr, err := c.Cookie(common.COOKIE_NAME)
 		if err != nil && err != http.ErrNoCookie {

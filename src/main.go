@@ -26,16 +26,18 @@ var (
 	router *gin.Engine
 
 	// Services
-	authService  services.AuthService
-	userService  services.UserService
-	emailService services.EmailService
+	authService         services.AuthService
+	userService         services.UserService
+	emailService        services.EmailService
+	organizationService services.OrganizationService
 
 	// Controllers
-	authController controllers.AuthController
-	userController controllers.UserController
+	authController         controllers.AuthController
+	userController         controllers.UserController
+	organizationController controllers.OrganizationController
 
 	// Middlewares
-	authMiddleware middlewares.AuthMiddlewareJWT
+	authMiddleware middlewares.AuthMiddleware
 
 	db *sql.DB
 
@@ -61,13 +63,15 @@ func init() {
 	authService = services.NewAuthServiceJwtImpl(os.Getenv("JWT_SECRET_KEY"))
 	userService = services.NewUserServicePgImpl(db)
 	emailService = services.NewEmailServiceResentImpl(os.Getenv("RESEND_API_KEY"), "./templates")
+	organizationService = services.NewOrganizationServicePgImpl(db)
 
 	// Middleware
-	authMiddleware = middlewares.NewAuthMiddlewareJWT(authService)
+	authMiddleware = middlewares.NewAuthMiddlewareJwt(authService)
 
 	// Controllers
 	authController = controllers.NewAuthController(authService, userService)
 	userController = controllers.NewUserController(userService, emailService)
+	organizationController = controllers.NewOrganizationController(userService, emailService, organizationService)
 
 	router = gin.Default()
 	router.SetTrustedProxies([]string{"*"})
@@ -116,6 +120,7 @@ func main() {
 	basePath := router.Group("/v1")
 	authController.RegisterRoutes(basePath, authMiddleware)
 	userController.RegisterRoutes(basePath, authMiddleware)
+	organizationController.RegisterRoutes(basePath, authMiddleware)
 
 	slog.Error(router.Run(":8080").Error())
 }
