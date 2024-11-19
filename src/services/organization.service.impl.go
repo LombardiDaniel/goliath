@@ -85,8 +85,8 @@ func (s *OrganizationServicePgImpl) CreateOrganizationInvite(ctx context.Context
 				organization_id,
 				user_id,
 				is_admin,
-				invite_otp,
-				invite_exp
+				otp,
+				exp
 			)
 			VALUES ($1, $2, $3, $4, $5);
 	`
@@ -95,8 +95,8 @@ func (s *OrganizationServicePgImpl) CreateOrganizationInvite(ctx context.Context
 		invite.OrganizationId,
 		invite.UserId,
 		invite.IsAdmin,
-		invite.InviteOtp,
-		invite.InviteExp,
+		invite.Otp,
+		invite.Exp,
 	)
 	return common.FilterSqlPgError(err)
 }
@@ -110,14 +110,23 @@ func (s *OrganizationServicePgImpl) ConfirmOrganizationInvite(ctx context.Contex
 
 	var inv models.OrganizationInvite
 	err = tx.QueryRowContext(ctx, `
-		SELECT * FROM organization_invites
-		WHERE otp = $1 AND exp > NOW();
+		SELECT
+			organization_id,
+			user_id,
+			is_admin,
+			otp,
+			exp
+		FROM
+			organization_invites
+		WHERE
+			otp = $1 AND
+			exp > NOW();
 	`, otp).Scan(
 		&inv.OrganizationId,
 		&inv.UserId,
 		&inv.IsAdmin,
-		&inv.InviteOtp,
-		&inv.InviteExp,
+		&inv.Otp,
+		&inv.Exp,
 	)
 	if err != nil {
 		return err

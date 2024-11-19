@@ -21,6 +21,6 @@ type OrganizationInvite struct {
 	OrganizationId string     `json:"organizationId" binding:"required,min=1"`
 	UserId         uint32     `json:"userId" binding:"required"`
 	IsAdmin        bool       `json:"isAdmin" biding:"required"`
-	InviteOtp      *string    `json:"inviteOtp,omitempty"`
-	InviteExp      *time.Time `json:"inviteExp,omitempty"`
+	Otp            *string    `json:"otp,omitempty"`
+	Exp            *time.Time `json:"exp,omitempty"`
 }

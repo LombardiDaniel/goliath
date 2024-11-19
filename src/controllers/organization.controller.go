@@ -144,8 +144,8 @@ func (c *OrganizationController) InviteToOrg(ctx *gin.Context) {
 		OrganizationId: *currUser.OrganizationId,
 		UserId:         user.UserId,
 		IsAdmin:        createInv.IsAdmin,
-		InviteOtp:      &otp,
-		InviteExp:      &invExp,
+		Otp:            &otp,
+		Exp:            &invExp,
 	})
 	if err != nil {
 		slog.Error(err.Error())
@@ -153,7 +153,7 @@ func (c *OrganizationController) InviteToOrg(ctx *gin.Context) {
 		return
 	}
 
-	err = c.emailService.SendOrganizationInvite(user.FirstName, user.Email, *currUser.OrganizationId, org.OrganizationName)
+	err = c.emailService.SendOrganizationInvite(user.FirstName, user.Email, otp, org.OrganizationName)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")

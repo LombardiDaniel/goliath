@@ -50,7 +50,8 @@ func (s *UserServicePgImpl) CreateUnconfirmedUser(ctx context.Context, unconfirm
 
 	var userId uint32
 	err = tx.QueryRowContext(ctx, `
-			SELECT user_id FROM users WHERE email = $1
+			SELECT user_id
+			FROM users WHERE email = $1
 		`,
 		unconfirmedUser.Email,
 	).Scan(&userId)
@@ -98,7 +99,15 @@ func (s *UserServicePgImpl) ConfirmUser(ctx context.Context, otp string) error {
 
 	unconfirmedUser := models.UnconfirmedUser{}
 	err = s.db.QueryRowContext(ctx, `
-			SELECT * FROM unconfirmed_users WHERE otp = $1
+			SELECT
+				email,
+				otp,
+				password_hash,
+				first_name,
+				last_name,
+				date_of_birth
+			FROM
+				unconfirmed_users WHERE otp = $1
 		`, otp).Scan(
 		&unconfirmedUser.Email,
 		&unconfirmedUser.Otp,
