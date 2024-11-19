@@ -11,7 +11,7 @@ type CreateOrganization struct {
 }
 
 type CreateOrganizationInvite struct {
-	OrganizationId string `json:"organizationId" binding:"required,min=1"`
-	UserId         uint32 `json:"userId" binding:"required"`
-	IsAdmin        bool   `json:"isAdmin" biding:"required"`
+	// UserId  uint32 `json:"userId" binding:"required"`
+	UserEmail string `json:"userEmail" binding:"required"`
+	IsAdmin   bool   `json:"isAdmin" biding:"required"`
 }

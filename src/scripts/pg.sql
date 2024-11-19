@@ -62,8 +62,22 @@ CREATE TABLE organization_invites (
     organization_id CHAR(5) REFERENCES organizations (organization_id) NOT NULL,
     user_id INT REFERENCES users (user_id) NOT NULL,
     is_admin BOOLEAN NOT NULL DEFAULT false,
-    invite_otp VARCHAR(255) NOT NULL,
-    invite_exp TIMESTAMP
+    otp VARCHAR(255) NOT NULL UNIQUE,
+    exp TIMESTAMP
 );
+
+CREATE FUNCTION delete_expired_invites()
+RETURNS TRIGGER AS $$
+BEGIN
+    DELETE FROM organization_invites
+    WHERE exp < NOW();
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER delete_expired_org_invites
+AFTER INSERT ON organization_invites
+FOR EACH STATEMENT EXECUTE FUNCTION delete_expired_invites();
 
 COMMIT;

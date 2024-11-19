@@ -57,7 +57,7 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	otp, err := common.GenerateRandomString(128)
+	otp, err := common.GenerateRandomString(common.OTP_LEN)
 	if err != nil {
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return

@@ -100,3 +100,48 @@ func (s *OrganizationServicePgImpl) CreateOrganizationInvite(ctx context.Context
 	)
 	return common.FilterSqlPgError(err)
 }
+
+func (s *OrganizationServicePgImpl) ConfirmOrganizationInvite(ctx context.Context, otp string) error {
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	var inv models.OrganizationInvite
+	err = tx.QueryRowContext(ctx, `
+		SELECT * FROM organization_invites
+		WHERE otp = $1 AND exp > NOW();
+	`, otp).Scan(
+		&inv.OrganizationId,
+		&inv.UserId,
+		&inv.IsAdmin,
+		&inv.InviteOtp,
+		&inv.InviteExp,
+	)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, `
+		INSERT INTO organizations_users (organization_id, user_id, is_admin)
+		VALUES ($1, $2, $3);
+	`,
+		inv.OrganizationId,
+		inv.UserId,
+		inv.IsAdmin,
+	)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, `
+		DELETE FROM organization_invites
+		WHERE otp = $1;
+	`, otp)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}

@@ -5,7 +5,7 @@ import "time"
 type Organization struct {
 	OrganizationId   string     `json:"organizationId" binding:"required,min=1"`
 	OrganizationName string     `json:"organizationName" binding:"required,min=1"`
-	BillingPlanId    uint32     `json:"billingPlanId" binding:"required"`
+	BillingPlanId    *uint32    `json:"billingPlanId" binding:"required"`
 	CreatedAt        time.Time  `json:"createdAt" binding:"required"`
 	DeletedAt        *time.Time `json:"deletedAt,omitempty"`
 	OwnerUserId      *uint32    `json:"ownerUserId,omitempty"`

@@ -172,6 +172,41 @@ func (s *UserServicePgImpl) GetUser(ctx context.Context, email string) (models.U
 	return user, nil
 }
 
+func (s *UserServicePgImpl) GetUserFromId(ctx context.Context, id uint32) (models.User, error) {
+	query := `
+		SELECT
+			user_id,
+			email,
+			password_hash,
+			first_name,
+			last_name,
+			date_of_birth,
+			created_at,
+			updated_at,
+			is_active
+		FROM users WHERE user_id = $1
+	`
+
+	user := models.User{}
+
+	err := s.db.QueryRowContext(ctx, query, id).Scan(
+		&user.UserId,
+		&user.Email,
+		&user.PasswordHash,
+		&user.FirstName,
+		&user.LastName,
+		&user.DateOfBirth,
+		&user.LastLogin,
+		&user.CreatedAt,
+		&user.IsActive,
+	)
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
 func (s *UserServicePgImpl) GetUsers(ctx context.Context) ([]models.User, error) {
 	return nil, nil
 }

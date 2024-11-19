@@ -9,6 +9,8 @@ const (
 	TIMESTAMP_STR_FORMAT       string = time.RFC3339
 	GIN_CTX_JWT_CLAIM_KEY_NAME string = "jwtClaims"
 	JWT_TIMEOUT_SECS           int64  = 30 * 60
+	OTP_LEN                    int    = 128
+	ORG_INVITE_TIMEOUT_DAYS    int    = 15
 )
 
 var (

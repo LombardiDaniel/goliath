@@ -3,6 +3,7 @@ package controllers
 import (
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/LombardiDaniel/go-gin-template/common"
 	"github.com/LombardiDaniel/go-gin-template/middlewares"
@@ -87,16 +88,111 @@ func (c *OrganizationController) CreateOrganization(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, schemas.IdString{Id: orgId})
 }
 
-// @Summary TestAuth
+// @Summary InviteToOrg
 // @Tags Organization
+// @Description Invite User to Org
+// @Consume application/json
+// @Accept json
 // @Produce plain
-// @Param orgId path string true "orgId"
+// @Param	orgId 		path string true "Organization Id"
+// @Param   payload 	body 		schemas.CreateOrganizationInvite true "invite json"
 // @Success 200 		{string} 	OKResponse "OK"
 // @Failure 400 		{string} 	ErrorResponse "Bad Request"
 // @Failure 409 		{string} 	ErrorResponse "Conflict"
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
-// @Router /v1/organizations/{orgId}/test-auth [GET]
-func (c *OrganizationController) TestAuth(ctx *gin.Context) {
+// @Router /v1/organizations/{orgId}/invite [PUT]
+func (c *OrganizationController) InviteToOrg(ctx *gin.Context) {
+	rCtx := ctx.Request.Context()
+	var createInv schemas.CreateOrganizationInvite
+
+	if err := ctx.ShouldBind(&createInv); err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	currUser, err := common.GetClaimsFromGinCtx(ctx)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	otp, err := common.GenerateRandomString(common.OTP_LEN)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	user, err := c.userService.GetUser(rCtx, createInv.UserEmail)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	org, err := c.orgService.GetOrganization(rCtx, *currUser.OrganizationId)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	invExp := time.Now().Add(24 * time.Hour * time.Duration(common.ORG_INVITE_TIMEOUT_DAYS))
+	err = c.orgService.CreateOrganizationInvite(rCtx, models.OrganizationInvite{
+		OrganizationId: *currUser.OrganizationId,
+		UserId:         user.UserId,
+		IsAdmin:        createInv.IsAdmin,
+		InviteOtp:      &otp,
+		InviteExp:      &invExp,
+	})
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	err = c.emailService.SendOrganizationInvite(user.FirstName, user.Email, *currUser.OrganizationId, org.OrganizationName)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	ctx.String(http.StatusOK, "OK")
+}
+
+// @Summary AcceptOrgInvite
+// @Tags Organization
+// @Description Accepts the Organization Invite
+// @Consume application/json
+// @Accept json
+// @Produce plain
+// @Param   otp 		query 		string true "OneTimePass sent in email"
+// @Success 200 		{string} 	OKResponse "OK"
+// @Failure 400 		{string} 	ErrorResponse "Bad Request"
+// @Failure 409 		{string} 	ErrorResponse "Conflict"
+// @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
+// @Router /v1/organizations/accept-invite [GET]
+func (c *OrganizationController) AcceptOrgInvite(ctx *gin.Context) {
+	rCtx := ctx.Request.Context()
+	otp := ctx.Query("otp")
+
+	// currUser, err := common.GetClaimsFromGinCtx(ctx)
+	// if err != nil {
+	// 	slog.Error(err.Error())
+	// 	ctx.String(http.StatusBadGateway, "BadGateway")
+	// 	return
+	// }
+
+	err := c.orgService.ConfirmOrganizationInvite(rCtx, otp)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
 	ctx.String(http.StatusOK, "OK")
 }
 
@@ -104,5 +200,6 @@ func (c *OrganizationController) RegisterRoutes(rg *gin.RouterGroup, authMiddlew
 	r := rg.Group("/organizations")
 
 	r.PUT("", authMiddleware.AuthorizeUser(), c.CreateOrganization)
-	r.GET("/:orgId/test-auth", authMiddleware.AuthorizeOrganization(true), c.TestAuth)
+	r.PUT("/:orgId/invite", authMiddleware.AuthorizeOrganization(true), c.InviteToOrg)
+	r.GET("/accept-invite", c.AcceptOrgInvite)
 }
