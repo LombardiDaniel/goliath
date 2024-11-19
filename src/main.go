@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	// _ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 
 	"github.com/LombardiDaniel/go-gin-template/common"
@@ -48,6 +49,7 @@ func init() {
 	common.InitSlogger()
 
 	pgConnStr := common.GetEnvVarDefault("POSTGRES_URI", "postgres://user:password@localhost:5432/db?sslmode=disable")
+	// mysqlConnStr := common.GetEnvVarDefault("MYSQL_URI", "user:password@tcp(127.0.0.1:3306)/db")
 
 	db, err = sql.Open("postgres", pgConnStr)
 	if err != nil {

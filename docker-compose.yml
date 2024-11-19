@@ -33,6 +33,20 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  # db:
+  #   image: mysql
+  #   environment:
+  #     MYSQL_USER: user
+  #     MYSQL_PASSWORD: password
+  #     MYSQL_ROOT_PASSWORD: password
+  #     MYSQL_DATABASE: db
+  #   ports:
+  #     - 3306:3306
+  #   expose:
+  #     - 3306
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+
   adminer:
     image: adminer
     ports:
@@ -40,3 +54,4 @@ services:
 
 volumes:
   postgres_data:
+  mysql_data:

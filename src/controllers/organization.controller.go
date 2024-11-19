@@ -37,7 +37,7 @@ func NewOrganizationController(
 // @Accept json
 // @Produce plain
 // @Param   payload 	body 		schemas.CreateOrganization true "org json"
-// @Success 200 		{string} 	OKResponse "OK"
+// @Success 200 		{object} 	schemas.IdString
 // @Failure 400 		{string} 	ErrorResponse "Bad Request"
 // @Failure 409 		{string} 	ErrorResponse "Conflict"
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
@@ -65,8 +65,10 @@ func (c *OrganizationController) CreateOrganization(ctx *gin.Context) {
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
 	}
+
+	orgId = orgId[:5] // cut to 5 (size of field)
 	org := models.Organization{
-		OrganizationId:   orgId[:5], // cut to 5 (size of field)
+		OrganizationId:   orgId,
 		OrganizationName: createOrg.OrganizationName,
 		OwnerUserId:      &user.UserId,
 	}
@@ -82,7 +84,7 @@ func (c *OrganizationController) CreateOrganization(ctx *gin.Context) {
 		return
 	}
 
-	ctx.String(http.StatusOK, "OK")
+	ctx.JSON(http.StatusOK, schemas.IdString{Id: orgId})
 }
 
 // @Summary TestAuth
