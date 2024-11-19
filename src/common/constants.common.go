@@ -13,7 +13,7 @@ const (
 
 var (
 	PROJECT_NAME  string = GetEnvVarDefault("PROJECT_NAME", "patos-app")
-	NOREPLY_EMAIL string = GetEnvVarDefault("NOREPLY_EMAIL", "noreply@example.com")
+	NOREPLY_EMAIL string = GetEnvVarDefault("NOREPLY_EMAIL", "no-reply@example.com")
 	APP_HOST_URL  string = GetEnvVarDefault("APP_HOST_URL", "http://localhost:8080/")
 	API_HOST_URL  string = GetEnvVarDefault("API_HOST_URL", "http://localhost:8080/")
 	COOKIE_NAME   string = PROJECT_NAME + "_jwt"

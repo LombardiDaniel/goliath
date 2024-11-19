@@ -14,7 +14,7 @@ services:
   #     POSTGRES_URI: postgres://user:password@db:5432/db?sslmode=disable
   #     JWT_SECRET_KEY: jw_secret_key
   #     RESEND_API_KEY: re_123456
-  #     NOREPLY_EMAIL: noreply@example.com
+  #     NOREPLY_EMAIL: no-reply@example.com
   #     API_HOST_URL: https://api.example.com/
   #     APP_HOST_URL: https://app.example.com/
   #     PROJECT_NAME: example-app
