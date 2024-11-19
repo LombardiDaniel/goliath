@@ -73,15 +73,21 @@ func (s *EmailServiceResendImpl) SendAccountCreated(name string, email string) e
 	return err
 }
 
-func (s *EmailServiceResendImpl) SendOrganizationInvite(name string, email string, orgId string, orgName string) error {
+func (s *EmailServiceResendImpl) SendOrganizationInvite(name string, email string, otp string, orgName string) error {
+
+	acceptUrl, err := url.JoinPath(common.API_HOST_URL, "/v1/organizations/accept-invite")
+	if err != nil {
+		return err
+	}
+
 	params := &resend.SendEmailRequest{
 		From:    common.NOREPLY_EMAIL,
 		To:      []string{email},
 		Subject: "Organization Invite",
-		Html:    "<p>Congrats on sending your <strong>" + name + orgId + orgName + "</strong>!</p>",
+		Html:    "<p>" + name + " Congrats on " + orgName + " sending your <strong> " + acceptUrl + "?otp=" + otp + " </strong>!</p>",
 	}
 
-	_, err := s.resendClient.Emails.Send(params)
+	_, err = s.resendClient.Emails.Send(params)
 
 	return err
 }
