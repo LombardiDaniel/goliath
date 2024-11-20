@@ -16,6 +16,7 @@ type EmailServiceResendImpl struct {
 	accountConfirmationTemplate *template.Template
 	accountCreationTemplate     *template.Template
 	organizationInviteTemplate  *template.Template
+	passwordResetTemplate       *template.Template
 }
 
 func NewEmailServiceResendImpl(resendApiKey string, templatesDir string) EmailService {
@@ -24,6 +25,7 @@ func NewEmailServiceResendImpl(resendApiKey string, templatesDir string) EmailSe
 		accountConfirmationTemplate: common.LoadHTMLTemplate(filepath.Join(templatesDir, "account-confirmation.html")),
 		accountCreationTemplate:     common.LoadHTMLTemplate(filepath.Join(templatesDir, "account-created.html")),
 		organizationInviteTemplate:  common.LoadHTMLTemplate(filepath.Join(templatesDir, "organization-invite.html")),
+		passwordResetTemplate:       common.LoadHTMLTemplate(filepath.Join(templatesDir, "password-reset.html")),
 	}
 }
 
@@ -102,7 +104,7 @@ func (s *EmailServiceResendImpl) SendPasswordReset(email string, otp string) err
 	params := &resend.SendEmailRequest{
 		From:    common.NOREPLY_EMAIL,
 		To:      []string{email},
-		Subject: "Organization Invite",
+		Subject: "Password Reset",
 		Html:    "<p>Congrats on sending your <strong> " + acceptUrl + "?otp=" + otp + " </strong>!</p>",
 	}
 
