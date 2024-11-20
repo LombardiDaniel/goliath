@@ -87,7 +87,7 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	err = c.emailService.SendAccountConfirmation(unconfirmedUser.FirstName+" "+unconfirmedUser.LastName, unconfirmedUser.Email, unconfirmedUser.Otp)
+	err = c.emailService.SendEmailConfirmation(unconfirmedUser.FirstName+" "+unconfirmedUser.LastName, unconfirmedUser.Email, unconfirmedUser.Otp)
 	if err != nil {
 		slog.Error(fmt.Sprintf("Error while sending email '%s': '%s'", unconfirmedUser.Email, err.Error()))
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -195,7 +195,7 @@ func (c *UserController) InitResetPassword(ctx *gin.Context) {
 		return
 	}
 
-	err = c.emailService.SendPasswordReset(email.Email, otp)
+	err = c.emailService.SendPasswordReset(user.FirstName, email.Email, otp)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadRequest, err.Error())

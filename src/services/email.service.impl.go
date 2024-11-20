@@ -30,11 +30,12 @@ func NewEmailServiceResendImpl(resendApiKey string, templatesDir string) EmailSe
 }
 
 type htmlConfirmationVars struct {
-	Name            string
-	ConfirmationUrl string
+	ProjectName string
+	FirstName   string
+	OtpUrl      string
 }
 
-func (s *EmailServiceResendImpl) SendAccountConfirmation(name string, email string, otp string) error {
+func (s *EmailServiceResendImpl) SendEmailConfirmation(email string, name string, otp string) error {
 
 	body := new(bytes.Buffer)
 	confirmUrl, err := url.JoinPath(common.API_HOST_URL, "/v1/users/confirm")
@@ -42,8 +43,9 @@ func (s *EmailServiceResendImpl) SendAccountConfirmation(name string, email stri
 		return err
 	}
 	err = s.accountConfirmationTemplate.Execute(body, htmlConfirmationVars{
-		Name:            name,
-		ConfirmationUrl: confirmUrl + "?otp=" + otp,
+		ProjectName: common.PROJECT_NAME,
+		FirstName:   name,
+		OtpUrl:      confirmUrl + "?otp=" + otp,
 	})
 	if err != nil {
 		slog.Error(err.Error())
@@ -62,31 +64,26 @@ func (s *EmailServiceResendImpl) SendAccountConfirmation(name string, email stri
 	return err
 }
 
-func (s *EmailServiceResendImpl) SendAccountCreated(name string, email string) error {
-	params := &resend.SendEmailRequest{
-		From:    common.NOREPLY_EMAIL,
-		To:      []string{email},
-		Subject: "Account Created!",
-		Html:    "<p>Congrats on sending your <strong>" + name + "</strong>!</p>",
-	}
-
-	_, err := s.resendClient.Emails.Send(params)
-
-	return err
+type htmlAccountCreatedVars struct {
+	FirstName string
 }
 
-func (s *EmailServiceResendImpl) SendOrganizationInvite(name string, email string, otp string, orgName string) error {
+func (s *EmailServiceResendImpl) SendAccountCreated(email string, name string) error {
 
-	acceptUrl, err := url.JoinPath(common.API_HOST_URL, "/v1/organizations/accept-invite")
+	body := new(bytes.Buffer)
+	err := s.accountConfirmationTemplate.Execute(body, htmlAccountCreatedVars{
+		FirstName: name,
+	})
 	if err != nil {
+		slog.Error(err.Error())
 		return err
 	}
 
 	params := &resend.SendEmailRequest{
 		From:    common.NOREPLY_EMAIL,
 		To:      []string{email},
-		Subject: "Organization Invite",
-		Html:    "<p>" + name + " Congrats on " + orgName + " sending your <strong> " + acceptUrl + "?otp=" + otp + " </strong>!</p>",
+		Subject: "Account Created!",
+		Html:    body.String(),
 	}
 
 	_, err = s.resendClient.Emails.Send(params)
@@ -94,10 +91,63 @@ func (s *EmailServiceResendImpl) SendOrganizationInvite(name string, email strin
 	return err
 }
 
-func (s *EmailServiceResendImpl) SendPasswordReset(email string, otp string) error {
+type htmlOrgInviteVars struct {
+	ProjectName      string
+	OrganizationName string
+	FirstName        string
+	OtpUrl           string
+}
 
-	acceptUrl, err := url.JoinPath(common.API_HOST_URL, "/v1/users/set-password-reset-cookie")
+func (s *EmailServiceResendImpl) SendOrganizationInvite(email string, name string, otp string, orgName string) error {
+
+	acceptUrl, err := url.JoinPath(common.API_HOST_URL, "/v1/organizations/accept-invite")
 	if err != nil {
+		return err
+	}
+	body := new(bytes.Buffer)
+	err = s.accountConfirmationTemplate.Execute(body, htmlOrgInviteVars{
+		ProjectName:      common.PROJECT_NAME,
+		OrganizationName: orgName,
+		FirstName:        name,
+		OtpUrl:           acceptUrl,
+	})
+	if err != nil {
+		slog.Error(err.Error())
+		return err
+	}
+
+	params := &resend.SendEmailRequest{
+		From:    common.NOREPLY_EMAIL,
+		To:      []string{email},
+		Subject: "Organization Invite",
+		Html:    body.String(),
+	}
+
+	_, err = s.resendClient.Emails.Send(params)
+
+	return err
+}
+
+type htmlPwResetVars struct {
+	ProjectName string
+	FirstName   string
+	OtpUrl      string
+}
+
+func (s *EmailServiceResendImpl) SendPasswordReset(email string, name string, otp string) error {
+
+	resetUrl, err := url.JoinPath(common.API_HOST_URL, "/v1/users/set-password-reset-cookie")
+	if err != nil {
+		return err
+	}
+	body := new(bytes.Buffer)
+	err = s.accountConfirmationTemplate.Execute(body, htmlPwResetVars{
+		ProjectName: common.PROJECT_NAME,
+		FirstName:   name,
+		OtpUrl:      resetUrl,
+	})
+	if err != nil {
+		slog.Error(err.Error())
 		return err
 	}
 
@@ -105,7 +155,7 @@ func (s *EmailServiceResendImpl) SendPasswordReset(email string, otp string) err
 		From:    common.NOREPLY_EMAIL,
 		To:      []string{email},
 		Subject: "Password Reset",
-		Html:    "<p>Congrats on sending your <strong> " + acceptUrl + "?otp=" + otp + " </strong>!</p>",
+		Html:    body.String(),
 	}
 
 	_, err = s.resendClient.Emails.Send(params)

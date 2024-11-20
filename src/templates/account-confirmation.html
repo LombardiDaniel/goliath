@@ -19,7 +19,7 @@
         box-shadow: 8px 8px 0 #000000;
       }
       .header {
-        background-color: #ff6b6b;
+        background-color: #feb735;
         color: #000000;
         padding: 20px;
         text-align: center;
@@ -34,7 +34,7 @@
       }
       .button {
         display: inline-block;
-        background-color: #4ecdc4;
+        background-color: #feb735;
         color: #000000;
         padding: 15px 30px;
         text-decoration: none;
@@ -44,7 +44,7 @@
         margin-top: 20px;
       }
       .footer {
-        background-color: #ffe66d;
+        background-color: #f9ffd9;
         color: #000000;
         padding: 20px;
         text-align: center;
@@ -54,20 +54,20 @@
   </head>
   <body>
     <div class="container">
-      <div class="header">Confirme sua conta - Quack!</div>
+      <div class="header">Confirme seu email - Quack!</div>
       <div class="content">
-        <p>Olá {{ .Name }},</p>
+        <p>Olá {{ .FirstName }},</p>
         <p>
-          Thank you for signing up! We're excited to have you on board. To get
-          started, please confirm your account by clicking the button below:
+          Obrigado por se inscrever no {{.ProjectName}}! Estamos animados que
+          está aqui. Para começar, confirme sua conta clicando no botão abaixo:
         </p>
         <p style="text-align: center">
-          <a href="{{ .ConfirmationUrl }}" class="button">Confirm Account</a>
+          <a href="{{ .OtpUrl }}" class="button">Confirmar Email</a>
         </p>
         <p>
-          If you didn't create an account, you can safely ignore this email.
+          Se você não se lebra de criar uma conta, apenas ignore este email.
         </p>
-        <p>Abraços,<br />time do patos.dev</p>
+        <p>Abraços,<br />Time do patos.dev</p>
       </div>
       <div class="footer">&copy; 2023 PATOS. All rights reserved.</div>
     </div>
