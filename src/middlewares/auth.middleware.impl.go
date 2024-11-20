@@ -25,7 +25,7 @@ func NewAuthMiddlewareJwt(authService services.AuthService) AuthMiddleware {
 // allows use of JWT in cookie
 func (m *AuthMiddlewareJwt) AuthorizeUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenStr, err := c.Cookie(common.COOKIE_NAME)
+		tokenStr, err := c.Cookie(common.JWT_COOKIE_NAME)
 		if err != nil && err != http.ErrNoCookie {
 			c.String(http.StatusUnauthorized, "Unauthorized")
 			common.ClearAuthCookie(c)
@@ -68,7 +68,7 @@ func (m *AuthMiddlewareJwt) AuthorizeUser() gin.HandlerFunc {
 
 func (m *AuthMiddlewareJwt) AuthorizeOrganization(needAdmin bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenStr, err := c.Cookie(common.COOKIE_NAME)
+		tokenStr, err := c.Cookie(common.JWT_COOKIE_NAME)
 		if err != nil && err != http.ErrNoCookie {
 			c.String(http.StatusUnauthorized, "Unauthorized")
 			common.ClearAuthCookie(c)

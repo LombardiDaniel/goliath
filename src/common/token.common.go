@@ -14,7 +14,7 @@ func GetJwtHeaderOrCookie(c *gin.Context) (string, error) {
 	authHeader := c.GetHeader("Authorization")
 
 	tokenHeaderStr := authHeader[len(BEARER_SCHEMA):]
-	tokenCookieStr, err := c.Cookie(COOKIE_NAME)
+	tokenCookieStr, err := c.Cookie(JWT_COOKIE_NAME)
 	if err != nil && err != http.ErrNoCookie {
 		slog.Error(err.Error())
 	}

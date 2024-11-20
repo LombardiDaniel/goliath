@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"github.com/golang-jwt/jwt"
 )
 
@@ -26,4 +28,17 @@ type JwtClaimsOutput struct {
 	Issuer    string `json:"iss"`
 	NotBefore int64  `json:"nbf"`
 	Subject   string `json:"sub"`
+}
+
+type PasswordReset struct {
+	UserId uint32
+	Otp    string
+	Exp    time.Time
+}
+
+type JwtPasswordResetClaims struct {
+	UserId  uint32 `json:"userId" binding:"required"`
+	Allowed bool   `json:"allowrd" binding:"required"`
+
+	jwt.StandardClaims
 }

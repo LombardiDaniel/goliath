@@ -15,17 +15,20 @@ import (
 )
 
 type AuthController struct {
-	authService services.AuthService
-	userService services.UserService
+	authService  services.AuthService
+	userService  services.UserService
+	emailService services.EmailService
 }
 
 func NewAuthController(
 	authService services.AuthService,
 	userService services.UserService,
+	emailService services.EmailService,
 ) AuthController {
 	return AuthController{
-		authService: authService,
-		userService: userService,
+		authService:  authService,
+		userService:  userService,
+		emailService: emailService,
 	}
 }
 

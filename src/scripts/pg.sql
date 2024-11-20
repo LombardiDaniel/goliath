@@ -7,8 +7,8 @@ CREATE TABLE users (
     first_name VARCHAR(50),
     last_name VARCHAR(50),
     date_of_birth DATE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
     is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 CREATE UNIQUE INDEX users_email_idx ON users (email);
@@ -17,7 +17,7 @@ CREATE UNIQUE INDEX users_email_idx ON users (email);
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.updated_at := CURRENT_TIMESTAMP;
+    NEW.updated_at := NOW();
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -42,7 +42,7 @@ CREATE TABLE organizations (
     organization_id CHAR(5) PRIMARY KEY,
     organization_name VARCHAR(100) NOT NULL,
     billing_plan_id INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
     deleted_at TIMESTAMP,
     owner_user_id INT NOT NULL,
     FOREIGN KEY (owner_user_id) REFERENCES users (user_id)
@@ -79,5 +79,27 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER delete_expired_org_invites
 AFTER INSERT ON organization_invites
 FOR EACH STATEMENT EXECUTE FUNCTION delete_expired_invites();
+
+-- password_resets
+CREATE TABLE password_resets (
+    user_id INT REFERENCES users (user_id) NOT NULL,
+    otp VARCHAR(255) NOT NULL UNIQUE,
+    exp TIMESTAMP NOT NULL
+);
+
+CREATE FUNCTION delete_expired_resets()
+RETURNS TRIGGER AS $$
+BEGIN
+    DELETE FROM password_resets
+    WHERE exp < NOW();
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER delete_expired_password_resets
+AFTER INSERT ON password_resets
+FOR EACH STATEMENT EXECUTE FUNCTION delete_expired_resets();
+
 
 COMMIT;

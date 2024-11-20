@@ -32,6 +32,7 @@ func NewOrganizationController(
 }
 
 // @Summary CreateOrganization
+// @Security JWT
 // @Tags Organization
 // @Description Creates an Organization
 // @Consume application/json
@@ -89,6 +90,7 @@ func (c *OrganizationController) CreateOrganization(ctx *gin.Context) {
 }
 
 // @Summary InviteToOrg
+// @Security JWT
 // @Tags Organization
 // @Description Invite User to Org
 // @Consume application/json
@@ -197,9 +199,9 @@ func (c *OrganizationController) AcceptOrgInvite(ctx *gin.Context) {
 }
 
 func (c *OrganizationController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware) {
-	r := rg.Group("/organizations")
+	g := rg.Group("/organizations")
 
-	r.PUT("", authMiddleware.AuthorizeUser(), c.CreateOrganization)
-	r.PUT("/:orgId/invite", authMiddleware.AuthorizeOrganization(true), c.InviteToOrg)
-	r.GET("/accept-invite", c.AcceptOrgInvite)
+	g.PUT("", authMiddleware.AuthorizeUser(), c.CreateOrganization)
+	g.PUT("/:orgId/invite", authMiddleware.AuthorizeOrganization(true), c.InviteToOrg)
+	g.GET("/accept-invite", c.AcceptOrgInvite)
 }

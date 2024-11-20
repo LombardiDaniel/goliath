@@ -91,3 +91,22 @@ func (s *EmailServiceResendImpl) SendOrganizationInvite(name string, email strin
 
 	return err
 }
+
+func (s *EmailServiceResendImpl) SendPasswordReset(email string, otp string) error {
+
+	acceptUrl, err := url.JoinPath(common.API_HOST_URL, "/v1/users/set-password-reset-cookie")
+	if err != nil {
+		return err
+	}
+
+	params := &resend.SendEmailRequest{
+		From:    common.NOREPLY_EMAIL,
+		To:      []string{email},
+		Subject: "Organization Invite",
+		Html:    "<p>Congrats on sending your <strong> " + acceptUrl + "?otp=" + otp + " </strong>!</p>",
+	}
+
+	_, err = s.resendClient.Emails.Send(params)
+
+	return err
+}

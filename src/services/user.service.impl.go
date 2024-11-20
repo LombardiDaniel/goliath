@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/LombardiDaniel/go-gin-template/common"
 	"github.com/LombardiDaniel/go-gin-template/models"
@@ -22,7 +23,7 @@ func NewUserServicePgImpl(db *sql.DB) UserService {
 func (s *UserServicePgImpl) CreateUser(ctx context.Context, user models.User) error {
 	query := `
 		INSERT INTO users (email, password_hash, first_name, last_name, date_of_birth)
-		VALUES ($1, $2, $3, $4, $5)
+		VALUES ($1, $2, $3, $4, $5);
 	`
 
 	err := s.db.QueryRowContext(ctx, query,
@@ -51,7 +52,7 @@ func (s *UserServicePgImpl) CreateUnconfirmedUser(ctx context.Context, unconfirm
 	var userId uint32
 	err = tx.QueryRowContext(ctx, `
 			SELECT user_id
-			FROM users WHERE email = $1
+			FROM users WHERE email = $1;
 		`,
 		unconfirmedUser.Email,
 	).Scan(&userId)
@@ -251,4 +252,69 @@ func (s *UserServicePgImpl) GetUserOrgs(ctx context.Context, userId uint32) ([]s
 	}
 
 	return orgs, nil
+}
+
+func (s *UserServicePgImpl) InitPasswordReset(ctx context.Context, userId uint32, otp string) error {
+	query := `
+		INSERT INTO password_resets (user_id, otp, exp)
+		VALUES ($1, $2, $3);
+	`
+
+	_, err := s.db.ExecContext(ctx, query,
+		userId,
+		otp,
+		time.Now().Add(24*time.Hour*time.Duration(common.PASSWORD_RESET_TIMEOUT_DAYS)),
+	)
+
+	return err
+}
+
+func (s *UserServicePgImpl) GetPasswordReset(ctx context.Context, otp string) (models.PasswordReset, error) {
+	query := `
+		SELECT user_id, otp, exp
+		FROM password_resets
+		WHERE otp = $1 AND exp > NOW();
+	`
+	var passReset models.PasswordReset
+
+	err := s.db.QueryRowContext(ctx, query, otp).Scan(
+		&passReset.UserId,
+		&passReset.Otp,
+		&passReset.Exp,
+	)
+
+	return passReset, err
+}
+
+func (s *UserServicePgImpl) UpdateUserPassword(ctx context.Context, userId uint32, pw string) error {
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback()
+
+	pwHash, err := common.HashPassword(pw)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, `
+		UPDATE users
+		SET password_hash = $1
+		WHERE user_id = $2;
+	`, pwHash, userId)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, `
+		DELETE FROM password_resets
+		WHERE user_id = $1;
+	`, userId)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }

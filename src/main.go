@@ -62,7 +62,7 @@ func init() {
 	}
 
 	// Services
-	authService = services.NewAuthServiceJwtImpl(os.Getenv("JWT_SECRET_KEY"))
+	authService = services.NewAuthServiceJwtImpl(os.Getenv("JWT_SECRET_KEY"), db)
 	userService = services.NewUserServicePgImpl(db)
 	emailService = services.NewEmailServiceResendImpl(os.Getenv("RESEND_API_KEY"), "./templates")
 	organizationService = services.NewOrganizationServicePgImpl(db)
@@ -71,8 +71,8 @@ func init() {
 	authMiddleware = middlewares.NewAuthMiddlewareJwt(authService)
 
 	// Controllers
-	authController = controllers.NewAuthController(authService, userService)
-	userController = controllers.NewUserController(userService, emailService)
+	authController = controllers.NewAuthController(authService, userService, emailService)
+	userController = controllers.NewUserController(authService, userService, emailService)
 	organizationController = controllers.NewOrganizationController(userService, emailService, organizationService)
 
 	router = gin.Default()
