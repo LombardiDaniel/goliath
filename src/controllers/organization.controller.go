@@ -155,7 +155,7 @@ func (c *OrganizationController) InviteToOrg(ctx *gin.Context) {
 		return
 	}
 
-	err = c.emailService.SendOrganizationInvite(user.FirstName, user.Email, otp, org.OrganizationName)
+	err = c.emailService.SendOrganizationInvite(user.Email, user.FirstName, otp, org.OrganizationName)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
