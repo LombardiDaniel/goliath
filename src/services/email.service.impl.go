@@ -12,20 +12,20 @@ import (
 )
 
 type EmailServiceResendImpl struct {
-	resendClient                *resend.Client
-	accountConfirmationTemplate *template.Template
-	accountCreationTemplate     *template.Template
-	organizationInviteTemplate  *template.Template
-	passwordResetTemplate       *template.Template
+	resendClient               *resend.Client
+	emailConfirmationTemplate  *template.Template
+	accountCreationTemplate    *template.Template
+	organizationInviteTemplate *template.Template
+	passwordResetTemplate      *template.Template
 }
 
 func NewEmailServiceResendImpl(resendApiKey string, templatesDir string) EmailService {
 	return &EmailServiceResendImpl{
-		resendClient:                resend.NewClient(resendApiKey),
-		accountConfirmationTemplate: common.LoadHTMLTemplate(filepath.Join(templatesDir, "account-confirmation.html")),
-		accountCreationTemplate:     common.LoadHTMLTemplate(filepath.Join(templatesDir, "account-created.html")),
-		organizationInviteTemplate:  common.LoadHTMLTemplate(filepath.Join(templatesDir, "organization-invite.html")),
-		passwordResetTemplate:       common.LoadHTMLTemplate(filepath.Join(templatesDir, "password-reset.html")),
+		resendClient:               resend.NewClient(resendApiKey),
+		emailConfirmationTemplate:  common.LoadHTMLTemplate(filepath.Join(templatesDir, "email-confirmation.html")),
+		accountCreationTemplate:    common.LoadHTMLTemplate(filepath.Join(templatesDir, "account-created.html")),
+		organizationInviteTemplate: common.LoadHTMLTemplate(filepath.Join(templatesDir, "organization-invite.html")),
+		passwordResetTemplate:      common.LoadHTMLTemplate(filepath.Join(templatesDir, "password-reset.html")),
 	}
 }
 
@@ -42,7 +42,7 @@ func (s *EmailServiceResendImpl) SendEmailConfirmation(email string, name string
 	if err != nil {
 		return err
 	}
-	err = s.accountConfirmationTemplate.Execute(body, htmlConfirmationVars{
+	err = s.emailConfirmationTemplate.Execute(body, htmlConfirmationVars{
 		ProjectName: common.PROJECT_NAME,
 		FirstName:   name,
 		OtpUrl:      confirmUrl + "?otp=" + otp,
@@ -71,7 +71,7 @@ type htmlAccountCreatedVars struct {
 func (s *EmailServiceResendImpl) SendAccountCreated(email string, name string) error {
 
 	body := new(bytes.Buffer)
-	err := s.accountConfirmationTemplate.Execute(body, htmlAccountCreatedVars{
+	err := s.accountCreationTemplate.Execute(body, htmlAccountCreatedVars{
 		FirstName: name,
 	})
 	if err != nil {
@@ -105,7 +105,7 @@ func (s *EmailServiceResendImpl) SendOrganizationInvite(email string, name strin
 		return err
 	}
 	body := new(bytes.Buffer)
-	err = s.accountConfirmationTemplate.Execute(body, htmlOrgInviteVars{
+	err = s.organizationInviteTemplate.Execute(body, htmlOrgInviteVars{
 		ProjectName:      common.PROJECT_NAME,
 		OrganizationName: orgName,
 		FirstName:        name,
@@ -141,7 +141,7 @@ func (s *EmailServiceResendImpl) SendPasswordReset(email string, name string, ot
 		return err
 	}
 	body := new(bytes.Buffer)
-	err = s.accountConfirmationTemplate.Execute(body, htmlPwResetVars{
+	err = s.passwordResetTemplate.Execute(body, htmlPwResetVars{
 		ProjectName: common.PROJECT_NAME,
 		FirstName:   name,
 		OtpUrl:      resetUrl,
