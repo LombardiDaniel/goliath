@@ -83,8 +83,6 @@ func init() {
 	corsCfg.AllowCredentials = true
 	corsCfg.AddAllowHeaders("Authorization")
 
-	fmt.Printf("len(corsCfg.AllowOrigins): %v\n", len(corsCfg.AllowOrigins))
-
 	slog.Info(fmt.Sprintf("corsCfg: %+v", corsCfg))
 
 	router.Use(cors.New(corsCfg))
