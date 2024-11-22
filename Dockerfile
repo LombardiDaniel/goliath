@@ -1,5 +1,5 @@
 #### - DEV - ####
-FROM golang:1.22.3 AS dev
+FROM golang:1.23.3 AS dev
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ RUN swag init
 CMD ["go", "run", "."]
 
 #### - TESTS - ####
-FROM golang:1.22.3 AS tester
+FROM golang:1.23.3 AS tester
 
 WORKDIR /app
 
@@ -27,7 +27,7 @@ COPY src/ ./
 CMD ["go", "test", "-v", "./..."]
 
 #### - BUILDER - ####
-FROM golang:1.22.3 AS builder
+FROM golang:1.23.3 AS builder
 
 WORKDIR /app
 
