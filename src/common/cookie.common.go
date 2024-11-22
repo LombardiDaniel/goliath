@@ -3,6 +3,7 @@ package common
 import (
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,7 +17,7 @@ var (
 func getCookieDomain() string {
 	cookieDomain := ""
 	if secure {
-		cookieDomain = API_HOST_URL
+		cookieDomain = strings.Split(API_HOST_URL, "://")[1]
 	}
 
 	return cookieDomain
