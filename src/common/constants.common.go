@@ -5,7 +5,8 @@ import (
 )
 
 const (
-	// TIMESTAMP_STR_FORMAT string = "yyyy-mm-ddThh:mm:ss"
+	// TIMESTAMP_STR_FORMAT string = "yyyy-mm-ddThh:mm:ssZhh:mm"
+	// TIMESTAMP_STR_FORMAT string = "2006-01-02T15:04:05-07:00"
 	TIMESTAMP_STR_FORMAT        string = time.RFC3339
 	GIN_CTX_JWT_CLAIM_KEY_NAME  string = "jwtClaims"
 	JWT_TIMEOUT_SECS            int    = 30 * 60

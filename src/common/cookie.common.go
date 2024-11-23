@@ -19,10 +19,9 @@ func getCookieDomain() string {
 	cookieDomain := ""
 	if secure {
 		cookieDomain = strings.Split(API_HOST_URL, "://")[1]
-	}
-
-	if cookieDomain[len(cookieDomain)-1] == '/' {
-		cookieDomain = cookieDomain[0 : len(cookieDomain)-1]
+		if cookieDomain[len(cookieDomain)-1] == '/' {
+			cookieDomain = cookieDomain[0 : len(cookieDomain)-1]
+		}
 	}
 
 	slog.Info("Cookie Domain: " + cookieDomain)
