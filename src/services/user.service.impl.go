@@ -56,7 +56,7 @@ func (s *UserServicePgImpl) CreateUnconfirmedUser(ctx context.Context, unconfirm
 		`,
 		unconfirmedUser.Email,
 	).Scan(&userId)
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		return common.FilterSqlPgError(err)
 	}
 
