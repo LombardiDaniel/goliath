@@ -56,11 +56,7 @@ func (s *UserServicePgImpl) CreateUnconfirmedUser(ctx context.Context, unconfirm
 		`,
 		unconfirmedUser.Email,
 	).Scan(&userId)
-
-	if err != sql.ErrNoRows {
-		if err == nil {
-			return common.ErrDbConflict
-		}
+	if err != nil {
 		return common.FilterSqlPgError(err)
 	}
 
@@ -118,7 +114,7 @@ func (s *UserServicePgImpl) ConfirmUser(ctx context.Context, otp string) error {
 		&unconfirmedUser.DateOfBirth,
 	)
 	if err != nil {
-		return err
+		return common.FilterSqlPgError(err)
 	}
 
 	_, err = tx.ExecContext(ctx, `
@@ -132,7 +128,7 @@ func (s *UserServicePgImpl) ConfirmUser(ctx context.Context, otp string) error {
 		unconfirmedUser.DateOfBirth,
 	)
 	if err != nil {
-		return err
+		return common.FilterSqlPgError(err)
 	}
 
 	_, err = tx.ExecContext(ctx, `
@@ -141,7 +137,7 @@ func (s *UserServicePgImpl) ConfirmUser(ctx context.Context, otp string) error {
 		unconfirmedUser.Otp,
 	)
 	if err != nil {
-		return err
+		return common.FilterSqlPgError(err)
 	}
 
 	return tx.Commit()
@@ -176,7 +172,7 @@ func (s *UserServicePgImpl) GetUser(ctx context.Context, email string) (models.U
 		&user.IsActive,
 	)
 	if err != nil {
-		return user, err
+		return user, common.FilterSqlPgError(err)
 	}
 
 	return user, nil
@@ -211,7 +207,7 @@ func (s *UserServicePgImpl) GetUserFromId(ctx context.Context, id uint32) (model
 		&user.IsActive,
 	)
 	if err != nil {
-		return user, err
+		return user, common.FilterSqlPgError(err)
 	}
 
 	return user, nil
@@ -238,7 +234,7 @@ func (s *UserServicePgImpl) GetUserOrgs(ctx context.Context, userId uint32) ([]s
 
 	rows, err := s.db.QueryContext(ctx, query, userId)
 	if err != nil {
-		return orgs, err
+		return orgs, common.FilterSqlPgError(err)
 	}
 	defer rows.Close()
 
@@ -266,7 +262,7 @@ func (s *UserServicePgImpl) InitPasswordReset(ctx context.Context, userId uint32
 		time.Now().Add(24*time.Hour*time.Duration(common.PASSWORD_RESET_TIMEOUT_DAYS)),
 	)
 
-	return err
+	return common.FilterSqlPgError(err)
 }
 
 func (s *UserServicePgImpl) GetPasswordReset(ctx context.Context, otp string) (models.PasswordReset, error) {
@@ -283,7 +279,7 @@ func (s *UserServicePgImpl) GetPasswordReset(ctx context.Context, otp string) (m
 		&passReset.Exp,
 	)
 
-	return passReset, err
+	return passReset, common.FilterSqlPgError(err)
 }
 
 func (s *UserServicePgImpl) UpdateUserPassword(ctx context.Context, userId uint32, pw string) error {

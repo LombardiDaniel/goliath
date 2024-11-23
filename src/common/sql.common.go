@@ -5,7 +5,12 @@ import (
 )
 
 const (
-	ErrUniqueConstraint string = "duplicate key value violates unique constraint"
+	errUniqueConstraint string = "duplicate key value violates unique constraint"
+	errNoRows           string = "no rows in result"
+)
+
+var (
+	conflictErrStrings []string = []string{errUniqueConstraint, errNoRows}
 )
 
 func FilterSqlPgError(err error) error {
@@ -13,8 +18,12 @@ func FilterSqlPgError(err error) error {
 		return nil
 	}
 
-	if strings.Contains(err.Error(), ErrUniqueConstraint) {
-		return ErrDbConflict
+	errStr := err.Error()
+
+	for _, v := range conflictErrStrings {
+		if strings.Contains(errStr, v) {
+			return ErrDbConflict
+		}
 	}
 
 	return err
