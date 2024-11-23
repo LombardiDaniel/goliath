@@ -100,6 +100,10 @@ func init() {
 	}
 
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.GET("/docs", func(ctx *gin.Context) {
+		ctx.Header("location", "/docs/index.html")
+		ctx.String(http.StatusMovedPermanently, "MovedPermanently")
+	})
 }
 
 // @securityDefinitions.apiKey JWT
