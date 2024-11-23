@@ -119,7 +119,7 @@ func (c *UserController) ConfirmUser(ctx *gin.Context) {
 	}
 
 	ctx.Header("location", "/")
-	ctx.String(http.StatusOK, "OK")
+	ctx.String(http.StatusCreated, "Created")
 }
 
 // @Summary GetUserOrgs
@@ -236,7 +236,7 @@ func (c *UserController) SetPasswordResetCookie(ctx *gin.Context) {
 	common.SetCookieForApp(ctx, common.PASSWORD_RESET_TIMEOUT_JWT_COOKIE_NAME, tokenStr)
 
 	ctx.Header("location", "/reset-password") // Sets on browser
-	ctx.String(http.StatusOK, "OK")
+	ctx.String(http.StatusCreated, "Created")
 }
 
 // @Summary ResetPassword
