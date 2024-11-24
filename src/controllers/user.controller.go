@@ -285,6 +285,44 @@ func (c *UserController) ResetPassword(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "OK")
 }
 
+// @Summary EditUser
+// @Tags User
+// @Description Edits User Info
+// @Consume application/json
+// @Accept json
+// @Produce plain
+// @Param   payload 	body 		schemas.EditUser true "editUser json"
+// @Success 200 		{string} 	OKResponse "OK"
+// @Failure 400 		{string} 	ErrorResponse "Bad Request"
+// @Failure 409 		{string} 	ErrorResponse "Conflict"
+// @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
+// @Router /v1/users/edit [POST]
+func (c *UserController) EditUser(ctx *gin.Context) {
+	rCtx := ctx.Request.Context()
+	var editUser schemas.EditUser
+
+	if err := ctx.ShouldBind(&editUser); err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	claims, err := common.GetClaimsFromGinCtx(ctx)
+	if err != nil {
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	err = c.userService.EditUser(rCtx, claims.UserId, editUser)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	ctx.String(http.StatusOK, "OK")
+}
+
 func (c *UserController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware) {
 	g := rg.Group("/users")
 
@@ -294,4 +332,5 @@ func (c *UserController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware midd
 	g.GET("/set-password-reset-cookie", c.SetPasswordResetCookie)
 	g.POST("/reset-password", c.ResetPassword)
 	g.GET("/organizations", authMiddleware.AuthorizeUser(), c.GetUserOrgs)
+	g.POST("/edit", authMiddleware.AuthorizeUser(), c.EditUser)
 }

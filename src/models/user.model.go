@@ -9,9 +9,10 @@ type User struct {
 	FirstName    string
 	LastName     string
 	DateOfBirth  *time.Time
-	LastLogin    *time.Time
-	CreatedAt    *time.Time
-	IsActive     bool
+	// LastLogin    *time.Time
+	CreatedAt *time.Time
+	UpdatedAt *time.Time
+	IsActive  bool
 }
 
 type UnconfirmedUser struct {
