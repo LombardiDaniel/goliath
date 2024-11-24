@@ -18,6 +18,8 @@ services:
   #     API_HOST_URL: https://api.example.com/
   #     APP_HOST_URL: https://app.example.com/
   #     PROJECT_NAME: example-app
+  #     OAUTH_GOOGLE_CLIENT_KEY: oauth-creds
+  #     OAUTH_GOOGLE_SECRET: oauth-creds
 
   db:
     image: postgres:latest

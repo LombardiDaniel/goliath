@@ -62,7 +62,7 @@ func init() {
 		panic(err)
 	}
 
-	oauthBaseCallback := common.APP_HOST_URL + "v1/auth/%s/callback"
+	oauthBaseCallback := common.API_HOST_URL + "v1/auth/%s/callback"
 
 	oauthConfigMap := make(map[string]oauth.Provider)
 	oauthConfigMap[oauth.GOOGLE_PROVIDER] = oauth.NewGoogleProvider(&oauth2.Config{

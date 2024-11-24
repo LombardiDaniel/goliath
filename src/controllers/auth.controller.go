@@ -262,7 +262,8 @@ func (c *AuthController) OauthCallback(ctx *gin.Context) {
 
 	common.SetAuthCookie(ctx, token)
 
-	ctx.Header("location", "/")
+	// ctx.Header("location", "/")
+	ctx.Header("location", common.APP_HOST_URL)
 	ctx.String(http.StatusFound, "Found")
 }
 
