@@ -102,7 +102,7 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 // @Description Confirms the User
 // @Produce plain
 // @Param   otp 		query 		string true "OneTimePass sent in email"
-// @Success 301 		{string} 	OKResponse "MovedPermanently"
+// @Success 302 		{string} 	OKResponse "StatusFound"
 // @Failure 400 		{string} 	ErrorResponse "Bad Request"
 // @Failure 409 		{string} 	ErrorResponse "Conflict"
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
@@ -210,7 +210,7 @@ func (c *UserController) InitResetPassword(ctx *gin.Context) {
 // @Description Sets te Passord Reset Cookie
 // @Produce plain
 // @Param   otp 		query 		string true "OneTimePass sent in email"
-// @Success 301 		{string} 	OKResponse "MovedPermanently"
+// @Success 302 		{string} 	OKResponse "StatusFound"
 // @Failure 400 		{string} 	ErrorResponse "Bad Request"
 // @Failure 409 		{string} 	ErrorResponse "Conflict"
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"

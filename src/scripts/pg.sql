@@ -12,6 +12,7 @@ CREATE TABLE users (
     is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 CREATE UNIQUE INDEX users_email_idx ON users (email);
+CREATE UNIQUE INDEX users_email_and_id_idx ON users (user_id, email);
 
 -- set user.is_updated trigger
 CREATE OR REPLACE FUNCTION update_updated_at()
@@ -101,5 +102,12 @@ CREATE TRIGGER delete_expired_password_resets
 AFTER INSERT ON password_resets
 FOR EACH STATEMENT EXECUTE FUNCTION delete_expired_resets();
 
+-- oauth
+CREATE TABLE oauth_users ( 
+    email VARCHAR(100) PRIMARY KEY,
+    user_id INT,
+    oauth_provider VARCHAR(20) NOT NULL,
+    CONSTRAINT fk_oauth_users FOREIGN KEY (user_id, email) REFERENCES users(user_id, email)
+);
 
 COMMIT;

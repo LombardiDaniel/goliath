@@ -9,26 +9,37 @@ import (
 	"github.com/LombardiDaniel/go-gin-template/common"
 	"github.com/LombardiDaniel/go-gin-template/middlewares"
 	"github.com/LombardiDaniel/go-gin-template/models"
+	"github.com/LombardiDaniel/go-gin-template/oauth"
 	"github.com/LombardiDaniel/go-gin-template/schemas"
 	"github.com/LombardiDaniel/go-gin-template/services"
 	"github.com/gin-gonic/gin"
 )
 
 type AuthController struct {
-	authService  services.AuthService
-	userService  services.UserService
-	emailService services.EmailService
+	authService        services.AuthService
+	userService        services.UserService
+	emailService       services.EmailService
+	oauthProvidersMap  map[string]oauth.Provider
+	oauthProvidersUrls map[string]string
 }
 
 func NewAuthController(
 	authService services.AuthService,
 	userService services.UserService,
 	emailService services.EmailService,
+	oauthProvidersMap map[string]oauth.Provider,
 ) AuthController {
+	oauthProvidersUrls := make(map[string]string)
+	for k, v := range oauthProvidersMap {
+		oauthProvidersUrls[k] = v.GetAuthUrl()
+	}
+
 	return AuthController{
-		authService:  authService,
-		userService:  userService,
-		emailService: emailService,
+		authService:        authService,
+		userService:        userService,
+		emailService:       emailService,
+		oauthProvidersMap:  oauthProvidersMap,
+		oauthProvidersUrls: oauthProvidersUrls,
 	}
 }
 
@@ -186,6 +197,75 @@ func (c *AuthController) SetOrg(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, parsedClaims)
 }
 
+// @Summary GetOauthProviders
+// @Tags Auth
+// @Description Gets OauthProviders and their URLs
+// @Produce json
+// @Success 200 		{object} 	map[string]string
+// @Failure 400 		{string} 	ErrorResponse "Bad Request"
+// @Failure 409 		{string} 	ErrorResponse "Conflict"
+// @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
+// @Router /v1/auth/providers [GET]
+func (c *AuthController) GetOauthProviders(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, c.oauthProvidersUrls)
+}
+
+// @Summary GetOauthProviders
+// @Tags Auth
+// @Description Oauth Provider Callbacks
+// @Produce json
+// @Param 	provider 	path 		string true "provider name"
+// @Param   code 		query 		string true "code"
+// @Success 302 		{string} 	OKResponse "StatusFound"
+// @Failure 400 		{string} 	ErrorResponse "Bad Request"
+// @Failure 409 		{string} 	ErrorResponse "Conflict"
+// @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
+// @Router /v1/auth/{provider}/callback [GET]
+func (c *AuthController) OauthCallback(ctx *gin.Context) {
+	rCtx := ctx.Request.Context()
+
+	code := ctx.Query("code")
+	provider, ok := c.oauthProvidersMap[ctx.Param("provider")]
+	if !ok {
+		ctx.String(http.StatusNotFound, "NotFound")
+		return
+	}
+
+	oauthUser, err := provider.Auth(rCtx, code)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	user, inserted, err := c.userService.LoginOauth(ctx, *oauthUser)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+	if inserted {
+		err = c.emailService.SendAccountCreated(user.Email, user.FirstName)
+		if err != nil {
+			slog.Error(err.Error())
+			ctx.String(http.StatusBadGateway, "BadGateway")
+			return
+		}
+	}
+
+	token, err := c.authService.InitToken(user.UserId, user.Email, nil, nil)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	common.SetAuthCookie(ctx, token)
+
+	ctx.Header("location", "/")
+	ctx.String(http.StatusFound, "Found")
+}
+
 // Register Routes, needs jwtService use on authentication middleware
 func (c *AuthController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware) {
 
@@ -195,4 +275,8 @@ func (c *AuthController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware midd
 	g.POST("/logout", c.Logout)
 	g.POST("/set-organization/:orgId", authMiddleware.AuthorizeUser(), c.SetOrg)
 	g.GET("/validate", authMiddleware.AuthorizeUser(), c.Validate)
+
+	// Oauth
+	g.GET("/providers", c.GetOauthProviders)
+	g.GET("/:provider/callback", c.OauthCallback)
 }

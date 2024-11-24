@@ -8,13 +8,15 @@ import (
 	"os"
 	"strings"
 
-	// _ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 
 	"github.com/LombardiDaniel/go-gin-template/common"
 	"github.com/LombardiDaniel/go-gin-template/controllers"
 	"github.com/LombardiDaniel/go-gin-template/docs"
 	"github.com/LombardiDaniel/go-gin-template/middlewares"
+	"github.com/LombardiDaniel/go-gin-template/oauth"
 	"github.com/LombardiDaniel/go-gin-template/services"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -49,7 +51,6 @@ func init() {
 	common.InitSlogger()
 
 	pgConnStr := common.GetEnvVarDefault("POSTGRES_URI", "postgres://user:password@localhost:5432/db?sslmode=disable")
-	// mysqlConnStr := common.GetEnvVarDefault("MYSQL_URI", "user:password@tcp(127.0.0.1:3306)/db")
 
 	db, err = sql.Open("postgres", pgConnStr)
 	if err != nil {
@@ -61,6 +62,20 @@ func init() {
 		panic(err)
 	}
 
+	oauthBaseCallback := common.APP_HOST_URL + "v1/auth/%s/callback"
+
+	oauthConfigMap := make(map[string]oauth.Provider)
+	oauthConfigMap[oauth.GOOGLE_PROVIDER] = oauth.NewGoogleProvider(&oauth2.Config{
+		RedirectURL:  fmt.Sprintf(oauthBaseCallback, oauth.GOOGLE_PROVIDER),
+		ClientID:     os.Getenv("OAUTH_GOOGLE_CLIENT_KEY"),
+		ClientSecret: os.Getenv("OAUTH_GOOGLE_SECRET"),
+		Scopes: []string{
+			"https://www.googleapis.com/auth/userinfo.email",
+			"https://www.googleapis.com/auth/userinfo.profile",
+		},
+		Endpoint: google.Endpoint,
+	})
+
 	// Services
 	authService = services.NewAuthServiceJwtImpl(os.Getenv("JWT_SECRET_KEY"), db)
 	userService = services.NewUserServicePgImpl(db)
@@ -71,7 +86,7 @@ func init() {
 	authMiddleware = middlewares.NewAuthMiddlewareJwt(authService)
 
 	// Controllers
-	authController = controllers.NewAuthController(authService, userService, emailService)
+	authController = controllers.NewAuthController(authService, userService, emailService, oauthConfigMap)
 	userController = controllers.NewUserController(authService, userService, emailService)
 	organizationController = controllers.NewOrganizationController(userService, emailService, organizationService)
 
