@@ -20,6 +20,8 @@ services:
   #     PROJECT_NAME: example-app
   #     OAUTH_GOOGLE_CLIENT_KEY: oauth-creds
   #     OAUTH_GOOGLE_SECRET: oauth-creds
+  #     POSTGRES_OPEN_CONNS: 0
+  #     POSTGRES_IDLE_CONNS: 2
 
   db:
     image: postgres:latest

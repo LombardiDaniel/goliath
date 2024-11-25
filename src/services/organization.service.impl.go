@@ -154,3 +154,16 @@ func (s *OrganizationServicePgImpl) ConfirmOrganizationInvite(ctx context.Contex
 
 	return tx.Commit()
 }
+
+func (s *OrganizationServicePgImpl) RemoveUserFromOrg(ctx context.Context, orgId string, userId uint32) error {
+	query := `
+		DELETE FROM organizations_users
+		WHERE organization_id = $1 AND user_id = $2;
+	`
+
+	_, err := s.db.ExecContext(ctx, query,
+		orgId,
+		userId,
+	)
+	return common.FilterSqlPgError(err)
+}

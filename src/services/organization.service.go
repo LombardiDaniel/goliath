@@ -11,4 +11,5 @@ type OrganizationService interface {
 	CreateOrganization(ctx context.Context, org models.Organization) error
 	CreateOrganizationInvite(ctx context.Context, invite models.OrganizationInvite) error
 	ConfirmOrganizationInvite(ctx context.Context, otp string) error
+	RemoveUserFromOrg(ctx context.Context, orgId string, userId uint32) error
 }

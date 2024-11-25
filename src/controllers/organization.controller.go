@@ -3,6 +3,7 @@ package controllers
 import (
 	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/LombardiDaniel/go-gin-template/common"
@@ -198,10 +199,56 @@ func (c *OrganizationController) AcceptOrgInvite(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "OK")
 }
 
+// @Summary RemoveFromOrg
+// @Security JWT
+// @Tags Organization
+// @Description Removes User from Org
+// @Produce plain
+// @Param	orgId 		path string true "Organization Id"
+// @Param	userId 		path string true "User Id"
+// @Success 200 		{string} 	OKResponse "OK"
+// @Failure 400 		{string} 	ErrorResponse "Bad Request"
+// @Failure 409 		{string} 	ErrorResponse "Conflict"
+// @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
+// @Router /v1/organizations/{orgId}/users/{userId} [DELETE]
+func (c *OrganizationController) RemoveFromOrg(ctx *gin.Context) {
+	rCtx := ctx.Request.Context()
+	userId, err := strconv.Atoi(ctx.Param("userId"))
+	if err != nil {
+		ctx.String(http.StatusBadRequest, "BadRequest")
+		return
+	}
+
+	var createInv schemas.CreateOrganizationInvite
+
+	if err := ctx.ShouldBind(&createInv); err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	currUser, err := common.GetClaimsFromGinCtx(ctx)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	err = c.orgService.RemoveUserFromOrg(rCtx, *currUser.OrganizationId, uint32(userId))
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	ctx.String(http.StatusOK, "OK")
+}
+
 func (c *OrganizationController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware) {
 	g := rg.Group("/organizations")
 
 	g.PUT("", authMiddleware.AuthorizeUser(), c.CreateOrganization)
 	g.PUT("/:orgId/invite", authMiddleware.AuthorizeOrganization(true), c.InviteToOrg)
 	g.GET("/accept-invite", c.AcceptOrgInvite)
+	g.DELETE("/:orgId/users/:userId", authMiddleware.AuthorizeOrganization(true), c.RemoveFromOrg)
 }

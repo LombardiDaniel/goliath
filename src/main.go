@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	_ "github.com/lib/pq"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/LombardiDaniel/go-gin-template/common"
 	"github.com/LombardiDaniel/go-gin-template/controllers"
+	"github.com/LombardiDaniel/go-gin-template/daemons"
 	"github.com/LombardiDaniel/go-gin-template/docs"
 	"github.com/LombardiDaniel/go-gin-template/middlewares"
 	"github.com/LombardiDaniel/go-gin-template/oauth"
@@ -42,6 +44,9 @@ var (
 	// Middlewares
 	authMiddleware middlewares.AuthMiddleware
 
+	// Daemons
+	taskRunner daemons.TaskRunner
+
 	db *sql.DB
 
 	err error
@@ -61,6 +66,19 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+
+	pgOpenConns, err := strconv.Atoi(common.GetEnvVarDefault("POSTGRES_OPEN_CONNS", "0"))
+	if err != nil {
+		panic(err)
+	}
+
+	pgIdleConns, err := strconv.Atoi(common.GetEnvVarDefault("POSTGRES_IDLE_CONNS", "2"))
+	if err != nil {
+		panic(err)
+	}
+
+	db.SetMaxOpenConns(pgOpenConns)
+	db.SetMaxIdleConns(pgIdleConns)
 
 	oauthBaseCallback := common.API_HOST_URL + "v1/auth/%s/callback"
 
@@ -119,6 +137,9 @@ func init() {
 		ctx.Header("location", "/docs/index.html")
 		ctx.String(http.StatusMovedPermanently, "MovedPermanently")
 	})
+
+	// Daemons
+	// taskRunner.RegisterTask(1*time.Hour, authService.Cleanup())
 }
 
 // @securityDefinitions.apiKey JWT
@@ -140,6 +161,8 @@ func main() {
 	authController.RegisterRoutes(basePath, authMiddleware)
 	userController.RegisterRoutes(basePath, authMiddleware)
 	organizationController.RegisterRoutes(basePath, authMiddleware)
+
+	taskRunner.Dispatch()
 
 	slog.Error(router.Run(":8080").Error())
 }

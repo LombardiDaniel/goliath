@@ -1,6 +1,7 @@
 package daemons
 
 import (
+	"fmt"
 	"log/slog"
 	"time"
 )
@@ -21,16 +22,28 @@ func (f *TaskRunner) RegisterTask(interval time.Duration, callable func() error)
 	})
 }
 
-func (f *TaskRunner) Run() {
+func taskWrapper(t Task) {
+	defer func() {
+		if r := recover(); r != nil {
+			slog.Error(fmt.Sprintf("Task crashed: %v, waiting 5s to restart...", r))
+			time.Sleep(5 * time.Second)
+		}
+	}()
+	err := t.Callable()
+	if err != nil {
+		slog.Error(err.Error())
+	}
+}
+
+func taskRunner(t Task) {
+	for {
+		taskWrapper(t)
+		time.Sleep(t.Interval)
+	}
+}
+
+func (f *TaskRunner) Dispatch() {
 	for _, v := range f.tasks {
-		go func(t Task) {
-			for {
-				err := v.Callable()
-				if err != nil {
-					slog.Error(err.Error())
-				}
-				time.Sleep(t.Interval)
-			}
-		}(v)
+		go taskRunner(v)
 	}
 }
