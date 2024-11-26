@@ -383,6 +383,7 @@ func (s *UserServicePgImpl) LoginOauth(ctx context.Context, oauthUser oauth.User
 		&user.DateOfBirth,
 		// &user.LastLogin,
 		&user.CreatedAt,
+		&user.UpdatedAt,
 		&user.IsActive,
 	)
 	if err != nil {
