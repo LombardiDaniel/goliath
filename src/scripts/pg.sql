@@ -11,17 +11,17 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT NOW(),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
 
-    UNIQUE KEY (user_id, email)
+    UNIQUE (user_id, email)
 );
 
 -- set user.is_updated trigger
-CREATE OR REPLACE FUNCTION update_updated_at()
+CREATE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at := NOW();
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE PLpgSQL;
 
 CREATE TRIGGER update_updated_at_trigger
 BEFORE UPDATE ON users
@@ -47,7 +47,7 @@ CREATE TABLE organizations (
     owner_user_id INT NOT NULL,
     FOREIGN KEY (owner_user_id) REFERENCES users (user_id),
 
-    UNIQUE KEY (organization_name, owner_user_id)
+    UNIQUE (organization_name, owner_user_id)
 );
 
 -- join users orgs
@@ -56,7 +56,7 @@ CREATE TABLE organizations_users (
     user_id INT REFERENCES users (user_id) NOT NULL,
     is_admin BOOLEAN NOT NULL DEFAULT false,
 
-    UNIQUE KEY (organization_id, user_id)
+    UNIQUE (organization_id, user_id)
 );
 
 -- org invites
@@ -76,7 +76,7 @@ BEGIN
     
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE PLpgSQL;
 
 CREATE TRIGGER delete_expired_org_invites
 AFTER INSERT ON organization_invites
@@ -97,7 +97,7 @@ BEGIN
 
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE PLpgSQL;
 
 CREATE TRIGGER delete_expired_password_resets
 AFTER INSERT ON password_resets
