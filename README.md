@@ -4,3 +4,5 @@
 # GinGo Template
 
 To rapidy bootstrap apps
+
+API_HOST_URL + v1/auth/google/callback

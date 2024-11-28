@@ -85,7 +85,7 @@ func init() {
 	oauthConfigMap := make(map[string]oauth.Provider)
 	oauthConfigMap[oauth.GOOGLE_PROVIDER] = oauth.NewGoogleProvider(&oauth2.Config{
 		RedirectURL:  fmt.Sprintf(oauthBaseCallback, oauth.GOOGLE_PROVIDER),
-		ClientID:     os.Getenv("OAUTH_GOOGLE_CLIENT_KEY"),
+		ClientID:     os.Getenv("OAUTH_GOOGLE_CLIENT_ID"),
 		ClientSecret: os.Getenv("OAUTH_GOOGLE_SECRET"),
 		Scopes: []string{
 			"https://www.googleapis.com/auth/userinfo.email",
