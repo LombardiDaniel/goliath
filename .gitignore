@@ -32,4 +32,4 @@ k6.js
 venv
 venv.nosync
 
-*.private
+*.private.*
