@@ -2,36 +2,67 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: forms
+  name: my-app
 
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: api-mongo-secret
-  namespace: forms
+  name: postgres-secret
+  namespace: my-app
 type: Opaque
 data:
-  uri: MONGO_URI_B64_ENCODED
+  uri: POSTGRES_URI_B64_ENCODED
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: jwt-secret
+  namespace: my-app
+type: Opaque
+data:
+  key: JWT_SECRET_KEY_B64_ENCODED
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: resend-secret
+  namespace: my-app
+type: Opaque
+data:
+  api_key: RESEND_API_KEY_B64_ENCODED
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: oauth-secret
+  namespace: my-app
+type: Opaque
+data:
+  google_key: OAUTH_GOOGLE_CLIENT_KEY_B64_ENCODED
+  google_secret: OAUTH_GOOGLE_SECRET_B64_ENCODED
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: forms-api
-  namespace: forms
+  name: my-app-api
+  namespace: my-app
 spec:
   selector:
     matchLabels:
-      app: forms-api
+      app: my-app-api
   template:
     metadata:
       labels:
-        app: forms-api
+        app: my-app-api
     spec:
       containers:
-        - name: generic-forms-api
-          image: lombardi/generic-forms-api:latest
+        - name: my-app-api
+          image: lombardi/go-gin-temlpate:latest
           resources:
             limits:
               memory: "128Mi"
@@ -39,28 +70,52 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            - name: HOST
-              value: forms.example.com
+            - name: API_HOST_URL
+              value: https://api.patos.dev/
+            - name: APP_HOST_URL
+              value: https://app.patos.dev/
             - name: GIN_MODE
               value: release
-            - name: AUTH_TOKENS
-              value: MY_AUTH_TOKEN_0,MY_AUTH_TOKEN_1
-            - name: MONGO_URI
+            - name: PROJECT_NAME
+              value: my-app
+            - name: NOREPLY_EMAIL
+              value: no-reply@patos.dev
+            - name: POSTGRES_URI
               valueFrom:
                 secretKeyRef:
-                  name: api-mongo-secret
+                  name: postgres-secret
                   key: uri
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: key
+            - name: RESEND_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: resend-secret
+                  key: api_key
+            - name: OAUTH_GOOGLE_CLIENT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: resend-secret
+                  key: google_key
+            - name: OAUTH_GOOGLE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: resend-secret
+                  key: google_secret
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: forms-api-svc
-  namespace: forms
+  name: my-app-api-svc
+  namespace: my-app
 spec:
   type: ClusterIP
   selector:
-    app: forms-api
+    app: my-app-api
   ports:
     - protocol: TCP
       port: 80
@@ -70,8 +125,8 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: forms-api-https-ingress
-  namespace: forms
+  name: my-app-api-https-ingress
+  namespace: my-app
 
   annotations:
     spec.ingressClassName: traefik
@@ -81,26 +136,26 @@ metadata:
 
 spec:
   rules:
-    - host: forms.example.com
+    - host: api.patos.dev
       http:
         paths:
           - path: "/"
             pathType: Prefix
             backend:
               service:
-                name: forms-api-svc
+                name: my-app-api-svc
                 port:
                   number: 80
   tls:
     - hosts:
-        - forms.example.cmo
-      secretName: forms-tls
+        - api.patos.dev
+      secretName: my-app-api-tls
 
 ---
 kind: Ingress
 apiVersion: networking.k8s.io/v1
 metadata:
-  name: forms-api-http-ingress-redirect
+  name: my-app-api-http-ingress-redirect
 
   annotations:
     spec.ingressClassName: traefik
@@ -108,7 +163,7 @@ metadata:
     traefik.ingress.kubernetes.io/router.entrypoints: web
 spec:
   rules:
-    - host: forms.example.com
+    - host: api.patos.dev
       http:
         paths:
           - pathType: Prefix
