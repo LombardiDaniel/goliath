@@ -210,7 +210,7 @@ func (c *AuthController) GetOauthProviders(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, c.oauthProvidersUrls)
 }
 
-// @Summary GetOauthProviders
+// @Summary OauthCallback
 // @Tags Auth
 // @Description Oauth Provider Callbacks
 // @Produce json
