@@ -41,6 +41,7 @@ services:
   #   image: eeshugerman/postgres-backup-s3:16
   #   environment:
   #     SCHEDULE: "@daily" # optional
+  #     S3_ENDPOINT: "https://your-custom-server/"
   #     BACKUP_KEEP_DAYS: 7 # optional
   #     PASSPHRASE: passphrase # optional
   #     S3_REGION: region
