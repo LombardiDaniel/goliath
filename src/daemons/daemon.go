@@ -9,17 +9,18 @@ import (
 type Task struct {
 	Interval time.Duration
 	Callable func() error
-	Count    uint32
+	Workers  uint32
 }
 
 type TaskRunner struct {
 	tasks []Task
 }
 
-func (f *TaskRunner) RegisterTask(interval time.Duration, callable func() error) {
+func (f *TaskRunner) RegisterTask(interval time.Duration, callable func() error, workers uint32) {
 	f.tasks = append(f.tasks, Task{
 		Interval: interval,
 		Callable: callable,
+		Workers:  workers,
 	})
 }
 
@@ -45,6 +46,8 @@ func taskRunner(t Task) {
 
 func (f *TaskRunner) Dispatch() {
 	for _, v := range f.tasks {
-		go taskRunner(v)
+		for range v.Workers {
+			go taskRunner(v)
+		}
 	}
 }
