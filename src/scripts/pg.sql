@@ -4,8 +4,8 @@ CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     email VARCHAR(100) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    first_name VARCHAR(50),
-    last_name VARCHAR(50),
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
     date_of_birth DATE,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
@@ -55,7 +55,7 @@ CREATE TABLE organizations_users (
     user_id INT REFERENCES users (user_id) NOT NULL,
     is_admin BOOLEAN NOT NULL DEFAULT false,
 
-    PRIMARY (organization_id, user_id)
+    PRIMARY KEY (organization_id, user_id)
 );
 
 -- org invites

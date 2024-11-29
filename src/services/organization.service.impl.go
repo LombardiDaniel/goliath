@@ -25,12 +25,30 @@ func (s *OrganizationServicePgImpl) GetOrganization(ctx context.Context, orgId s
 			organization_name,
 			billing_plan_id,
 			created_at,
-			deleted_at
+			deleted_at,
+			owner_user_id
 		FROM
 			organizations
 		WHERE
 			organization_id = $1;
 	`
+	// query := `
+	// 	SELECT
+	// 		o.organization_id,
+	// 		o.organization_name,
+	// 		o.billing_plan_id,
+	// 		o.created_at,
+	// 		o.deleted_at,
+	// 		u.email
+	// 	FROM
+	// 		organizations o
+	// 	INNER JOIN
+	// 		organizations_users ou ON o.organization_id = ou.organization_id
+	// 	INNER JOIN
+	// 		users u ON ou.user_id = u.user_id
+	// 	WHERE
+	// 		ou.user_id = $1;
+	// `
 
 	org := models.Organization{}
 
@@ -40,6 +58,7 @@ func (s *OrganizationServicePgImpl) GetOrganization(ctx context.Context, orgId s
 		&org.BillingPlanId,
 		&org.CreatedAt,
 		&org.DeletedAt,
+		&org.OwnerUserId,
 	)
 
 	return org, err
@@ -82,13 +101,13 @@ func (s *OrganizationServicePgImpl) CreateOrganization(ctx context.Context, org 
 func (s *OrganizationServicePgImpl) CreateOrganizationInvite(ctx context.Context, invite models.OrganizationInvite) error {
 	query := `
 		INSERT INTO organization_invites (
-				organization_id,
-				user_id,
-				is_admin,
-				otp,
-				exp
-			)
-			VALUES ($1, $2, $3, $4, $5);
+			organization_id,
+			user_id,
+			is_admin,
+			otp,
+			exp
+		)
+		VALUES ($1, $2, $3, $4, $5);
 	`
 
 	_, err := s.db.ExecContext(ctx, query,

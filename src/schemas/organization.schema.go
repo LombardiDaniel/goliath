@@ -4,6 +4,7 @@ type OrganizationOutput struct {
 	OrganizationId   string `json:"organizationId" binding:"required"`
 	OrganizationName string `json:"organizationName" binding:"required"`
 	IsAdmin          bool   `json:"isAdmin" binding:"required"`
+	IsOwner          bool   `json:"isOwner" binding:"required"`
 }
 
 type CreateOrganization struct {
