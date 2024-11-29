@@ -44,8 +44,7 @@ CREATE TABLE organizations (
     billing_plan_id INT,
     created_at TIMESTAMP DEFAULT NOW() NOT NULL,
     deleted_at TIMESTAMP,
-    owner_user_id INT NOT NULL,
-    FOREIGN KEY (owner_user_id) REFERENCES users (user_id),
+    owner_user_id INT REFERENCES users (user_id) NOT NULL ,
 
     UNIQUE (organization_name, owner_user_id)
 );
@@ -56,7 +55,7 @@ CREATE TABLE organizations_users (
     user_id INT REFERENCES users (user_id) NOT NULL,
     is_admin BOOLEAN NOT NULL DEFAULT false,
 
-    UNIQUE (organization_id, user_id)
+    PRIMARY (organization_id, user_id)
 );
 
 -- org invites

@@ -109,7 +109,7 @@ func (s *EmailServiceResendImpl) SendOrganizationInvite(email string, name strin
 		ProjectName:      common.PROJECT_NAME,
 		OrganizationName: orgName,
 		FirstName:        name,
-		OtpUrl:           acceptUrl,
+		OtpUrl:           acceptUrl + "?otp=" + otp,
 	})
 	if err != nil {
 		slog.Error(err.Error())

@@ -9,6 +9,7 @@ import (
 type Task struct {
 	Interval time.Duration
 	Callable func() error
+	Count    uint32
 }
 
 type TaskRunner struct {
