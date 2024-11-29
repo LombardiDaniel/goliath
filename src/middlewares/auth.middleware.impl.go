@@ -130,3 +130,31 @@ func (m *AuthMiddlewareJwt) AuthorizeOrganization(needAdmin bool) gin.HandlerFun
 		c.Next()
 	}
 }
+
+func (m *AuthMiddlewareJwt) Reauthorize() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		jwtClaims, err := common.GetClaimsFromGinCtx(c)
+		if err != nil {
+			slog.Error(err.Error())
+			c.String(http.StatusBadGateway, "BadGateway")
+			common.ClearAuthCookie(c)
+			c.Abort()
+			return
+		}
+
+		slog.Info(fmt.Sprintf("renewing jwt: %s", jwtClaims.Email))
+		token, err := m.authService.InitToken(jwtClaims.UserId, jwtClaims.Email, jwtClaims.OrganizationId, jwtClaims.IsAdmin)
+		if err != nil {
+			slog.Error(err.Error())
+			c.String(http.StatusBadGateway, "BadGateway")
+			common.ClearAuthCookie(c)
+			c.Abort()
+			return
+		}
+
+		common.SetAuthCookie(c, token)
+
+		c.Set(common.GIN_CTX_JWT_CLAIM_KEY_NAME, jwtClaims)
+		c.Next()
+	}
+}

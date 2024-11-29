@@ -175,14 +175,75 @@ func (s *OrganizationServicePgImpl) ConfirmOrganizationInvite(ctx context.Contex
 }
 
 func (s *OrganizationServicePgImpl) RemoveUserFromOrg(ctx context.Context, orgId string, userId uint32) error {
-	query := `
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback()
+
+	var isOwner bool
+	err = s.db.QueryRowContext(ctx, `
+		SELECT owner_user_id = $1
+		FROM organizations
+		WHERE organization_id = $2;
+	`,
+		userId,
+		orgId,
+	).Scan(&isOwner)
+	if err != nil {
+		return err
+	}
+
+	if isOwner {
+		return common.ErrDbConflict
+	}
+
+	_, err = s.db.ExecContext(ctx, `
 		DELETE FROM organizations_users
 		WHERE organization_id = $1 AND user_id = $2;
-	`
-
-	_, err := s.db.ExecContext(ctx, query,
+	`,
 		orgId,
 		userId,
 	)
-	return common.FilterSqlPgError(err)
+	if err != nil {
+		return err
+	}
+
+	return common.FilterSqlPgError(tx.Commit())
+}
+
+func (s *OrganizationServicePgImpl) SetOrganizationOwner(ctx context.Context, orgId string, userId uint32) error {
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback()
+
+	_, err = tx.ExecContext(ctx, `
+		UPDATE organizations
+		SET owner_user_id = $1
+		WHERE organization_id = $2;
+	`,
+		userId,
+		orgId,
+	)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, `
+		UPDATE organizations_users
+		SET is_admin = true
+		WHERE organization_id = $1 AND user_id = $2;
+	`,
+		orgId,
+		userId,
+	)
+	if err != nil {
+		return err
+	}
+
+	return common.FilterSqlPgError(tx.Commit())
 }

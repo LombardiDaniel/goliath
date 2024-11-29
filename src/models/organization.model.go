@@ -8,7 +8,7 @@ type Organization struct {
 	BillingPlanId    *uint32    `json:"billingPlanId" binding:"required"`
 	CreatedAt        time.Time  `json:"createdAt" binding:"required"`
 	DeletedAt        *time.Time `json:"deletedAt,omitempty"`
-	OwnerUserId      *uint32    `json:"ownerUserId,omitempty"`
+	OwnerUserId      uint32     `json:"ownerUserId,omitempty"`
 }
 
 type FrontendConfig struct {

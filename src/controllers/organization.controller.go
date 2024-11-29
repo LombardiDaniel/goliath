@@ -73,7 +73,7 @@ func (c *OrganizationController) CreateOrganization(ctx *gin.Context) {
 	org := models.Organization{
 		OrganizationId:   orgId,
 		OrganizationName: createOrg.OrganizationName,
-		OwnerUserId:      &user.UserId,
+		OwnerUserId:      user.UserId,
 	}
 
 	err = c.orgService.CreateOrganization(rCtx, org)
@@ -244,11 +244,71 @@ func (c *OrganizationController) RemoveFromOrg(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "OK")
 }
 
+// @Summary ChangeOwner
+// @Security JWT
+// @Tags Organization
+// @Description Removes User from Org
+// @Produce plain
+// @Param	orgId 		path string true "Organization Id"
+// @Param   payload 	body 		schemas.Email true "email json"
+// @Success 200 		{string} 	OKResponse "OK"
+// @Failure 400 		{string} 	ErrorResponse "Bad Request"
+// @Failure 409 		{string} 	ErrorResponse "Conflict"
+// @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
+// @Router /v1/organizations/{orgId}/owner [POST]
+func (c *OrganizationController) ChangeOwner(ctx *gin.Context) {
+	rCtx := ctx.Request.Context()
+
+	var tgtEmail schemas.Email
+
+	if err := ctx.ShouldBind(&tgtEmail); err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	currUser, err := common.GetClaimsFromGinCtx(ctx)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	org, err := c.orgService.GetOrganization(rCtx, *currUser.OrganizationId)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	if currUser.UserId != org.OwnerUserId {
+		ctx.String(http.StatusUnauthorized, "StatusUnauthorized")
+		return
+	}
+
+	tgtUser, err := c.userService.GetUser(rCtx, tgtEmail.Email)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	err = c.orgService.SetOrganizationOwner(rCtx, *currUser.OrganizationId, tgtUser.UserId)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	ctx.String(http.StatusOK, "OK")
+}
+
 func (c *OrganizationController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware) {
 	g := rg.Group("/organizations")
 
 	g.PUT("", authMiddleware.AuthorizeUser(), c.CreateOrganization)
 	g.PUT("/:orgId/invite", authMiddleware.AuthorizeOrganization(true), c.InviteToOrg)
+	g.POST("/:orgId/owner", authMiddleware.AuthorizeOrganization(true), c.ChangeOwner, authMiddleware.Reauthorize())
 	g.GET("/accept-invite", c.AcceptOrgInvite)
 	g.DELETE("/:orgId/users/:userId", authMiddleware.AuthorizeOrganization(true), c.RemoveFromOrg)
 }
