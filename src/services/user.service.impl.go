@@ -216,9 +216,51 @@ func (s *UserServicePgImpl) GetUserFromId(ctx context.Context, id uint32) (model
 	return user, nil
 }
 
-// func (s *UserServicePgImpl) GetUsers(ctx context.Context) ([]models.User, error) {
-// 	return nil, errors.New("not implemented")
-// }
+func (s *UserServicePgImpl) GetUsers(ctx context.Context) ([]models.User, error) {
+	query := `
+		SELECT
+			user_id,
+			email,
+			password_hash,
+			first_name,
+			last_name,
+			date_of_birth,
+			created_at,
+			updated_at,
+			is_active
+		FROM users;
+	`
+
+	users := []models.User{}
+
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return users, common.FilterSqlPgError(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		u := models.User{}
+		err := rows.Scan(
+			&u.UserId,
+			&u.Email,
+			&u.PasswordHash,
+			&u.FirstName,
+			&u.LastName,
+			&u.DateOfBirth,
+			// &u.LastLogin,
+			&u.CreatedAt,
+			&u.UpdatedAt,
+			&u.IsActive,
+		)
+		if err != nil {
+			return users, err
+		}
+		users = append(users, u)
+	}
+
+	return users, nil
+}
 
 func (s *UserServicePgImpl) GetUserOrgs(ctx context.Context, userId uint32) ([]schemas.OrganizationOutput, error) {
 	query := `

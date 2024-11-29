@@ -24,7 +24,8 @@ services:
   #     POSTGRES_IDLE_CONNS: 2
 
   db:
-    image: postgres:latest
+    # image: postgres:latest
+    image: postgres:16.6-bullseye
     # image: pgvector/pgvector:pg16
     environment:
       POSTGRES_USER: user
