@@ -10,19 +10,19 @@ import (
 )
 
 func TestUserServicePgImpl_CreateUser(t *testing.T) {
-
 	ctx := context.Background()
-	db, pgContainer, err := helpers.InitTestContainersPostgres(ctx)
+
+	pgContainer, err := helpers.NewPostgresContainer(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() {
-		if err := pgContainer.Terminate(ctx); err != nil {
+		if err := pgContainer.Container.Terminate(ctx); err != nil {
 			t.Fatalf("failed to terminate pgContainer: %s", err)
 		}
 	})
 
-	s := NewUserServicePgImpl(db)
+	s := NewUserServicePgImpl(pgContainer.DB)
 
 	now := time.Now()
 

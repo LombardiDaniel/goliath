@@ -11,7 +11,13 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-func InitTestContainersPostgres(ctx context.Context) (*sql.DB, *postgres.PostgresContainer, error) {
+type PostgresContainer struct {
+	DB         *sql.DB
+	Container  *postgres.PostgresContainer
+	ConnString string
+}
+
+func NewPostgresContainer(ctx context.Context) (*PostgresContainer, error) {
 	pgContainer, err := postgres.Run(ctx,
 		"postgres:16.6-bullseye",
 		postgres.WithInitScripts(filepath.Join("..", "scripts", "init-db.sql")),
@@ -25,22 +31,22 @@ func InitTestContainersPostgres(ctx context.Context) (*sql.DB, *postgres.Postgre
 		),
 	)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	connStr, err := pgContainer.ConnectionString(ctx, "sslmode=disable")
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	err = db.Ping()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return db, pgContainer, nil
+	return &PostgresContainer{DB: db, Container: pgContainer, ConnString: connStr}, nil
 }
