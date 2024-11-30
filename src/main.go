@@ -11,6 +11,7 @@ import (
 
 	_ "github.com/lib/pq"
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
 
 	"github.com/LombardiDaniel/go-gin-template/common"
@@ -92,6 +93,15 @@ func init() {
 			"https://www.googleapis.com/auth/userinfo.profile",
 		},
 		Endpoint: google.Endpoint,
+	})
+	oauthConfigMap[oauth.GITHUB_PROVIDER] = oauth.NewGithubProvider(&oauth2.Config{
+		RedirectURL:  fmt.Sprintf(oauthBaseCallback, oauth.GITHUB_PROVIDER),
+		ClientID:     os.Getenv("OAUTH_GITHUB_CLIENT_ID"),
+		ClientSecret: os.Getenv("OAUTH_GITHUB_SECRET"),
+		Scopes: []string{
+			"read:user",
+		},
+		Endpoint: github.Endpoint,
 	})
 
 	// Services

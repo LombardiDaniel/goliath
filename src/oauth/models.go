@@ -4,7 +4,7 @@ type User struct {
 	Email        string `json:"email"`
 	FirstName    string `json:"firstName"`
 	LastName     string `json:"lastName"`
-	Picture      string `json:"picture"`
+	PictureUrl   string `json:"pictureUrl"`
 	Provider     string `json:"provider"`
 	RefreshToken string `json:"refreshToken"`
 }

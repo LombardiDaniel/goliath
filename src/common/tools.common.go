@@ -30,6 +30,22 @@ func InitSlogger() {
 	slog.SetDefault(logger)
 }
 
+func SplitName(fullName string) (string, string) {
+	names := strings.SplitN(fullName, " ", 2)
+
+	if len(names) == 0 {
+		return "", ""
+	}
+
+	firstName := names[0]
+
+	if len(names) == 1 {
+		return firstName, ""
+	}
+
+	return firstName, names[1]
+}
+
 func LoadHTMLTemplate(templatePath string) *template.Template {
 
 	t, err := template.ParseFiles(templatePath)

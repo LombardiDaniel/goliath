@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	userInfoRetrievalUrl string = "https://www.googleapis.com/oauth2/v2/userinfo?access_token="
+	googleUserInfoRetrievalUrl string = "https://www.googleapis.com/oauth2/v2/userinfo?access_token="
 )
 
 type GoogleProvider struct {
@@ -38,7 +38,7 @@ func (p *GoogleProvider) Auth(ctx context.Context, code string) (*User, error) {
 		return nil, err
 	}
 
-	resp, err := http.Get(userInfoRetrievalUrl + token.AccessToken)
+	resp, err := http.Get(googleUserInfoRetrievalUrl + token.AccessToken)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (p *GoogleProvider) Auth(ctx context.Context, code string) (*User, error) {
 		Email:        usrSchema.Email,
 		FirstName:    usrSchema.GivenName,
 		LastName:     usrSchema.FamilyName,
-		Picture:      usrSchema.Picture,
+		PictureUrl:   usrSchema.Picture,
 		Provider:     GOOGLE_PROVIDER,
 		RefreshToken: token.RefreshToken,
 	}

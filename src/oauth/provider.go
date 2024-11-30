@@ -4,6 +4,7 @@ import "context"
 
 const (
 	GOOGLE_PROVIDER string = "google"
+	GITHUB_PROVIDER string = "github"
 )
 
 type Provider interface {
