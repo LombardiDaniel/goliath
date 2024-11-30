@@ -2,7 +2,7 @@ package common
 
 import (
 	"crypto/rand"
-	"encoding/hex"
+	"math/big"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -20,11 +20,15 @@ func CheckPasswordHash(password string, hash string) bool {
 	return err == nil
 }
 
-func GenerateRandomString(length int) (string, error) {
-	bytes := make([]byte, length/2)
-	_, err := rand.Read(bytes)
-	if err != nil {
-		return "", err
+func GenerateRandomString(n int) (string, error) {
+	const choices = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, n)
+	for i := range b {
+		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(choices))))
+		if err != nil {
+			return "", err
+		}
+		b[i] = choices[num.Int64()]
 	}
-	return hex.EncodeToString(bytes), nil
+	return string(b), nil
 }

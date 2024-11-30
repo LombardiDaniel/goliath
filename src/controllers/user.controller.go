@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/LombardiDaniel/go-gin-template/common"
+	"github.com/LombardiDaniel/go-gin-template/fiddlers"
 	"github.com/LombardiDaniel/go-gin-template/middlewares"
-	"github.com/LombardiDaniel/go-gin-template/models"
 	"github.com/LombardiDaniel/go-gin-template/schemas"
 	"github.com/LombardiDaniel/go-gin-template/services"
 	"github.com/gin-gonic/gin"
@@ -53,34 +53,18 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	hash, err := common.HashPassword(createUser.Password)
+	unconfirmedUser, err := fiddlers.NewUnconfirmedUser(createUser.Email, createUser.Password, createUser.FirstName, createUser.LastName, createUser.DateOfBirth)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error while hashing pass '%s': '%s'", createUser.Password, err.Error()))
+		slog.Error(fmt.Sprintf("Error while generating unconfirmed user '%s': '%s'", createUser.Email, err.Error()))
 		ctx.String(http.StatusBadRequest, "BadRequest")
 		return
 	}
 
-	otp, err := common.GenerateRandomString(common.OTP_LEN)
-	if err != nil {
-		ctx.String(http.StatusBadGateway, "BadGateway")
-		return
-	}
-
-	unconfirmedUser := models.UnconfirmedUser{
-		Email:        createUser.Email,
-		Otp:          otp,
-		PasswordHash: hash,
-		FirstName:    createUser.FirstName,
-		LastName:     createUser.LastName,
-		DateOfBirth:  createUser.DateOfBirth,
-	}
-
-	err = c.userService.CreateUnconfirmedUser(rCtx, unconfirmedUser)
+	err = c.userService.CreateUnconfirmedUser(rCtx, *unconfirmedUser)
 	if err == common.ErrDbConflict {
 		ctx.String(http.StatusConflict, "Conflict")
 		return
 	}
-
 	if err != nil {
 		slog.Error(fmt.Sprintf("Error while creating unconfirmedUser '%s': '%s'", unconfirmedUser.Email, err.Error()))
 		ctx.String(http.StatusBadGateway, "BadGateway")

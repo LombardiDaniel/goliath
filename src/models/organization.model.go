@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Organization struct {
 	OrganizationId   string     `json:"organizationId" binding:"required,min=1"`

@@ -139,7 +139,7 @@ func init() {
 	})
 
 	// Daemons
-	// taskRunner.RegisterTask(1*time.Hour, authService.Cleanup())
+	// taskRunner.RegisterTask(1*time.Hour, authService.Cleanup(), 1)
 }
 
 // @securityDefinitions.apiKey JWT

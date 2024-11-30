@@ -4,11 +4,10 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/LombardiDaniel/go-gin-template/common"
+	"github.com/LombardiDaniel/go-gin-template/fiddlers"
 	"github.com/LombardiDaniel/go-gin-template/middlewares"
-	"github.com/LombardiDaniel/go-gin-template/models"
 	"github.com/LombardiDaniel/go-gin-template/schemas"
 	"github.com/LombardiDaniel/go-gin-template/services"
 	"github.com/gin-gonic/gin"
@@ -62,21 +61,14 @@ func (c *OrganizationController) CreateOrganization(ctx *gin.Context) {
 		return
 	}
 
-	orgId, err := common.GenerateRandomString(10)
+	org, err := fiddlers.NewOrganization(createOrg.OrganizationName, user.UserId)
 	if err != nil {
-		slog.Error(err.Error())
+		slog.Error("Error while generating organization: %s", err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
 	}
 
-	orgId = orgId[:5] // cut to 5 (size of field)
-	org := models.Organization{
-		OrganizationId:   orgId,
-		OrganizationName: createOrg.OrganizationName,
-		OwnerUserId:      user.UserId,
-	}
-
-	err = c.orgService.CreateOrganization(rCtx, org)
+	err = c.orgService.CreateOrganization(rCtx, *org)
 	if err != nil {
 		if err == common.ErrDbConflict {
 			ctx.String(http.StatusConflict, "Conflict")
@@ -87,7 +79,7 @@ func (c *OrganizationController) CreateOrganization(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, schemas.IdString{Id: orgId})
+	ctx.JSON(http.StatusOK, schemas.IdString{Id: org.OrganizationId})
 }
 
 // @Summary InviteToOrg
@@ -142,14 +134,8 @@ func (c *OrganizationController) InviteToOrg(ctx *gin.Context) {
 		return
 	}
 
-	invExp := time.Now().Add(24 * time.Hour * time.Duration(common.ORG_INVITE_TIMEOUT_DAYS))
-	err = c.orgService.CreateOrganizationInvite(rCtx, models.OrganizationInvite{
-		OrganizationId: *currUser.OrganizationId,
-		UserId:         user.UserId,
-		IsAdmin:        createInv.IsAdmin,
-		Otp:            &otp,
-		Exp:            &invExp,
-	})
+	inv := fiddlers.NewOrganizationInvite(*currUser.OrganizationId, user.UserId, createInv.IsAdmin, otp)
+	err = c.orgService.CreateOrganizationInvite(rCtx, inv)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
