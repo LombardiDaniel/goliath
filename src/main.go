@@ -150,7 +150,7 @@ func init() {
 	})
 
 	// Daemons
-	taskRunner.RegisterTask(24*time.Second, userService.DeleteExpiredPwResets, 1)
+	taskRunner.RegisterTask(24*time.Hour, userService.DeleteExpiredPwResets, 1)
 	taskRunner.RegisterTask(24*time.Hour, organizationService.DeleteExpiredOrgInvites, 1)
 }
 

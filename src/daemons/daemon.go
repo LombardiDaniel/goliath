@@ -12,16 +12,29 @@ type Task struct {
 	Workers  uint32
 }
 
+// TaskRunner runs Tasks specifiedby the user, use TaskRunner.RegisterTask() to
+// specify daemons.
 type TaskRunner struct {
+	// List Of Tasks to be run in the background
 	tasks []Task
 }
 
+// RegisterTask Creates and inserts a task in the TaskRunner, runs only after Dispatch() call
 func (f *TaskRunner) RegisterTask(interval time.Duration, callable func() error, workers uint32) {
 	f.tasks = append(f.tasks, Task{
 		Interval: interval,
 		Callable: callable,
 		Workers:  workers,
 	})
+}
+
+// Dispatches Tasks to be run
+func (f *TaskRunner) Dispatch() {
+	for _, v := range f.tasks {
+		for range v.Workers {
+			go taskRunner(v)
+		}
+	}
 }
 
 func taskWrapper(t Task) {
@@ -41,13 +54,5 @@ func taskRunner(t Task) {
 	for {
 		taskWrapper(t)
 		time.Sleep(t.Interval)
-	}
-}
-
-func (f *TaskRunner) Dispatch() {
-	for _, v := range f.tasks {
-		for range v.Workers {
-			go taskRunner(v)
-		}
 	}
 }
