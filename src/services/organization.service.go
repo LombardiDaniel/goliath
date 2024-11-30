@@ -13,4 +13,5 @@ type OrganizationService interface {
 	ConfirmOrganizationInvite(ctx context.Context, otp string) error
 	RemoveUserFromOrg(ctx context.Context, orgId string, userId uint32) error
 	SetOrganizationOwner(ctx context.Context, orgId string, userId uint32) error
+	DeleteExpiredOrgInvites() error
 }

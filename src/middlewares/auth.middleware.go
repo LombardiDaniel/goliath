@@ -8,5 +8,4 @@ type AuthMiddleware interface {
 	AuthorizeUser() gin.HandlerFunc
 	AuthorizeOrganization(needAdmin bool) gin.HandlerFunc
 	Reauthorize() gin.HandlerFunc
-	// AuthorizeNoOrganization() gin.HandlerFunc
 }

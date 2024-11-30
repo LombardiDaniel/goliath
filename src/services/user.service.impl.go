@@ -458,14 +458,14 @@ func (s *UserServicePgImpl) EditUser(ctx context.Context, userId uint32, user sc
 	}
 
 	_, err = s.db.ExecContext(ctx, `
-		UPDATE users
-		SET 
-			password_hash = $1,
-			first_name = $2,
-    		last_name = $3,
-			date_of_birth = $4
-		WHERE user_id = $5;
-	`,
+			UPDATE users
+			SET 
+				password_hash = $1,
+				first_name = $2,
+				last_name = $3,
+				date_of_birth = $4
+			WHERE user_id = $5;
+		`,
 		pwHash,
 		user.FirstName,
 		user.LastName,
@@ -473,5 +473,13 @@ func (s *UserServicePgImpl) EditUser(ctx context.Context, userId uint32, user sc
 		userId,
 	)
 
+	return err
+}
+
+func (s *UserServicePgImpl) DeleteExpiredPwResets() error {
+	_, err := s.db.Exec(`
+		DELETE FROM password_resets
+    	WHERE exp < NOW();
+	`)
 	return err
 }

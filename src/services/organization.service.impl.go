@@ -247,3 +247,11 @@ func (s *OrganizationServicePgImpl) SetOrganizationOwner(ctx context.Context, or
 
 	return common.FilterSqlPgError(tx.Commit())
 }
+
+func (s *OrganizationServicePgImpl) DeleteExpiredOrgInvites() error {
+	_, err := s.db.Exec(`
+		DELETE FROM organization_invites
+    	WHERE exp < NOW();
+	`)
+	return err
+}

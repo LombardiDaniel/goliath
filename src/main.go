@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	_ "github.com/lib/pq"
 	"golang.org/x/oauth2"
@@ -149,7 +150,8 @@ func init() {
 	})
 
 	// Daemons
-	// taskRunner.RegisterTask(1*time.Hour, authService.Cleanup(), 1)
+	taskRunner.RegisterTask(24*time.Second, userService.DeleteExpiredPwResets, 1)
+	taskRunner.RegisterTask(24*time.Hour, organizationService.DeleteExpiredOrgInvites, 1)
 }
 
 // @securityDefinitions.apiKey JWT
