@@ -371,7 +371,7 @@ func (s *UserServicePgImpl) LoginOauth(ctx context.Context, oauthUser oauth.User
 	defer tx.Rollback()
 
 	// check if user exists on curr email
-	// if not, create and aso create oauth_users entry
+	// if not, create and also create oauth_users entry
 
 	err = tx.QueryRowContext(ctx, `
 		SELECT
