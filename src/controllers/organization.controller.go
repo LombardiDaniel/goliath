@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -63,7 +64,7 @@ func (c *OrganizationController) CreateOrganization(ctx *gin.Context) {
 
 	org, err := fiddlers.NewOrganization(createOrg.OrganizationName, user.UserId)
 	if err != nil {
-		slog.Error("Error while generating organization: %s", err.Error())
+		slog.Error(fmt.Sprintf("Error while generating organization: %s", err.Error()))
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
 	}
