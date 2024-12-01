@@ -11,6 +11,8 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
@@ -37,6 +39,7 @@ var (
 	userService         services.UserService
 	emailService        services.EmailService
 	organizationService services.OrganizationService
+	objectService       services.ObjectService
 
 	// Controllers
 	authController         controllers.AuthController
@@ -105,11 +108,27 @@ func init() {
 		Endpoint: github.Endpoint,
 	})
 
+	minioClient, err := minio.New(
+		os.Getenv("S3_ENDPOINT"),
+		&minio.Options{
+			Creds: credentials.NewStaticV4(
+				os.Getenv("S3_ACCESS_KEY_ID"),
+				os.Getenv("S3_SECRET_ACCESS_KEY"),
+				"",
+			),
+			Secure: strings.ToLower(common.GetEnvVarDefault("S3_SECURE", "true")) == "true",
+		},
+	)
+	if err != nil {
+		panic(err)
+	}
+
 	// Services
 	authService = services.NewAuthServiceJwtImpl(os.Getenv("JWT_SECRET_KEY"), db)
 	userService = services.NewUserServicePgImpl(db)
 	emailService = services.NewEmailServiceResendImpl(os.Getenv("RESEND_API_KEY"), "./templates")
 	organizationService = services.NewOrganizationServicePgImpl(db)
+	objectService = services.NewObjectServiceMinioImpl(minioClient)
 
 	// Middleware
 	authMiddleware = middlewares.NewAuthMiddlewareJwt(authService)
