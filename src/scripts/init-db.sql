@@ -103,11 +103,17 @@ AFTER INSERT ON password_resets
 FOR EACH STATEMENT EXECUTE FUNCTION delete_expired_resets();
 
 -- oauth
-CREATE TABLE oauth_users ( 
+CREATE TABLE oauth_users (
     email VARCHAR(100) PRIMARY KEY,
     user_id INT,
     oauth_provider VARCHAR(20) NOT NULL,
     CONSTRAINT fk_oauth_users FOREIGN KEY (user_id, email) REFERENCES users(user_id, email)
 );
+
+-- -- payments
+-- CREATE TABLE payments ( 
+--     payment_id SERIAL PRIMARY KEY,
+--     payment_stripe_id VARCHAR(255)
+-- );
 
 COMMIT;

@@ -1,5 +1,5 @@
 package schemas
 
-type IdString struct {
+type Id struct {
 	Id string `json:"id" binding:"required"`
 }

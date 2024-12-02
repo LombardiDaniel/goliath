@@ -40,7 +40,7 @@ func NewOrganizationController(
 // @Accept json
 // @Produce plain
 // @Param   payload 	body 		schemas.CreateOrganization true "org json"
-// @Success 200 		{object} 	schemas.IdString
+// @Success 200 		{object} 	schemas.Id
 // @Failure 400 		{string} 	ErrorResponse "Bad Request"
 // @Failure 409 		{string} 	ErrorResponse "Conflict"
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
@@ -80,7 +80,7 @@ func (c *OrganizationController) CreateOrganization(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, schemas.IdString{Id: org.OrganizationId})
+	ctx.JSON(http.StatusOK, schemas.Id{Id: org.OrganizationId})
 }
 
 // @Summary InviteToOrg

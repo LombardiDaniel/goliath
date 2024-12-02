@@ -12,20 +12,43 @@ import (
 )
 
 type EmailServiceResendImpl struct {
-	resendClient               *resend.Client
+	resendClient *resend.Client
+
 	emailConfirmationTemplate  *template.Template
 	accountCreationTemplate    *template.Template
 	organizationInviteTemplate *template.Template
 	passwordResetTemplate      *template.Template
+
+	usersConfirmUrl  string
+	acceptInviteUrl  string
+	passwordResetUrl string
 }
 
 func NewEmailServiceResendImpl(resendApiKey string, templatesDir string) EmailService {
+	usersConfirmUrl, err := url.JoinPath(common.API_HOST_URL, "/v1/users/confirm")
+	if err != nil {
+		panic(err)
+	}
+
+	acceptInviteUrl, err := url.JoinPath(common.API_HOST_URL, "/v1/organizations/accept-invite")
+	if err != nil {
+		panic(err)
+	}
+
+	passwordResetUrl, err := url.JoinPath(common.API_HOST_URL, "/v1/users/set-password-reset-cookie")
+	if err != nil {
+		panic(err)
+	}
+
 	return &EmailServiceResendImpl{
 		resendClient:               resend.NewClient(resendApiKey),
 		emailConfirmationTemplate:  common.LoadHTMLTemplate(filepath.Join(templatesDir, "email-confirmation.html")),
 		accountCreationTemplate:    common.LoadHTMLTemplate(filepath.Join(templatesDir, "account-created.html")),
 		organizationInviteTemplate: common.LoadHTMLTemplate(filepath.Join(templatesDir, "organization-invite.html")),
 		passwordResetTemplate:      common.LoadHTMLTemplate(filepath.Join(templatesDir, "password-reset.html")),
+		usersConfirmUrl:            usersConfirmUrl,
+		acceptInviteUrl:            acceptInviteUrl,
+		passwordResetUrl:           passwordResetUrl,
 	}
 }
 
@@ -38,14 +61,10 @@ type htmlConfirmationVars struct {
 func (s *EmailServiceResendImpl) SendEmailConfirmation(email string, name string, otp string) error {
 
 	body := new(bytes.Buffer)
-	confirmUrl, err := url.JoinPath(common.API_HOST_URL, "/v1/users/confirm")
-	if err != nil {
-		return err
-	}
-	err = s.emailConfirmationTemplate.Execute(body, htmlConfirmationVars{
+	err := s.emailConfirmationTemplate.Execute(body, htmlConfirmationVars{
 		ProjectName: common.PROJECT_NAME,
 		FirstName:   name,
-		OtpUrl:      confirmUrl + "?otp=" + otp,
+		OtpUrl:      s.usersConfirmUrl + "?otp=" + otp,
 	})
 	if err != nil {
 		slog.Error(err.Error())
@@ -100,16 +119,12 @@ type htmlOrgInviteVars struct {
 
 func (s *EmailServiceResendImpl) SendOrganizationInvite(email string, name string, otp string, orgName string) error {
 
-	acceptUrl, err := url.JoinPath(common.API_HOST_URL, "/v1/organizations/accept-invite")
-	if err != nil {
-		return err
-	}
 	body := new(bytes.Buffer)
-	err = s.organizationInviteTemplate.Execute(body, htmlOrgInviteVars{
+	err := s.organizationInviteTemplate.Execute(body, htmlOrgInviteVars{
 		ProjectName:      common.PROJECT_NAME,
 		OrganizationName: orgName,
 		FirstName:        name,
-		OtpUrl:           acceptUrl + "?otp=" + otp,
+		OtpUrl:           s.acceptInviteUrl + "?otp=" + otp,
 	})
 	if err != nil {
 		slog.Error(err.Error())
@@ -136,15 +151,11 @@ type htmlPwResetVars struct {
 
 func (s *EmailServiceResendImpl) SendPasswordReset(email string, name string, otp string) error {
 
-	resetUrl, err := url.JoinPath(common.API_HOST_URL, "/v1/users/set-password-reset-cookie")
-	if err != nil {
-		return err
-	}
 	body := new(bytes.Buffer)
-	err = s.passwordResetTemplate.Execute(body, htmlPwResetVars{
+	err := s.passwordResetTemplate.Execute(body, htmlPwResetVars{
 		ProjectName: common.PROJECT_NAME,
 		FirstName:   name,
-		OtpUrl:      resetUrl,
+		OtpUrl:      s.passwordResetUrl,
 	})
 	if err != nil {
 		slog.Error(err.Error())
