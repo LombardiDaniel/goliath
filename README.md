@@ -1,8 +1,10 @@
-[![Licence](https://img.shields.io/github/license/LombardiDaniel/go-gin-template?style=for-the-badge)](./LICENSE)
-[![BuildStatus](https://img.shields.io/github/actions/workflow/status/LombardiDaniel/go-gin-template/ci.yml?style=for-the-badge)](https://github.com/LombardiDaniel/go-gin-template/actions)
+[![Licence](https://img.shields.io/github/license/LombardiDaniel/gopherbase?style=for-the-badge)](./LICENSE)
+[![BuildStatus](https://img.shields.io/github/actions/workflow/status/LombardiDaniel/gopherbase/ci.yml?style=for-the-badge)](https://github.com/LombardiDaniel/gopherbase/actions)
 
-# GinGo Template
+# GopherBase
 
-To rapidy bootstrap apps
+To rapidy bootstrap apps, base written in Go, for Go
 
 API_HOST_URL + v1/auth/google/callback
+
+API_HOST_URL + v1/auth/github/callback
