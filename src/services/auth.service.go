@@ -1,7 +1,7 @@
 package services
 
 import (
-	"github.com/LombardiDaniel/go-gin-template/models"
+	"github.com/LombardiDaniel/gopherbase/models"
 )
 
 type AuthService interface {

@@ -3,8 +3,8 @@ package fiddlers
 import (
 	"time"
 
-	"github.com/LombardiDaniel/go-gin-template/common"
-	"github.com/LombardiDaniel/go-gin-template/models"
+	"github.com/LombardiDaniel/gopherbase/common"
+	"github.com/LombardiDaniel/gopherbase/models"
 )
 
 func NewOrganization(orgName string, ownerId uint32) (*models.Organization, error) {

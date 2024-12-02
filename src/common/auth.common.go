@@ -1,7 +1,7 @@
 package common
 
 import (
-	"github.com/LombardiDaniel/go-gin-template/models"
+	"github.com/LombardiDaniel/gopherbase/models"
 	"github.com/gin-gonic/gin"
 )
 

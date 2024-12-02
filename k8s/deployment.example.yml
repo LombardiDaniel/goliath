@@ -73,7 +73,7 @@ spec:
     spec:
       containers:
         - name: my-app-api
-          image: lombardi/go-gin-template:latest
+          image: lombardi/gopherbase:latest
           imagePullPolicy: Always
           resources:
             limits:

@@ -1,4 +1,4 @@
-module github.com/LombardiDaniel/go-gin-template
+module github.com/LombardiDaniel/gopherbase
 
 go 1.23.3
 

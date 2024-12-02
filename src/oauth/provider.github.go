@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/LombardiDaniel/go-gin-template/common"
+	"github.com/LombardiDaniel/gopherbase/common"
 	"golang.org/x/oauth2"
 )
 

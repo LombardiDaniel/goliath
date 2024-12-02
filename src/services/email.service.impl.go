@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/LombardiDaniel/go-gin-template/common"
+	"github.com/LombardiDaniel/gopherbase/common"
 	"github.com/resendlabs/resend-go"
 )
 

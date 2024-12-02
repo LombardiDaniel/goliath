@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	"github.com/LombardiDaniel/go-gin-template/models"
+	"github.com/LombardiDaniel/gopherbase/models"
 )
 
 type OrganizationService interface {

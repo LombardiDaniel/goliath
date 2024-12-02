@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/LombardiDaniel/go-gin-template/common"
-	"github.com/LombardiDaniel/go-gin-template/models"
+	"github.com/LombardiDaniel/gopherbase/common"
+	"github.com/LombardiDaniel/gopherbase/models"
 )
 
 type OrganizationServicePgImpl struct {

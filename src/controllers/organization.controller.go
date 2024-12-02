@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/LombardiDaniel/go-gin-template/common"
-	"github.com/LombardiDaniel/go-gin-template/fiddlers"
-	"github.com/LombardiDaniel/go-gin-template/middlewares"
-	"github.com/LombardiDaniel/go-gin-template/schemas"
-	"github.com/LombardiDaniel/go-gin-template/services"
+	"github.com/LombardiDaniel/gopherbase/common"
+	"github.com/LombardiDaniel/gopherbase/fiddlers"
+	"github.com/LombardiDaniel/gopherbase/middlewares"
+	"github.com/LombardiDaniel/gopherbase/schemas"
+	"github.com/LombardiDaniel/gopherbase/services"
 	"github.com/gin-gonic/gin"
 )
 

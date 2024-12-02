@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/LombardiDaniel/go-gin-template/common"
-	"github.com/LombardiDaniel/go-gin-template/services"
+	"github.com/LombardiDaniel/gopherbase/common"
+	"github.com/LombardiDaniel/gopherbase/services"
 	"github.com/gin-gonic/gin"
 )
 

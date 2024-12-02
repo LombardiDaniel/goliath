@@ -6,12 +6,12 @@ import (
 
 	"log/slog"
 
-	"github.com/LombardiDaniel/go-gin-template/common"
-	"github.com/LombardiDaniel/go-gin-template/middlewares"
-	"github.com/LombardiDaniel/go-gin-template/models"
-	"github.com/LombardiDaniel/go-gin-template/oauth"
-	"github.com/LombardiDaniel/go-gin-template/schemas"
-	"github.com/LombardiDaniel/go-gin-template/services"
+	"github.com/LombardiDaniel/gopherbase/common"
+	"github.com/LombardiDaniel/gopherbase/middlewares"
+	"github.com/LombardiDaniel/gopherbase/models"
+	"github.com/LombardiDaniel/gopherbase/oauth"
+	"github.com/LombardiDaniel/gopherbase/schemas"
+	"github.com/LombardiDaniel/gopherbase/services"
 	"github.com/gin-gonic/gin"
 )
 

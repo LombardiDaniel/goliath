@@ -3,9 +3,9 @@ package services
 import (
 	"context"
 
-	"github.com/LombardiDaniel/go-gin-template/models"
-	"github.com/LombardiDaniel/go-gin-template/oauth"
-	"github.com/LombardiDaniel/go-gin-template/schemas"
+	"github.com/LombardiDaniel/gopherbase/models"
+	"github.com/LombardiDaniel/gopherbase/oauth"
+	"github.com/LombardiDaniel/gopherbase/schemas"
 )
 
 type UserService interface {

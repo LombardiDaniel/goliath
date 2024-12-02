@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/LombardiDaniel/go-gin-template/helpers"
-	"github.com/LombardiDaniel/go-gin-template/models"
+	"github.com/LombardiDaniel/gopherbase/helpers"
+	"github.com/LombardiDaniel/gopherbase/models"
 )
 
 func TestUserServicePgImpl_CreateUser(t *testing.T) {
