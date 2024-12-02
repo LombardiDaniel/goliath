@@ -92,6 +92,8 @@ spec:
               value: patos-app
             - name: NOREPLY_EMAIL
               value: no-reply@patos.dev
+            - name: S3_BUCKET
+              value: gopher-base
             - name: POSTGRES_URI
               valueFrom:
                 secretKeyRef:

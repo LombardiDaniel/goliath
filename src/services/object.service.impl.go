@@ -18,12 +18,12 @@ func NewObjectServiceMinioImpl(client *minio.Client) ObjectService {
 	}
 }
 
-func (s *ObjectServiceMinioImpl) UploadObject(ctx context.Context, bucket string, path string, data io.Reader) error {
+func (s *ObjectServiceMinioImpl) Upload(ctx context.Context, bucket string, path string, data io.Reader) error {
 	_, err := s.client.PutObject(ctx, bucket, path, data, -1, minio.PutObjectOptions{})
 	return err
 }
 
-func (s *ObjectServiceMinioImpl) DownloadObject(ctx context.Context, bucket string, path string) ([]byte, error) {
+func (s *ObjectServiceMinioImpl) Download(ctx context.Context, bucket string, path string) ([]byte, error) {
 	obj, err := s.client.GetObject(ctx, bucket, path, minio.GetObjectOptions{})
 	if err != nil {
 		return nil, err
