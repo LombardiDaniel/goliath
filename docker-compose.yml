@@ -29,6 +29,7 @@ services:
   #     S3_ENDPOINT: br-se1.magaluobjects.com
   #     S3_SECURE: "true"
   #     S3_BUCKET: base-gopher
+  #     STRIPE_API_KEY: api-key
 
   db:
     # image: postgres:latest

@@ -196,6 +196,7 @@ func main() {
 	authController.RegisterRoutes(basePath, authMiddleware)
 	userController.RegisterRoutes(basePath, authMiddleware)
 	organizationController.RegisterRoutes(basePath, authMiddleware)
+	billingController.RegisterRoutes(basePath, authMiddleware)
 
 	taskRunner.Dispatch()
 

@@ -43,6 +43,7 @@ func (c *BillingController) CheckOutSessionCompletedCallback(ctx *gin.Context) {
 		return
 	}
 
+	slog.Info(stripeSessionId.Id)
 	stripeSession, err := c.billingService.GetCheckoutSession(rCtx, stripeSessionId.Id)
 	if err != nil {
 		slog.Error(err.Error())

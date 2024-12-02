@@ -57,6 +57,16 @@ data:
   secret_access_key: S3_SECRET_ACCESS_KEY_B64_ENCODED
 
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: stripe-secret
+  namespace: my-app
+type: Opaque
+data:
+  api_key: STRIPE_API_KEY_B64_ENCODED
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -131,6 +141,11 @@ spec:
                 secretKeyRef:
                   name: s3-magalu-secret
                   key: secret_access_key
+            - name: STRIPE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: stripe-secret
+                  key: api_key
 
 ---
 apiVersion: v1
