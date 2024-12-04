@@ -105,15 +105,25 @@ FOR EACH STATEMENT EXECUTE FUNCTION delete_expired_resets();
 -- oauth
 CREATE TABLE oauth_users (
     email VARCHAR(100) PRIMARY KEY,
-    user_id INT,
+    user_id INT REFERENCES users (user_id) NOT NULL,
     oauth_provider VARCHAR(20) NOT NULL,
-    CONSTRAINT fk_oauth_users FOREIGN KEY (user_id, email) REFERENCES users(user_id, email)
+    CONSTRAINT fk_oauth_users FOREIGN KEY (user_id, email) REFERENCES users (user_id, email)
 );
 
--- -- payments
--- CREATE TABLE payments ( 
---     payment_id SERIAL PRIMARY KEY,
---     payment_stripe_id VARCHAR(255)
--- );
+-- NOTE: There needs to be a way to link it to the product, coding that is up to the final user
+-- orders
+CREATE TABLE orders (
+    order_id SERIAL PRIMARY KEY,
+    -- reverse: the product sold references the order
+    -- product_id VARCHAR(255), -- REFERENCES products(product_id),
+    user_id INT REFERENCES users (user_id) NOT NULL,
+    -- ammount DECIMAL(20, 2) NOT NULL,
+    unit_ammount BIGINT,
+    unit_currency CHAR(3) NOT NULL,
+    payment_status TEXT CHECK (payment_status IN ('pending', 'complete', 'canceled')) DEFAULT 'pending',
+    payment_checkout_session_id VARCHAR(255) NULL,
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    completed_at TIMESTAMP NULL
+);
 
 COMMIT;

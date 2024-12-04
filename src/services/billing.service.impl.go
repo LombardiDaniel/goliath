@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"net/url"
+	"strconv"
 
 	"github.com/LombardiDaniel/gopherbase/common"
 	"github.com/stripe/stripe-go/v81"
@@ -41,9 +42,32 @@ func NewBillingService(db *sql.DB, stripeApiKey string) BillingService {
 	}
 }
 
-func (s *BillingServiceStripeImpl) GetCheckoutUrl(ctx context.Context, currencyUnit stripe.Currency, unitAmmount int64, planName string) (string, error) {
+func (s *BillingServiceStripeImpl) CreateOrder(ctx context.Context, currencyUnit stripe.Currency, unitAmmount int64, planName string, userId uint32) (string, error) {
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return "", err
+	}
+	defer tx.Rollback()
+
+	var orderId uint32
+	err = tx.QueryRowContext(ctx, `
+		INSERT INTO orders
+			(user_id, unit_ammount, unit_currency)
+		VALUES
+			($1, $2, LOWER($3))
+		RETURNING order_id;
+		`,
+		userId,
+		unitAmmount,
+		string(currencyUnit),
+	).Scan(&orderId)
+	if err != nil {
+		return "", err
+	}
+
 	params := &stripe.CheckoutSessionParams{
-		Mode: stripe.String(string(stripe.CheckoutSessionModePayment)),
+		ClientReferenceID: stripe.String(strconv.FormatUint(uint64(orderId), 10)),
+		Mode:              stripe.String(string(stripe.CheckoutSessionModePayment)),
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
 				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
@@ -64,37 +88,50 @@ func (s *BillingServiceStripeImpl) GetCheckoutUrl(ctx context.Context, currencyU
 	if err != nil {
 		return "", err
 	}
-	return checkout.URL, nil
-}
 
-func (s *BillingServiceStripeImpl) GetClientSecret(ctx context.Context, currencyUnit stripe.Currency, unitAmmount int64, planName string) (string, error) {
-	panic("not impl")
-	params := &stripe.CheckoutSessionParams{
-		Mode:   stripe.String(string(stripe.CheckoutSessionModePayment)),
-		UIMode: stripe.String("embedded"),
-		LineItems: []*stripe.CheckoutSessionLineItemParams{
-			{
-				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
-					Currency: stripe.String(string(currencyUnit)),
-					ProductData: &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
-						Name: stripe.String(planName),
-					},
-					UnitAmount: stripe.Int64(unitAmmount),
-				},
-				Quantity: stripe.Int64(1),
-			},
-		},
-		ReturnURL: stripe.String("https://example.com/checkout/return?session_id={CHECKOUT_SESSION_ID}"),
-	}
-
-	checkout, err := session.New(params)
+	_, err = tx.ExecContext(ctx, `
+		UPDATE orders
+		SET payment_checkout_session_id = $1
+		WHERE order_id = $2;
+		`,
+		checkout.ID,
+		orderId,
+	)
 	if err != nil {
 		return "", err
 	}
-	return checkout.URL, nil
+
+	return checkout.URL, tx.Commit()
 }
 
 func (s *BillingServiceStripeImpl) GetCheckoutSession(ctx context.Context, sessionId string) (*stripe.CheckoutSession, error) {
 	checkout, err := session.Get(sessionId, nil)
 	return checkout, err
+}
+
+func (s *BillingServiceStripeImpl) GetClientSecret(ctx context.Context, currencyUnit stripe.Currency, unitAmmount int64, planName string) (string, error) {
+	panic("not impl")
+	// params := &stripe.CheckoutSessionParams{
+	// 	Mode:   stripe.String(string(stripe.CheckoutSessionModePayment)),
+	// 	UIMode: stripe.String("embedded"),
+	// 	LineItems: []*stripe.CheckoutSessionLineItemParams{
+	// 		{
+	// 			PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
+	// 				Currency: stripe.String(string(currencyUnit)),
+	// 				ProductData: &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
+	// 					Name: stripe.String(planName),
+	// 				},
+	// 				UnitAmount: stripe.Int64(unitAmmount),
+	// 			},
+	// 			Quantity: stripe.Int64(1),
+	// 		},
+	// 	},
+	// 	ReturnURL: stripe.String("https://example.com/checkout/return?session_id={CHECKOUT_SESSION_ID}"),
+	// }
+
+	// checkout, err := session.New(params)
+	// if err != nil {
+	// 	return "", err
+	// }
+	// return checkout.URL, nil
 }
