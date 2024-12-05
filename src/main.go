@@ -140,7 +140,7 @@ func init() {
 	authController = controllers.NewAuthController(authService, userService, emailService, oauthConfigMap)
 	userController = controllers.NewUserController(authService, userService, emailService)
 	organizationController = controllers.NewOrganizationController(userService, emailService, organizationService)
-	billingController = controllers.NewBillingController(billingService)
+	billingController = controllers.NewBillingController(billingService, emailService, userService)
 
 	router = gin.Default()
 	router.SetTrustedProxies([]string{"*"})

@@ -127,7 +127,7 @@ func (c *BillingController) CheckOutSessionCompletedCallback(ctx *gin.Context) {
 		return
 	}
 
-	err = c.emailService.SendOrderCompleted(user.Email, user.FirstName, order)
+	err = c.emailService.SendPaymentAccepted(user.Email, user.FirstName, order)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")

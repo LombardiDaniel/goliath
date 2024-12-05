@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bem vindo - Quack!</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 20px auto;
+        background-color: #ffffff;
+        border: 3px solid #000000;
+        box-shadow: 8px 8px 0 #000000;
+      }
+      .header {
+        background-color: #feb735;
+        color: #000000;
+        padding: 20px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+      .content {
+        padding: 30px;
+        font-size: 16px;
+        line-height: 1.5;
+      }
+      .button {
+        display: inline-block;
+        background-color: #feb735;
+        color: #000000;
+        padding: 15px 30px;
+        text-decoration: none;
+        font-weight: bold;
+        text-transform: uppercase;
+        border: 2px solid #000000;
+        margin-top: 20px;
+        box-shadow: 8px 8px 0 #000000;
+      }
+      .footer {
+        background-color: #f9ffd9;
+        color: #000000;
+        padding: 20px;
+        text-align: center;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">Pagamento Aceito - Quack!</div>
+      <div class="content">
+        <p>Olá {{ .FirstName }},</p>
+        <p>
+          Seu pagamento acaba de ser aceito! A ordem <b>{{ .OrderId }}</b>
+          acaba de ser confirmada!
+        </p>
+        <p>Abraços,<br />Time do patos.dev</p>
+      </div>
+      <div class="footer">&copy; 2024 PATOS. All rights reserved.</div>
+    </div>
+  </body>
+</html>
