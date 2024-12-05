@@ -16,13 +16,19 @@ import (
 
 type BillingController struct {
 	billingService services.BillingService
+	emailService   services.EmailService
+	userService    services.UserService
 }
 
 func NewBillingController(
 	billingService services.BillingService,
+	emailService services.EmailService,
+	userService services.UserService,
 ) BillingController {
 	return BillingController{
 		billingService: billingService,
+		emailService:   emailService,
+		userService:    userService,
 	}
 }
 
@@ -91,6 +97,8 @@ func (c *BillingController) CheckOutSessionCompletedCallback(ctx *gin.Context) {
 		}
 	default:
 		slog.Warn(fmt.Sprintf("Unhandled event type: %s", string(stripeEvent.Type)))
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
 	}
 
 	checkoutSession, err := c.billingService.GetCheckoutSession(ctx, inputCheckoutSession.ID)
@@ -100,7 +108,33 @@ func (c *BillingController) CheckOutSessionCompletedCallback(ctx *gin.Context) {
 		return
 	}
 
-	slog.Info(fmt.Sprintf("%+v", checkoutSession))
+	if !common.IsStripeChechouseSessionPaid(checkoutSession) {
+		ctx.String(http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	order, err := c.billingService.SetCheckoutSessionAsComplete(ctx, checkoutSession.ID)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	user, err := c.userService.GetUserFromId(ctx, order.OrderId)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	err = c.emailService.SendOrderCompleted(user.Email, user.FirstName, order)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	ctx.String(http.StatusOK, "OK")
 }
 
 func (c *BillingController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware) {

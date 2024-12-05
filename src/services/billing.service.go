@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 
+	"github.com/LombardiDaniel/gopherbase/models"
 	"github.com/stripe/stripe-go/v81"
 )
 
@@ -12,6 +13,9 @@ type BillingService interface {
 
 	// Webhook to be used in a daemon
 	GetCheckoutSession(ctx context.Context, sessionId string) (*stripe.CheckoutSession, error)
+
+	// Webhook to be used in a daemon
+	SetCheckoutSessionAsComplete(ctx context.Context, sessionId string) (models.Order, error)
 
 	// // Gets the Stripe Client Secret to be used in Embedded Checkout Form
 	// 	//

@@ -118,10 +118,10 @@ CREATE TABLE orders (
     -- product_id VARCHAR(255), -- REFERENCES products(product_id),
     user_id INT REFERENCES users (user_id) NOT NULL,
     -- ammount DECIMAL(20, 2) NOT NULL,
-    unit_ammount BIGINT,
+    unit_ammount BIGINT NOT NULL,
     unit_currency CHAR(3) NOT NULL,
     payment_status TEXT CHECK (payment_status IN ('pending', 'complete', 'canceled')) DEFAULT 'pending',
-    payment_checkout_session_id VARCHAR(255) NULL,
+    stripe_checkout_session_id VARCHAR(255) NULL,
     created_at TIMESTAMP DEFAULT NOW() NOT NULL,
     completed_at TIMESTAMP NULL
 );

@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/LombardiDaniel/gopherbase/common"
+	"github.com/LombardiDaniel/gopherbase/models"
 	"github.com/stripe/stripe-go/v81"
 	"github.com/stripe/stripe-go/v81/checkout/session"
 )
@@ -91,7 +92,9 @@ func (s *BillingServiceStripeImpl) CreateOrder(ctx context.Context, currencyUnit
 
 	_, err = tx.ExecContext(ctx, `
 		UPDATE orders
-		SET payment_checkout_session_id = $1
+		SET
+			stripe_checkout_session_id = $1,
+			completed_at = NOW()
 		WHERE order_id = $2;
 		`,
 		checkout.ID,
@@ -109,29 +112,52 @@ func (s *BillingServiceStripeImpl) GetCheckoutSession(ctx context.Context, sessi
 	return checkout, err
 }
 
-func (s *BillingServiceStripeImpl) GetClientSecret(ctx context.Context, currencyUnit stripe.Currency, unitAmmount int64, planName string) (string, error) {
-	panic("not impl")
-	// params := &stripe.CheckoutSessionParams{
-	// 	Mode:   stripe.String(string(stripe.CheckoutSessionModePayment)),
-	// 	UIMode: stripe.String("embedded"),
-	// 	LineItems: []*stripe.CheckoutSessionLineItemParams{
-	// 		{
-	// 			PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
-	// 				Currency: stripe.String(string(currencyUnit)),
-	// 				ProductData: &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
-	// 					Name: stripe.String(planName),
-	// 				},
-	// 				UnitAmount: stripe.Int64(unitAmmount),
-	// 			},
-	// 			Quantity: stripe.Int64(1),
-	// 		},
-	// 	},
-	// 	ReturnURL: stripe.String("https://example.com/checkout/return?session_id={CHECKOUT_SESSION_ID}"),
-	// }
+func (s *BillingServiceStripeImpl) SetCheckoutSessionAsComplete(ctx context.Context, sessionId string) (models.Order, error) {
+	var o models.Order
+	err := s.db.QueryRowContext(ctx, `
+		UPDATE orders
+		SET payment_status = 'complete', 
+		WHERE stripe_checkout_session_id = $1
+		RETURNING *;
+		`,
+		sessionId,
+	).Scan(
+		&o.OrderId,
+		&o.UserId,
+		&o.UnitAmmount,
+		&o.UnitCurrency,
+		&o.PaymentStatus,
+		&o.StripeCheckoutSessionId,
+		&o.CreatedAt,
+		&o.CompletedAt,
+	)
 
-	// checkout, err := session.New(params)
-	// if err != nil {
-	// 	return "", err
-	// }
-	// return checkout.URL, nil
+	return o, err
 }
+
+// func (s *BillingServiceStripeImpl) GetClientSecret(ctx context.Context, currencyUnit stripe.Currency, unitAmmount int64, planName string) (string, error) {
+// 	panic("not impl")
+// 	params := &stripe.CheckoutSessionParams{
+// 		Mode:   stripe.String(string(stripe.CheckoutSessionModePayment)),
+// 		UIMode: stripe.String("embedded"),
+// 		LineItems: []*stripe.CheckoutSessionLineItemParams{
+// 			{
+// 				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
+// 					Currency: stripe.String(string(currencyUnit)),
+// 					ProductData: &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
+// 						Name: stripe.String(planName),
+// 					},
+// 					UnitAmount: stripe.Int64(unitAmmount),
+// 				},
+// 				Quantity: stripe.Int64(1),
+// 			},
+// 		},
+// 		ReturnURL: stripe.String("https://example.com/checkout/return?session_id={CHECKOUT_SESSION_ID}"),
+// 	}
+
+// 	checkout, err := session.New(params)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	return checkout.URL, nil
+// }
