@@ -116,7 +116,7 @@ func (s *BillingServiceStripeImpl) SetCheckoutSessionAsComplete(ctx context.Cont
 	var o models.Order
 	err := s.db.QueryRowContext(ctx, `
 		UPDATE orders
-		SET payment_status = 'complete', 
+		SET payment_status = 'complete'
 		WHERE stripe_checkout_session_id = $1
 		RETURNING *;
 		`,

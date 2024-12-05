@@ -120,7 +120,7 @@ func (c *BillingController) CheckOutSessionCompletedCallback(ctx *gin.Context) {
 		return
 	}
 
-	user, err := c.userService.GetUserFromId(ctx, order.OrderId)
+	user, err := c.userService.GetUserFromId(ctx, order.UserId)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
