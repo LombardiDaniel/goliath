@@ -154,7 +154,7 @@ func (s *EmailServiceResendImpl) SendPasswordReset(email string, name string, ot
 	err := s.passwordResetTemplate.Execute(body, htmlPwResetVars{
 		ProjectName: common.PROJECT_NAME,
 		FirstName:   name,
-		OtpUrl:      s.passwordResetUrl,
+		OtpUrl:      s.passwordResetUrl + "?otp=" + otp,
 	})
 	if err != nil {
 		slog.Error(err.Error())
