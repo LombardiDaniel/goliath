@@ -133,7 +133,7 @@ func (s *AuthServiceJwtImpl) LoginOauth(ctx context.Context, oauthUser oauth.Use
 	defer tx.Rollback()
 
 	// check if user exists on curr email
-	// if not, create and also create oauth_users entry
+	// also creates oauth_users entry for this provider
 	err = tx.QueryRowContext(ctx, `
 		SELECT
 			user_id,
