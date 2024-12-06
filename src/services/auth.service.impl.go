@@ -145,7 +145,7 @@ func (s *AuthServiceJwtImpl) LoginOauth(ctx context.Context, oauthUser oauth.Use
 			created_at,
 			updated_at,
 			is_active
-		FROM users WHERE email = $1
+		FROM users WHERE email = $1;
 	`, oauthUser.Email).Scan(
 		&user.UserId,
 		&user.Email,
@@ -168,7 +168,10 @@ func (s *AuthServiceJwtImpl) LoginOauth(ctx context.Context, oauthUser oauth.Use
 				ON CONFLICT (email, oauth_provider) DO NOTHING;
 			`, oauthUser.Email, user.UserId, oauthUser.Provider,
 		)
-		return user, false, err
+		if err != nil {
+			return user, false, err
+		}
+		return user, false, tx.Commit()
 	}
 
 	// here error is sql.ErrNoRows
@@ -207,6 +210,5 @@ func (s *AuthServiceJwtImpl) LoginOauth(ctx context.Context, oauthUser oauth.Use
 	if err != nil {
 		return user, false, err
 	}
-
-	return user, true, tx.Commit()
+	return user, false, tx.Commit()
 }
