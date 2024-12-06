@@ -74,18 +74,18 @@ func init() {
 		panic(err)
 	}
 
-	pgOpenConns, err := strconv.Atoi(common.GetEnvVarDefault("POSTGRES_OPEN_CONNS", "0"))
-	if err != nil {
-		panic(err)
-	}
-
 	pgIdleConns, err := strconv.Atoi(common.GetEnvVarDefault("POSTGRES_IDLE_CONNS", "2"))
 	if err != nil {
 		panic(err)
 	}
 
-	db.SetMaxOpenConns(pgOpenConns)
+	pgOpenConns, err := strconv.Atoi(common.GetEnvVarDefault("POSTGRES_OPEN_CONNS", "0"))
+	if err != nil {
+		panic(err)
+	}
+
 	db.SetMaxIdleConns(pgIdleConns)
+	db.SetMaxOpenConns(pgOpenConns)
 
 	oauthBaseCallback := common.API_HOST_URL + "v1/auth/%s/callback"
 

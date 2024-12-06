@@ -101,9 +101,9 @@ func (c *AuthController) Login(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, claims)
 }
 
+// @Summary Validate JWT
 // @Security JWT
 // @Tags Auth
-// @Summary Validate JWT
 // @Description Mock Endpoint to test validation of JSON Web Token (JWT) in Headers or Cookie
 // @Consume application/json
 // @Produce json

@@ -33,6 +33,7 @@ func NewBillingController(
 }
 
 // @Summary GetCheckoutSessionUrl
+// @Security JWT
 // @Tags Billing
 // @Description Gets the CheckoutSession Url
 // @Produce plain
@@ -66,7 +67,8 @@ func (c *BillingController) GetCheckoutSessionUrl(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, schemas.Url{Url: url})
 }
 
-// @Summary CheckOutSessionCompletedCallback
+// @Summary CheckoutSessionCompletedCallback
+// @Security JWT
 // @Tags Billing
 // @Description Completes a SessionCompleted
 // @Produce plain
@@ -76,7 +78,7 @@ func (c *BillingController) GetCheckoutSessionUrl(ctx *gin.Context) {
 // @Failure 409 		{string} 	ErrorResponse "Conflict"
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
 // @Router /v1/billing/stripe/checkout-session-completed [POST]
-func (c *BillingController) CheckOutSessionCompletedCallback(ctx *gin.Context) {
+func (c *BillingController) CheckoutSessionCompletedCallback(ctx *gin.Context) {
 	var stripeEvent stripe.Event
 
 	if err := ctx.ShouldBind(&stripeEvent); err != nil {
@@ -141,5 +143,5 @@ func (c *BillingController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware m
 	g := rg.Group("/billing")
 
 	g.POST("/stripe/get-checkout-session-url/:value", authMiddleware.AuthorizeUser(), c.GetCheckoutSessionUrl)
-	g.POST("/stripe/checkout-session-completed", c.CheckOutSessionCompletedCallback)
+	g.POST("/stripe/checkout-session-completed", c.CheckoutSessionCompletedCallback)
 }
