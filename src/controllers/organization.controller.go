@@ -40,13 +40,12 @@ func NewOrganizationController(
 // @Accept json
 // @Produce plain
 // @Param   payload 	body 		schemas.CreateOrganization true "org json"
-// @Success 200 		{object} 	schemas.IdString
+// @Success 200 		{object} 	schemas.Id
 // @Failure 400 		{string} 	ErrorResponse "Bad Request"
 // @Failure 409 		{string} 	ErrorResponse "Conflict"
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
 // @Router /v1/organizations [PUT]
 func (c *OrganizationController) CreateOrganization(ctx *gin.Context) {
-	rCtx := ctx.Request.Context()
 	var createOrg schemas.CreateOrganization
 
 	if err := ctx.ShouldBind(&createOrg); err != nil {
@@ -55,7 +54,7 @@ func (c *OrganizationController) CreateOrganization(ctx *gin.Context) {
 		return
 	}
 
-	user, err := common.GetClaimsFromGinCtx(ctx)
+	user, err := fiddlers.GetClaimsFromGinCtx(ctx)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -69,7 +68,7 @@ func (c *OrganizationController) CreateOrganization(ctx *gin.Context) {
 		return
 	}
 
-	err = c.orgService.CreateOrganization(rCtx, *org)
+	err = c.orgService.CreateOrganization(ctx, *org)
 	if err != nil {
 		if err == common.ErrDbConflict {
 			ctx.String(http.StatusConflict, "Conflict")
@@ -80,7 +79,7 @@ func (c *OrganizationController) CreateOrganization(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, schemas.IdString{Id: org.OrganizationId})
+	ctx.JSON(http.StatusOK, schemas.Id{Id: org.OrganizationId})
 }
 
 // @Summary InviteToOrg
@@ -98,7 +97,6 @@ func (c *OrganizationController) CreateOrganization(ctx *gin.Context) {
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
 // @Router /v1/organizations/{orgId}/invite [PUT]
 func (c *OrganizationController) InviteToOrg(ctx *gin.Context) {
-	rCtx := ctx.Request.Context()
 	var createInv schemas.CreateOrganizationInvite
 
 	if err := ctx.ShouldBind(&createInv); err != nil {
@@ -107,7 +105,7 @@ func (c *OrganizationController) InviteToOrg(ctx *gin.Context) {
 		return
 	}
 
-	currUser, err := common.GetClaimsFromGinCtx(ctx)
+	currUser, err := fiddlers.GetClaimsFromGinCtx(ctx)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -121,14 +119,14 @@ func (c *OrganizationController) InviteToOrg(ctx *gin.Context) {
 		return
 	}
 
-	user, err := c.userService.GetUser(rCtx, createInv.UserEmail)
+	user, err := c.userService.GetUser(ctx, createInv.UserEmail)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
 	}
 
-	org, err := c.orgService.GetOrganization(rCtx, *currUser.OrganizationId)
+	org, err := c.orgService.GetOrganization(ctx, *currUser.OrganizationId)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -136,7 +134,7 @@ func (c *OrganizationController) InviteToOrg(ctx *gin.Context) {
 	}
 
 	inv := fiddlers.NewOrganizationInvite(*currUser.OrganizationId, user.UserId, createInv.IsAdmin, otp)
-	err = c.orgService.CreateOrganizationInvite(rCtx, inv)
+	err = c.orgService.CreateOrganizationInvite(ctx, inv)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -166,7 +164,7 @@ func (c *OrganizationController) InviteToOrg(ctx *gin.Context) {
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
 // @Router /v1/organizations/accept-invite [GET]
 func (c *OrganizationController) AcceptOrgInvite(ctx *gin.Context) {
-	rCtx := ctx.Request.Context()
+
 	otp := ctx.Query("otp")
 
 	// currUser, err := common.GetClaimsFromGinCtx(ctx)
@@ -176,7 +174,7 @@ func (c *OrganizationController) AcceptOrgInvite(ctx *gin.Context) {
 	// 	return
 	// }
 
-	err := c.orgService.ConfirmOrganizationInvite(rCtx, otp)
+	err := c.orgService.ConfirmOrganizationInvite(ctx, otp)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -199,7 +197,7 @@ func (c *OrganizationController) AcceptOrgInvite(ctx *gin.Context) {
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
 // @Router /v1/organizations/{orgId}/users/{userId} [DELETE]
 func (c *OrganizationController) RemoveFromOrg(ctx *gin.Context) {
-	rCtx := ctx.Request.Context()
+
 	userId, err := strconv.Atoi(ctx.Param("userId"))
 	if err != nil {
 		ctx.String(http.StatusBadRequest, "BadRequest")
@@ -214,14 +212,14 @@ func (c *OrganizationController) RemoveFromOrg(ctx *gin.Context) {
 		return
 	}
 
-	currUser, err := common.GetClaimsFromGinCtx(ctx)
+	currUser, err := fiddlers.GetClaimsFromGinCtx(ctx)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
 	}
 
-	err = c.orgService.RemoveUserFromOrg(rCtx, *currUser.OrganizationId, uint32(userId))
+	err = c.orgService.RemoveUserFromOrg(ctx, *currUser.OrganizationId, uint32(userId))
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -244,7 +242,6 @@ func (c *OrganizationController) RemoveFromOrg(ctx *gin.Context) {
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
 // @Router /v1/organizations/{orgId}/owner [POST]
 func (c *OrganizationController) ChangeOwner(ctx *gin.Context) {
-	rCtx := ctx.Request.Context()
 
 	var tgtEmail schemas.Email
 
@@ -254,14 +251,14 @@ func (c *OrganizationController) ChangeOwner(ctx *gin.Context) {
 		return
 	}
 
-	currUser, err := common.GetClaimsFromGinCtx(ctx)
+	currUser, err := fiddlers.GetClaimsFromGinCtx(ctx)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
 	}
 
-	org, err := c.orgService.GetOrganization(rCtx, *currUser.OrganizationId)
+	org, err := c.orgService.GetOrganization(ctx, *currUser.OrganizationId)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -273,14 +270,14 @@ func (c *OrganizationController) ChangeOwner(ctx *gin.Context) {
 		return
 	}
 
-	tgtUser, err := c.userService.GetUser(rCtx, tgtEmail.Email)
+	tgtUser, err := c.userService.GetUser(ctx, tgtEmail.Email)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
 	}
 
-	err = c.orgService.SetOrganizationOwner(rCtx, *currUser.OrganizationId, tgtUser.UserId)
+	err = c.orgService.SetOrganizationOwner(ctx, *currUser.OrganizationId, tgtUser.UserId)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")

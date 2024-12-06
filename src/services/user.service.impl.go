@@ -7,7 +7,6 @@ import (
 
 	"github.com/LombardiDaniel/gopherbase/common"
 	"github.com/LombardiDaniel/gopherbase/models"
-	"github.com/LombardiDaniel/gopherbase/oauth"
 	"github.com/LombardiDaniel/gopherbase/schemas"
 )
 
@@ -359,95 +358,6 @@ func (s *UserServicePgImpl) UpdateUserPassword(ctx context.Context, userId uint3
 	}
 
 	return tx.Commit()
-}
-
-func (s *UserServicePgImpl) LoginOauth(ctx context.Context, oauthUser oauth.User) (models.User, bool, error) {
-	user := models.User{}
-	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
-	if err != nil {
-		return user, false, err
-	}
-
-	defer tx.Rollback()
-
-	// check if user exists on curr email
-	// if not, create and also create oauth_users entry
-
-	err = tx.QueryRowContext(ctx, `
-		SELECT
-			user_id,
-			email,
-			password_hash,
-			first_name,
-			last_name,
-			date_of_birth,
-			created_at,
-			updated_at,
-			is_active
-		FROM users WHERE email = $1
-	`, oauthUser.Email).Scan(
-		&user.UserId,
-		&user.Email,
-		&user.PasswordHash,
-		&user.FirstName,
-		&user.LastName,
-		&user.DateOfBirth,
-		// &user.LastLogin,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-		&user.IsActive,
-	)
-	if err != sql.ErrNoRows && err != nil {
-		return user, false, err
-	}
-
-	if err == nil {
-		return user, false, err
-	}
-
-	// here error is sql.ErrNoRows
-	err = tx.QueryRowContext(ctx, `
-			INSERT INTO users 
-				(email, password_hash, first_name, last_name)
-			VALUES
-				($1, $2, $3, $4)
-			RETURNING *;
-		`,
-		oauthUser.Email,
-		"oauth",
-		oauthUser.FirstName,
-		oauthUser.LastName,
-	).Scan(
-		&user.UserId,
-		&user.Email,
-		&user.PasswordHash,
-		&user.FirstName,
-		&user.LastName,
-		&user.DateOfBirth,
-		// &user.LastLogin,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-		&user.IsActive,
-	)
-	if err != nil {
-		return user, false, err
-	}
-
-	_, err = tx.ExecContext(ctx, `
-			INSERT INTO oauth_users
-				(email, user_id, oauth_provider)
-			VALUES
-				($1, $2, $3);
-		`,
-		user.Email,
-		user.UserId,
-		oauthUser.Provider,
-	)
-	if err != nil {
-		return user, false, err
-	}
-
-	return user, true, tx.Commit()
 }
 
 func (s *UserServicePgImpl) EditUser(ctx context.Context, userId uint32, user schemas.EditUser) error {

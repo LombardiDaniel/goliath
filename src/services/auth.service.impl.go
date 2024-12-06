@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/LombardiDaniel/gopherbase/common"
 	"github.com/LombardiDaniel/gopherbase/models"
+	"github.com/LombardiDaniel/gopherbase/oauth"
 	"github.com/golang-jwt/jwt"
 )
 
@@ -119,4 +121,94 @@ func (s *AuthServiceJwtImpl) ParsePasswordResetToken(tokenString string) (models
 	}
 
 	return claims, nil
+}
+
+func (s *AuthServiceJwtImpl) LoginOauth(ctx context.Context, oauthUser oauth.User) (models.User, bool, error) {
+	user := models.User{}
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return user, false, err
+	}
+
+	defer tx.Rollback()
+
+	// check if user exists on curr email
+	// also creates oauth_users entry for this provider
+	err = tx.QueryRowContext(ctx, `
+		SELECT
+			user_id,
+			email,
+			password_hash,
+			first_name,
+			last_name,
+			date_of_birth,
+			created_at,
+			updated_at,
+			is_active
+		FROM users WHERE email = $1;
+	`, oauthUser.Email).Scan(
+		&user.UserId,
+		&user.Email,
+		&user.PasswordHash,
+		&user.FirstName,
+		&user.LastName,
+		&user.DateOfBirth,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+		&user.IsActive,
+	)
+	if err != nil && err != sql.ErrNoRows {
+		return user, false, err
+	}
+
+	if err == nil {
+		_, err = tx.ExecContext(ctx, `
+				INSERT INTO oauth_users (email, user_id, oauth_provider)
+				VALUES ($1, $2, $3)
+				ON CONFLICT (email, oauth_provider) DO NOTHING;
+			`, oauthUser.Email, user.UserId, oauthUser.Provider,
+		)
+		if err != nil {
+			return user, false, err
+		}
+		return user, false, tx.Commit()
+	}
+
+	// here error is sql.ErrNoRows
+	err = tx.QueryRowContext(ctx, `
+			INSERT INTO users 
+				(email, password_hash, first_name, last_name)
+			VALUES
+				($1, $2, $3, $4)
+			RETURNING *;
+		`,
+		oauthUser.Email,
+		"oauth",
+		oauthUser.FirstName,
+		oauthUser.LastName,
+	).Scan(
+		&user.UserId,
+		&user.Email,
+		&user.PasswordHash,
+		&user.FirstName,
+		&user.LastName,
+		&user.DateOfBirth,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+		&user.IsActive,
+	)
+	if err != nil {
+		return user, false, err
+	}
+
+	_, err = tx.ExecContext(ctx, `
+			INSERT INTO oauth_users (email, user_id, oauth_provider)
+			VALUES ($1, $2, $3)
+			ON CONFLICT (email, oauth_provider) DO NOTHING;
+		`, oauthUser.Email, user.UserId, oauthUser.Provider,
+	)
+	if err != nil {
+		return user, false, err
+	}
+	return user, false, tx.Commit()
 }

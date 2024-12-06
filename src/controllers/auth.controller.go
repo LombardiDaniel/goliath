@@ -7,6 +7,7 @@ import (
 	"log/slog"
 
 	"github.com/LombardiDaniel/gopherbase/common"
+	"github.com/LombardiDaniel/gopherbase/fiddlers"
 	"github.com/LombardiDaniel/gopherbase/middlewares"
 	"github.com/LombardiDaniel/gopherbase/models"
 	"github.com/LombardiDaniel/gopherbase/oauth"
@@ -56,14 +57,13 @@ func NewAuthController(
 // @Failure 502 string BadGateway
 // @Router /v1/auth/login [POST]
 func (c *AuthController) Login(ctx *gin.Context) {
-	rCtx := ctx.Request.Context()
 	var loginForm schemas.LoginForm
 	if err := ctx.ShouldBind(&loginForm); err != nil {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
 	}
 
-	user, err := c.userService.GetUser(rCtx, loginForm.Email)
+	user, err := c.userService.GetUser(ctx, loginForm.Email)
 	if err != nil {
 		slog.Error(fmt.Sprintf("Error while retrieving User user '%s': '%s'", loginForm.Email, err.Error()))
 		ctx.String(http.StatusUnauthorized, "Unauthorized")
@@ -153,16 +153,15 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
 // @Router /v1/auth/set-organization/{orgId} [POST]
 func (c *AuthController) SetOrg(ctx *gin.Context) {
-	rCtx := ctx.Request.Context()
 	orgId := ctx.Param("orgId")
 
-	claims, err := common.GetClaimsFromGinCtx(ctx)
+	claims, err := fiddlers.GetClaimsFromGinCtx(ctx)
 	if err != nil {
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
 	}
 
-	orgs, err := c.userService.GetUserOrgs(rCtx, claims.UserId)
+	orgs, err := c.userService.GetUserOrgs(ctx, claims.UserId)
 	if err != nil {
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
@@ -222,8 +221,6 @@ func (c *AuthController) GetOauthProviders(ctx *gin.Context) {
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
 // @Router /v1/auth/{provider}/callback [GET]
 func (c *AuthController) OauthCallback(ctx *gin.Context) {
-	rCtx := ctx.Request.Context()
-
 	code := ctx.Query("code")
 	provider, ok := c.oauthProvidersMap[ctx.Param("provider")]
 	if !ok {
@@ -231,14 +228,14 @@ func (c *AuthController) OauthCallback(ctx *gin.Context) {
 		return
 	}
 
-	oauthUser, err := provider.Auth(rCtx, code)
+	oauthUser, err := provider.Auth(ctx, code)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
 	}
 
-	user, inserted, err := c.userService.LoginOauth(ctx, *oauthUser)
+	user, inserted, err := c.authService.LoginOauth(ctx, *oauthUser)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -269,7 +266,6 @@ func (c *AuthController) OauthCallback(ctx *gin.Context) {
 
 // Register Routes, needs jwtService use on authentication middleware
 func (c *AuthController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware) {
-
 	g := rg.Group("/auth")
 
 	g.POST("/login", c.Login)

@@ -44,7 +44,6 @@ func NewUserController(
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
 // @Router /v1/users [PUT]
 func (c *UserController) CreateUser(ctx *gin.Context) {
-	rCtx := ctx.Request.Context()
 	var createUser schemas.CreateUser
 
 	if err := ctx.ShouldBind(&createUser); err != nil {
@@ -60,7 +59,7 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	err = c.userService.CreateUnconfirmedUser(rCtx, *unconfirmedUser)
+	err = c.userService.CreateUnconfirmedUser(ctx, *unconfirmedUser)
 	if err == common.ErrDbConflict {
 		ctx.String(http.StatusConflict, "Conflict")
 		return
@@ -92,10 +91,9 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
 // @Router /v1/users/confirm [GET]
 func (c *UserController) ConfirmUser(ctx *gin.Context) {
-	rCtx := ctx.Request.Context()
 	otp := ctx.Query("otp")
 
-	err := c.userService.ConfirmUser(rCtx, otp)
+	err := c.userService.ConfirmUser(ctx, otp)
 	if err != nil {
 		slog.Error(fmt.Sprintf("Error while confirming user otp='%s': '%s'", otp, err.Error()))
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -117,15 +115,13 @@ func (c *UserController) ConfirmUser(ctx *gin.Context) {
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
 // @Router /v1/users/organizations [GET]
 func (c *UserController) GetUserOrgs(ctx *gin.Context) {
-	rCtx := ctx.Request.Context()
-
-	claims, err := common.GetClaimsFromGinCtx(ctx)
+	claims, err := fiddlers.GetClaimsFromGinCtx(ctx)
 	if err != nil {
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
 	}
 
-	orgs, err := c.userService.GetUserOrgs(rCtx, claims.UserId)
+	orgs, err := c.userService.GetUserOrgs(ctx, claims.UserId)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -148,8 +144,6 @@ func (c *UserController) GetUserOrgs(ctx *gin.Context) {
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
 // @Router /v1/users/init-reset-password [POST]
 func (c *UserController) InitResetPassword(ctx *gin.Context) {
-	rCtx := ctx.Request.Context()
-
 	var email schemas.Email
 
 	if err := ctx.ShouldBind(&email); err != nil {
@@ -165,14 +159,14 @@ func (c *UserController) InitResetPassword(ctx *gin.Context) {
 		return
 	}
 
-	user, err := c.userService.GetUser(rCtx, email.Email)
+	user, err := c.userService.GetUser(ctx, email.Email)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
 	}
 
-	err = c.userService.InitPasswordReset(rCtx, user.UserId, otp)
+	err = c.userService.InitPasswordReset(ctx, user.UserId, otp)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadRequest, err.Error())
@@ -200,10 +194,9 @@ func (c *UserController) InitResetPassword(ctx *gin.Context) {
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
 // @Router /v1/users/set-password-reset-cookie [GET]
 func (c *UserController) SetPasswordResetCookie(ctx *gin.Context) {
-	rCtx := ctx.Request.Context()
 	otp := ctx.Query("otp")
 
-	reset, err := c.userService.GetPasswordReset(rCtx, otp)
+	reset, err := c.userService.GetPasswordReset(ctx, otp)
 	if err != nil {
 		slog.Error(fmt.Sprintf("Error while setting cookie user otp='%s': '%s'", otp, err.Error()))
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -236,7 +229,6 @@ func (c *UserController) SetPasswordResetCookie(ctx *gin.Context) {
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
 // @Router /v1/users/reset-password [POST]
 func (c *UserController) ResetPassword(ctx *gin.Context) {
-	rCtx := ctx.Request.Context()
 	var pw schemas.Password
 
 	if err := ctx.ShouldBind(&pw); err != nil {
@@ -258,7 +250,7 @@ func (c *UserController) ResetPassword(ctx *gin.Context) {
 		return
 	}
 
-	err = c.userService.UpdateUserPassword(rCtx, claims.UserId, pw.Password)
+	err = c.userService.UpdateUserPassword(ctx, claims.UserId, pw.Password)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -282,7 +274,6 @@ func (c *UserController) ResetPassword(ctx *gin.Context) {
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
 // @Router /v1/users/edit [POST]
 func (c *UserController) EditUser(ctx *gin.Context) {
-	rCtx := ctx.Request.Context()
 	var editUser schemas.EditUser
 
 	if err := ctx.ShouldBind(&editUser); err != nil {
@@ -291,13 +282,13 @@ func (c *UserController) EditUser(ctx *gin.Context) {
 		return
 	}
 
-	claims, err := common.GetClaimsFromGinCtx(ctx)
+	claims, err := fiddlers.GetClaimsFromGinCtx(ctx)
 	if err != nil {
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
 	}
 
-	err = c.userService.EditUser(rCtx, claims.UserId, editUser)
+	err = c.userService.EditUser(ctx, claims.UserId, editUser)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")

@@ -40,11 +40,13 @@ var (
 	emailService        services.EmailService
 	organizationService services.OrganizationService
 	objectService       services.ObjectService
+	billingService      services.BillingService
 
 	// Controllers
 	authController         controllers.AuthController
 	userController         controllers.UserController
 	organizationController controllers.OrganizationController
+	billingController      controllers.BillingController
 
 	// Middlewares
 	authMiddleware middlewares.AuthMiddleware
@@ -129,6 +131,7 @@ func init() {
 	emailService = services.NewEmailServiceResendImpl(os.Getenv("RESEND_API_KEY"), "./templates")
 	organizationService = services.NewOrganizationServicePgImpl(db)
 	objectService = services.NewObjectServiceMinioImpl(minioClient)
+	billingService = services.NewBillingService(db, os.Getenv("STRIPE_API_KEY"))
 
 	// Middleware
 	authMiddleware = middlewares.NewAuthMiddlewareJwt(authService)
@@ -137,6 +140,7 @@ func init() {
 	authController = controllers.NewAuthController(authService, userService, emailService, oauthConfigMap)
 	userController = controllers.NewUserController(authService, userService, emailService)
 	organizationController = controllers.NewOrganizationController(userService, emailService, organizationService)
+	billingController = controllers.NewBillingController(billingService, emailService, userService)
 
 	router = gin.Default()
 	router.SetTrustedProxies([]string{"*"})
@@ -192,6 +196,7 @@ func main() {
 	authController.RegisterRoutes(basePath, authMiddleware)
 	userController.RegisterRoutes(basePath, authMiddleware)
 	organizationController.RegisterRoutes(basePath, authMiddleware)
+	billingController.RegisterRoutes(basePath, authMiddleware)
 
 	taskRunner.Dispatch()
 

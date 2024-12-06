@@ -44,6 +44,8 @@ type: Opaque
 data:
   google_key: OAUTH_GOOGLE_CLIENT_ID_B64_ENCODED
   google_secret: OAUTH_GOOGLE_SECRET_B64_ENCODED
+  github_key: OAUTH_GITHUB_CLIENT_ID_B64_ENCODED
+  github_secret: OAUTH_GITHUB_SECRET_B64_ENCODED
 
 ---
 apiVersion: v1
@@ -55,6 +57,16 @@ type: Opaque
 data:
   access_key_id: S3_ACCESS_KEY_ID_B64_ENCODED
   secret_access_key: S3_SECRET_ACCESS_KEY_B64_ENCODED
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: stripe-secret
+  namespace: my-app
+type: Opaque
+data:
+  api_key: STRIPE_API_KEY_B64_ENCODED
 
 ---
 apiVersion: apps/v1
@@ -119,6 +131,16 @@ spec:
                 secretKeyRef:
                   name: oauth-secret
                   key: google_secret
+            - name: OAUTH_GITHUB_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: oauth-secret
+                  key: github_client_id
+            - name: OAUTH_GITHUB_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: oauth-secret
+                  key: github_secret
             - name: S3_ENDPOINT
               value: br-se1.magaluobjects.com
             - name: S3_ACCESS_KEY_ID
@@ -131,6 +153,11 @@ spec:
                 secretKeyRef:
                   name: s3-magalu-secret
                   key: secret_access_key
+            - name: STRIPE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: stripe-secret
+                  key: api_key
 
 ---
 apiVersion: v1

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/LombardiDaniel/gopherbase/models"
-	"github.com/LombardiDaniel/gopherbase/oauth"
 	"github.com/LombardiDaniel/gopherbase/schemas"
 )
 
@@ -21,10 +20,6 @@ type UserService interface {
 	UpdateUserPassword(ctx context.Context, userId uint32, pw string) error
 
 	EditUser(ctx context.Context, userId uint32, user schemas.EditUser) error
-
-	// LoginOauth logs in the Oaut user, returns bool=true if the user was just created
-	// this is to be used in sending welcome email
-	LoginOauth(ctx context.Context, oathUser oauth.User) (models.User, bool, error)
 
 	DeleteExpiredPwResets() error
 }

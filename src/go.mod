@@ -9,6 +9,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/minio/minio-go/v7 v7.0.81
 	github.com/resendlabs/resend-go v1.7.0
+	github.com/stripe/stripe-go/v81 v81.1.0
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.16.4
