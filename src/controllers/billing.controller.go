@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/LombardiDaniel/gopherbase/common"
+	"github.com/LombardiDaniel/gopherbase/fiddlers"
 	"github.com/LombardiDaniel/gopherbase/middlewares"
 	"github.com/LombardiDaniel/gopherbase/schemas"
 	"github.com/LombardiDaniel/gopherbase/services"
@@ -49,7 +49,7 @@ func (c *BillingController) GetCheckoutSessionUrl(ctx *gin.Context) {
 		return
 	}
 
-	claims, err := common.GetClaimsFromGinCtx(ctx)
+	claims, err := fiddlers.GetClaimsFromGinCtx(ctx)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusUnauthorized, "Unauthorized")
@@ -108,7 +108,7 @@ func (c *BillingController) CheckOutSessionCompletedCallback(ctx *gin.Context) {
 		return
 	}
 
-	if !common.IsStripeChechouseSessionPaid(checkoutSession) {
+	if !fiddlers.IsStripeChechouseSessionPaid(checkoutSession) {
 		ctx.String(http.StatusUnauthorized, "Unauthorized")
 		return
 	}

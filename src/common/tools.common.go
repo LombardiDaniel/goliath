@@ -10,7 +10,6 @@ import (
 var LOG_LEVEL string = strings.ToUpper(GetEnvVarDefault("LOG_LEVEL", "INFO"))
 
 func InitSlogger() {
-
 	levelsMap := map[string]slog.Level{
 		"DEBUG":   slog.LevelDebug,
 		"INFO":    slog.LevelInfo,
@@ -47,7 +46,6 @@ func SplitName(fullName string) (string, string) {
 }
 
 func LoadHTMLTemplate(templatePath string) *template.Template {
-
 	t, err := template.ParseFiles(templatePath)
 	if err != nil {
 		slog.Error(err.Error())

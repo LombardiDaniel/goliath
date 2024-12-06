@@ -9,7 +9,6 @@ import (
 )
 
 func GetJwtHeaderOrCookie(c *gin.Context) (string, error) {
-
 	const BEARER_SCHEMA = "Bearer "
 	authHeader := c.GetHeader("Authorization")
 

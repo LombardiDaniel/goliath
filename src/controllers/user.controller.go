@@ -115,7 +115,7 @@ func (c *UserController) ConfirmUser(ctx *gin.Context) {
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
 // @Router /v1/users/organizations [GET]
 func (c *UserController) GetUserOrgs(ctx *gin.Context) {
-	claims, err := common.GetClaimsFromGinCtx(ctx)
+	claims, err := fiddlers.GetClaimsFromGinCtx(ctx)
 	if err != nil {
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
@@ -282,7 +282,7 @@ func (c *UserController) EditUser(ctx *gin.Context) {
 		return
 	}
 
-	claims, err := common.GetClaimsFromGinCtx(ctx)
+	claims, err := fiddlers.GetClaimsFromGinCtx(ctx)
 	if err != nil {
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return

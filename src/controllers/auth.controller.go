@@ -7,6 +7,7 @@ import (
 	"log/slog"
 
 	"github.com/LombardiDaniel/gopherbase/common"
+	"github.com/LombardiDaniel/gopherbase/fiddlers"
 	"github.com/LombardiDaniel/gopherbase/middlewares"
 	"github.com/LombardiDaniel/gopherbase/models"
 	"github.com/LombardiDaniel/gopherbase/oauth"
@@ -154,7 +155,7 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 func (c *AuthController) SetOrg(ctx *gin.Context) {
 	orgId := ctx.Param("orgId")
 
-	claims, err := common.GetClaimsFromGinCtx(ctx)
+	claims, err := fiddlers.GetClaimsFromGinCtx(ctx)
 	if err != nil {
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return

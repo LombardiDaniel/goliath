@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/LombardiDaniel/gopherbase/common"
+	"github.com/LombardiDaniel/gopherbase/fiddlers"
 	"github.com/LombardiDaniel/gopherbase/services"
 	"github.com/gin-gonic/gin"
 )
@@ -133,7 +134,7 @@ func (m *AuthMiddlewareJwt) AuthorizeOrganization(needAdmin bool) gin.HandlerFun
 
 func (m *AuthMiddlewareJwt) Reauthorize() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		jwtClaims, err := common.GetClaimsFromGinCtx(c)
+		jwtClaims, err := fiddlers.GetClaimsFromGinCtx(c)
 		if err != nil {
 			slog.Error(err.Error())
 			c.String(http.StatusBadGateway, "BadGateway")

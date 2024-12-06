@@ -1,4 +1,4 @@
-package common
+package fiddlers
 
 import "github.com/stripe/stripe-go/v81"
 

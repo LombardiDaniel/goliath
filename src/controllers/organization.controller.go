@@ -54,7 +54,7 @@ func (c *OrganizationController) CreateOrganization(ctx *gin.Context) {
 		return
 	}
 
-	user, err := common.GetClaimsFromGinCtx(ctx)
+	user, err := fiddlers.GetClaimsFromGinCtx(ctx)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -105,7 +105,7 @@ func (c *OrganizationController) InviteToOrg(ctx *gin.Context) {
 		return
 	}
 
-	currUser, err := common.GetClaimsFromGinCtx(ctx)
+	currUser, err := fiddlers.GetClaimsFromGinCtx(ctx)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -212,7 +212,7 @@ func (c *OrganizationController) RemoveFromOrg(ctx *gin.Context) {
 		return
 	}
 
-	currUser, err := common.GetClaimsFromGinCtx(ctx)
+	currUser, err := fiddlers.GetClaimsFromGinCtx(ctx)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -251,7 +251,7 @@ func (c *OrganizationController) ChangeOwner(ctx *gin.Context) {
 		return
 	}
 
-	currUser, err := common.GetClaimsFromGinCtx(ctx)
+	currUser, err := fiddlers.GetClaimsFromGinCtx(ctx)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
