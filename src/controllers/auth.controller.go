@@ -235,7 +235,7 @@ func (c *AuthController) OauthCallback(ctx *gin.Context) {
 		return
 	}
 
-	user, inserted, err := c.userService.LoginOauth(ctx, *oauthUser)
+	user, inserted, err := c.authService.LoginOauth(ctx, *oauthUser)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")

@@ -104,10 +104,12 @@ FOR EACH STATEMENT EXECUTE FUNCTION delete_expired_resets();
 
 -- oauth
 CREATE TABLE oauth_users (
-    email VARCHAR(100) PRIMARY KEY,
+    email VARCHAR(100) NOT NULL,
     user_id INT REFERENCES users (user_id) NOT NULL,
     oauth_provider VARCHAR(20) NOT NULL,
-    CONSTRAINT fk_oauth_users FOREIGN KEY (user_id, email) REFERENCES users (user_id, email)
+
+    CONSTRAINT fk_oauth_users FOREIGN KEY (user_id, email) REFERENCES users (user_id, email),
+    PRIMARY KEY (email, oauth_provider)
 );
 
 -- NOTE: There needs to be a way to link it to the product, coding that is up to the final user
