@@ -49,15 +49,19 @@ func (s *UserServicePgImpl) CreateUnconfirmedUser(ctx context.Context, unconfirm
 
 	defer tx.Rollback()
 
-	var userId uint32
+	var count uint32 = 0
 	err = tx.QueryRowContext(ctx, `
-			SELECT user_id
+			SELECT COUNT(user_id)
 			FROM users WHERE email = $1;
 		`,
 		unconfirmedUser.Email,
-	).Scan(&userId)
-	if err != nil && err != sql.ErrNoRows {
+	).Scan(&count)
+	if err != nil {
 		return common.FilterSqlPgError(err)
+	}
+
+	if count != 0 {
+		return common.ErrDbConflict
 	}
 
 	err = tx.QueryRowContext(ctx, `

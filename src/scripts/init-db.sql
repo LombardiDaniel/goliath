@@ -7,8 +7,8 @@ CREATE TABLE users (
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
     date_of_birth DATE,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     is_active BOOLEAN NOT NULL DEFAULT true,
 
     UNIQUE (user_id, email)
@@ -42,8 +42,8 @@ CREATE TABLE organizations (
     organization_id CHAR(5) PRIMARY KEY,
     organization_name VARCHAR(100) NOT NULL,
     billing_plan_id INT,
-    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
-    deleted_at TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    deleted_at TIMESTAMPTZ,
     owner_user_id INT REFERENCES users (user_id) NOT NULL ,
 
     UNIQUE (organization_name, owner_user_id)
@@ -64,7 +64,7 @@ CREATE TABLE organization_invites (
     user_id INT REFERENCES users (user_id) NOT NULL,
     is_admin BOOLEAN NOT NULL DEFAULT false,
     otp VARCHAR(255) NOT NULL UNIQUE,
-    exp TIMESTAMP
+    exp TIMESTAMPTZ
 );
 
 CREATE FUNCTION delete_expired_invites()
@@ -85,7 +85,7 @@ FOR EACH STATEMENT EXECUTE FUNCTION delete_expired_invites();
 CREATE TABLE password_resets (
     user_id INT REFERENCES users (user_id) NOT NULL,
     otp VARCHAR(255) NOT NULL UNIQUE,
-    exp TIMESTAMP NOT NULL
+    exp TIMESTAMPTZ NOT NULL
 );
 
 CREATE FUNCTION delete_expired_resets()
@@ -124,8 +124,8 @@ CREATE TABLE orders (
     unit_currency CHAR(3) NOT NULL,
     payment_status TEXT CHECK (payment_status IN ('pending', 'complete', 'canceled')) DEFAULT 'pending',
     stripe_checkout_session_id VARCHAR(255) NULL,
-    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
-    completed_at TIMESTAMP NULL
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    completed_at TIMESTAMPTZ DEFAULT NULL
 );
 
 COMMIT;

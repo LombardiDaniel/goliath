@@ -79,13 +79,18 @@ func init() {
 		panic(err)
 	}
 
-	pgOpenConns, err := strconv.Atoi(common.GetEnvVarDefault("POSTGRES_OPEN_CONNS", "0"))
+	pgOpenConns, err := strconv.Atoi(common.GetEnvVarDefault("POSTGRES_OPEN_CONNS", "10"))
 	if err != nil {
 		panic(err)
 	}
 
 	db.SetMaxIdleConns(pgIdleConns)
 	db.SetMaxOpenConns(pgOpenConns)
+
+	_, err = db.Exec(fmt.Sprintf("SET TIME ZONE '%s';", common.DEFAULT_TIMEZONE))
+	if err != nil {
+		panic(err)
+	}
 
 	oauthBaseCallback := common.API_HOST_URL + "v1/auth/%s/callback"
 
