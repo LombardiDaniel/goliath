@@ -22,6 +22,7 @@ var (
 	NOREPLY_EMAIL                          string = GetEnvVarDefault("NOREPLY_EMAIL", "no-reply@example.com")
 	APP_HOST_URL                           string = GetEnvVarDefault("APP_HOST_URL", "http://127.0.0.1:8080/")
 	API_HOST_URL                           string = GetEnvVarDefault("API_HOST_URL", "http://127.0.0.1:8080/")
+	S3_ENDPOINT                            string = GetEnvVarDefault("S3_ENDPOINT", "br-se1.magaluobjects.com")
 	JWT_COOKIE_NAME                        string = PROJECT_NAME + "_jwt"
 	PASSWORD_RESET_TIMEOUT_JWT_COOKIE_NAME string = PROJECT_NAME + "_pwreset_jwt"
 	DEFAULT_BUCKET                         string = PROJECT_NAME + "-gopherbase"

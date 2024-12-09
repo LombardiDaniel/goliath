@@ -20,6 +20,7 @@ type UserService interface {
 	UpdateUserPassword(ctx context.Context, userId uint32, pw string) error
 
 	EditUser(ctx context.Context, userId uint32, user schemas.EditUser) error
+	SetAvatarUrl(ctx context.Context, userId uint32, url string) error
 
 	DeleteExpiredPwResets() error
 }

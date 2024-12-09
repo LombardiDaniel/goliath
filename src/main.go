@@ -117,7 +117,7 @@ func init() {
 	})
 
 	minioClient, err := minio.New(
-		os.Getenv("S3_ENDPOINT"),
+		common.S3_ENDPOINT,
 		&minio.Options{
 			Creds: credentials.NewStaticV4(
 				os.Getenv("S3_ACCESS_KEY_ID"),

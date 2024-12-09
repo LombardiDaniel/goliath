@@ -156,6 +156,7 @@ func (s *UserServicePgImpl) GetUser(ctx context.Context, email string) (models.U
 			first_name,
 			last_name,
 			date_of_birth,
+			avatar_url,
 			created_at,
 			updated_at,
 			is_active
@@ -171,7 +172,7 @@ func (s *UserServicePgImpl) GetUser(ctx context.Context, email string) (models.U
 		&user.FirstName,
 		&user.LastName,
 		&user.DateOfBirth,
-		// &user.LastLogin,
+		&user.AvatarUrl,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 		&user.IsActive,
@@ -192,6 +193,7 @@ func (s *UserServicePgImpl) GetUserFromId(ctx context.Context, id uint32) (model
 			first_name,
 			last_name,
 			date_of_birth,
+			avatar_url,
 			created_at,
 			updated_at,
 			is_active
@@ -207,7 +209,7 @@ func (s *UserServicePgImpl) GetUserFromId(ctx context.Context, id uint32) (model
 		&user.FirstName,
 		&user.LastName,
 		&user.DateOfBirth,
-		// &user.LastLogin,
+		&user.AvatarUrl,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 		&user.IsActive,
@@ -228,6 +230,7 @@ func (s *UserServicePgImpl) GetUsers(ctx context.Context) ([]models.User, error)
 			first_name,
 			last_name,
 			date_of_birth,
+			avatar_url,
 			created_at,
 			updated_at,
 			is_active
@@ -251,7 +254,7 @@ func (s *UserServicePgImpl) GetUsers(ctx context.Context) ([]models.User, error)
 			&u.FirstName,
 			&u.LastName,
 			&u.DateOfBirth,
-			// &u.LastLogin,
+			&u.AvatarUrl,
 			&u.CreatedAt,
 			&u.UpdatedAt,
 			&u.IsActive,
@@ -388,5 +391,19 @@ func (s *UserServicePgImpl) DeleteExpiredPwResets() error {
 		DELETE FROM password_resets
     	WHERE exp < NOW();
 	`)
+	return err
+}
+
+func (s *UserServicePgImpl) SetAvatarUrl(ctx context.Context, userId uint32, url string) error {
+	_, err := s.db.ExecContext(ctx, `
+			UPDATE users
+			SET 
+				avatar_url = $1
+			WHERE user_id = $2;
+		`,
+		url,
+		userId,
+	)
+
 	return err
 }

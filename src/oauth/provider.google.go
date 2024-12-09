@@ -63,7 +63,7 @@ func (p *GoogleProvider) Auth(ctx context.Context, code string) (*User, error) {
 		Email:        usrSchema.Email,
 		FirstName:    usrSchema.GivenName,
 		LastName:     usrSchema.FamilyName,
-		PictureUrl:   usrSchema.Picture,
+		PictureUrl:   &usrSchema.Picture,
 		Provider:     GOOGLE_PROVIDER,
 		RefreshToken: token.RefreshToken,
 	}
