@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"path"
 	"strconv"
 
@@ -365,7 +364,7 @@ func (c *UserController) SetPicture(ctx *gin.Context) {
 		return
 	}
 
-	objUrl, err := url.JoinPath("https://"+common.S3_ENDPOINT, common.DEFAULT_BUCKET, objPath)
+	objUrl, err := fiddlers.GetFullObjStorageUrl(objPath)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadRequest, err.Error())

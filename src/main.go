@@ -124,7 +124,7 @@ func init() {
 				os.Getenv("S3_SECRET_ACCESS_KEY"),
 				"",
 			),
-			Secure: strings.ToLower(common.GetEnvVarDefault("S3_SECURE", "true")) == "true",
+			Secure: common.S3_SECURE,
 		},
 	)
 	if err != nil {
