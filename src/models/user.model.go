@@ -8,7 +8,8 @@ type User struct {
 	PasswordHash string
 	FirstName    string
 	LastName     string
-	DateOfBirth  *time.Time
+	// AvatarPath   string
+	DateOfBirth *time.Time
 	// LastLogin    *time.Time
 	CreatedAt *time.Time
 	UpdatedAt *time.Time

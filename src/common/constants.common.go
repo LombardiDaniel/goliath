@@ -14,6 +14,7 @@ const (
 	OTP_LEN                     int    = 128
 	ORG_INVITE_TIMEOUT_DAYS     int    = 15
 	PASSWORD_RESET_TIMEOUT_DAYS int    = 1
+	MAX_REQUEST_SIZE            int64  = 1 * 1024 * 1024 // 1MB default
 )
 
 var (
@@ -23,4 +24,5 @@ var (
 	API_HOST_URL                           string = GetEnvVarDefault("API_HOST_URL", "http://127.0.0.1:8080/")
 	JWT_COOKIE_NAME                        string = PROJECT_NAME + "_jwt"
 	PASSWORD_RESET_TIMEOUT_JWT_COOKIE_NAME string = PROJECT_NAME + "_pwreset_jwt"
+	DEFAULT_BUCKET                         string = PROJECT_NAME + "-gopherbase"
 )

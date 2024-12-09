@@ -44,3 +44,11 @@ func (s *ObjectServiceMinioImpl) SignedUrl(ctx context.Context, bucket string, p
 	}
 	return url.String(), nil
 }
+
+func (s *ObjectServiceMinioImpl) UploadUrl(ctx context.Context, bucket string, path string) (string, error) {
+	url, err := s.client.PresignedPutObject(ctx, bucket, path, time.Minute*5)
+	if err != nil {
+		return "", err
+	}
+	return url.String(), nil
+}

@@ -15,3 +15,7 @@ type EditUser struct {
 	LastName    string     `json:"lastName" binding:"required"`
 	DateOfBirth *time.Time `json:"dateOfBirth" example:"2006-01-02T15:04:05-07:00"`
 }
+
+type UloadPicture struct {
+	Content string `json:"content" binding:"required"`
+}

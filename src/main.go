@@ -25,6 +25,7 @@ import (
 	"github.com/LombardiDaniel/gopherbase/oauth"
 	"github.com/LombardiDaniel/gopherbase/services"
 	"github.com/gin-contrib/cors"
+	limits "github.com/gin-contrib/size"
 	"github.com/gin-gonic/gin"
 
 	swaggerFiles "github.com/swaggo/files"
@@ -130,6 +131,8 @@ func init() {
 		panic(err)
 	}
 
+	fmt.Printf("(strings.ToLower(common.GetEnvVarDefault(\"S3_SECURE\", \"true\")) == \"true\"): %v\n", (strings.ToLower(common.GetEnvVarDefault("S3_SECURE", "true")) == "true"))
+
 	// Services
 	authService = services.NewAuthServiceJwtImpl(os.Getenv("JWT_SECRET_KEY"), db)
 	userService = services.NewUserServicePgImpl(db)
@@ -143,7 +146,7 @@ func init() {
 
 	// Controllers
 	authController = controllers.NewAuthController(authService, userService, emailService, oauthConfigMap)
-	userController = controllers.NewUserController(authService, userService, emailService)
+	userController = controllers.NewUserController(authService, userService, emailService, objectService)
 	organizationController = controllers.NewOrganizationController(userService, emailService, organizationService)
 	billingController = controllers.NewBillingController(billingService, emailService, userService)
 
@@ -158,6 +161,7 @@ func init() {
 	slog.Info(fmt.Sprintf("corsCfg: %+v", corsCfg))
 
 	router.Use(cors.New(corsCfg))
+	router.Use(limits.RequestSizeLimiter(common.MAX_REQUEST_SIZE))
 
 	docs.SwaggerInfo.Title = "Generic Forms API"
 	docs.SwaggerInfo.Description = "Generic Forms API"

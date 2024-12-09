@@ -1,9 +1,13 @@
 package controllers
 
 import (
+	"bytes"
+	"encoding/base64"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"path"
+	"strconv"
 
 	"github.com/LombardiDaniel/gopherbase/common"
 	"github.com/LombardiDaniel/gopherbase/fiddlers"
@@ -17,17 +21,20 @@ type UserController struct {
 	authService  services.AuthService
 	userService  services.UserService
 	emailService services.EmailService
+	objService   services.ObjectService
 }
 
 func NewUserController(
 	authService services.AuthService,
 	userService services.UserService,
 	emailService services.EmailService,
+	objService services.ObjectService,
 ) UserController {
 	return UserController{
 		authService:  authService,
 		userService:  userService,
 		emailService: emailService,
+		objService:   objService,
 	}
 }
 
@@ -298,6 +305,68 @@ func (c *UserController) EditUser(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "OK")
 }
 
+// @Summary SetPicture
+// @Tags User
+// @Description Sets User Picture
+// @Consume application/json
+// @Accept json
+// @Produce plain
+// @Param   payload 	body 		schemas.UloadPicture true "picture json"
+// @Success 200 		{string} 	OKResponse "OK"
+// @Failure 400 		{string} 	ErrorResponse "Bad Request"
+// @Failure 409 		{string} 	ErrorResponse "Conflict"
+// @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
+// @Router /v1/users/profile-picture [PUT]
+func (c *UserController) SetPicture(ctx *gin.Context) {
+	var pic schemas.UloadPicture
+
+	if err := ctx.ShouldBind(&pic); err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	claims, err := fiddlers.GetClaimsFromGinCtx(ctx)
+	if err != nil {
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	picBytes, err := base64.StdEncoding.DecodeString(pic.Content)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if len(picBytes) > 100*1024 { // if > 100k
+		ctx.String(http.StatusBadGateway, "ImgTooLarge")
+		return
+	}
+
+	imgFmt, err := common.GetImageFormat(picBytes)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
+		return
+	}
+
+	if imgFmt != "png" && imgFmt != "jpeg" {
+		ctx.String(http.StatusUnsupportedMediaType, "UnsupportedMediaType")
+		return
+	}
+
+	objPath := path.Join("public", strconv.Itoa(int(claims.UserId)))
+	err = c.objService.Upload(ctx, common.DEFAULT_BUCKET, objPath, bytes.NewReader(picBytes))
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	ctx.String(http.StatusOK, "OK")
+}
+
 func (c *UserController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware) {
 	g := rg.Group("/users")
 
@@ -308,4 +377,5 @@ func (c *UserController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware midd
 	g.POST("/reset-password", c.ResetPassword)
 	g.GET("/organizations", authMiddleware.AuthorizeUser(), c.GetUserOrgs)
 	g.POST("/edit", authMiddleware.AuthorizeUser(), c.EditUser)
+	g.PUT("/profile-picture", authMiddleware.AuthorizeUser(), c.SetPicture)
 }
