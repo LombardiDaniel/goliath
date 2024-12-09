@@ -131,8 +131,6 @@ func init() {
 		panic(err)
 	}
 
-	fmt.Printf("(strings.ToLower(common.GetEnvVarDefault(\"S3_SECURE\", \"true\")) == \"true\"): %v\n", (strings.ToLower(common.GetEnvVarDefault("S3_SECURE", "true")) == "true"))
-
 	// Services
 	authService = services.NewAuthServiceJwtImpl(os.Getenv("JWT_SECRET_KEY"), db)
 	userService = services.NewUserServicePgImpl(db)
