@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"path"
 	"strconv"
 
@@ -356,8 +357,22 @@ func (c *UserController) SetPicture(ctx *gin.Context) {
 		return
 	}
 
-	objPath := path.Join("public", strconv.Itoa(int(claims.UserId)))
+	objPath := path.Join("public", strconv.Itoa(int(claims.UserId))+"."+imgFmt)
 	err = c.objService.Upload(ctx, common.DEFAULT_BUCKET, objPath, bytes.NewReader(picBytes))
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	objUrl, err := url.JoinPath("https://"+common.S3_ENDPOINT, common.DEFAULT_BUCKET, objPath)
+	if err != nil {
+		slog.Error(err.Error())
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = c.userService.SetAvatarUrl(ctx, claims.UserId, objUrl)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadRequest, err.Error())

@@ -71,7 +71,7 @@ func (p *GithubProvider) Auth(ctx context.Context, code string) (*User, error) {
 		Email:        usrSchema.Email,
 		FirstName:    first,
 		LastName:     last,
-		PictureUrl:   usrSchema.AvatarURL,
+		PictureUrl:   &usrSchema.AvatarURL,
 		Provider:     GITHUB_PROVIDER,
 		RefreshToken: token.RefreshToken,
 	}

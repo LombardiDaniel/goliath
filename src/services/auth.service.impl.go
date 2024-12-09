@@ -142,6 +142,7 @@ func (s *AuthServiceJwtImpl) LoginOauth(ctx context.Context, oauthUser oauth.Use
 			first_name,
 			last_name,
 			date_of_birth,
+			avatar_url,
 			created_at,
 			updated_at,
 			is_active
@@ -153,6 +154,7 @@ func (s *AuthServiceJwtImpl) LoginOauth(ctx context.Context, oauthUser oauth.Use
 		&user.FirstName,
 		&user.LastName,
 		&user.DateOfBirth,
+		&user.AvatarUrl,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 		&user.IsActive,
@@ -177,15 +179,26 @@ func (s *AuthServiceJwtImpl) LoginOauth(ctx context.Context, oauthUser oauth.Use
 	// here error is sql.ErrNoRows
 	err = tx.QueryRowContext(ctx, `
 			INSERT INTO users 
-				(email, password_hash, first_name, last_name)
+				(email, password_hash, first_name, last_name, avatar_url)
 			VALUES
-				($1, $2, $3, $4)
-			RETURNING *;
+				($1, $2, $3, $4, $5)
+			RETURNING 
+				user_id,
+				email,
+				password_hash,
+				first_name,
+				last_name,
+				date_of_birth,
+				avatar_url,
+				created_at,
+				updated_at,
+				is_active;
 		`,
 		oauthUser.Email,
 		"oauth",
 		oauthUser.FirstName,
 		oauthUser.LastName,
+		oauthUser.PictureUrl,
 	).Scan(
 		&user.UserId,
 		&user.Email,
@@ -193,6 +206,7 @@ func (s *AuthServiceJwtImpl) LoginOauth(ctx context.Context, oauthUser oauth.Use
 		&user.FirstName,
 		&user.LastName,
 		&user.DateOfBirth,
+		&user.AvatarUrl,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 		&user.IsActive,
