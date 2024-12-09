@@ -366,21 +366,14 @@ func (s *UserServicePgImpl) UpdateUserPassword(ctx context.Context, userId uint3
 
 func (s *UserServicePgImpl) EditUser(ctx context.Context, userId uint32, user schemas.EditUser) error {
 
-	pwHash, err := common.HashPassword(user.Password)
-	if err != nil {
-		return err
-	}
-
-	_, err = s.db.ExecContext(ctx, `
+	_, err := s.db.ExecContext(ctx, `
 			UPDATE users
 			SET 
-				password_hash = $1,
-				first_name = $2,
-				last_name = $3,
-				date_of_birth = $4
-			WHERE user_id = $5;
+				first_name = $1,
+				last_name = $2,
+				date_of_birth = $3
+			WHERE user_id = $4;
 		`,
-		pwHash,
 		user.FirstName,
 		user.LastName,
 		user.DateOfBirth,
