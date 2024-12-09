@@ -182,7 +182,7 @@ func (s *EmailServiceResendImpl) SendPaymentAccepted(email string, name string, 
 	body := new(bytes.Buffer)
 	err := s.paymentAcceptedTemplate.Execute(body, htmlPaymentAccepted{
 		FirstName: name,
-		OrderId:   order.SpecialId,
+		OrderId:   order.OrderId,
 	})
 	if err != nil {
 		slog.Error(err.Error())

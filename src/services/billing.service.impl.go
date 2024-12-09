@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"net/url"
-	"strconv"
 
 	"github.com/LombardiDaniel/gopherbase/common"
 	"github.com/LombardiDaniel/gopherbase/models"
@@ -50,12 +49,12 @@ func (s *BillingServiceStripeImpl) CreateOrder(ctx context.Context, currencyUnit
 	}
 	defer tx.Rollback()
 
-	var orderId uint32
+	var orderId string
 	err = tx.QueryRowContext(ctx, `
 		INSERT INTO orders
-			(special_id, user_id, unit_ammount, unit_currency)
+			(user_id, unit_ammount, unit_currency)
 		VALUES
-			(md5(random()::text), $1, $2, LOWER($3))
+			($1, $2, LOWER($3))
 		RETURNING order_id;
 		`,
 		userId,
@@ -67,7 +66,7 @@ func (s *BillingServiceStripeImpl) CreateOrder(ctx context.Context, currencyUnit
 	}
 
 	params := &stripe.CheckoutSessionParams{
-		ClientReferenceID: stripe.String(strconv.FormatUint(uint64(orderId), 10)),
+		ClientReferenceID: stripe.String(orderId),
 		Mode:              stripe.String(string(stripe.CheckoutSessionModePayment)),
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
@@ -123,7 +122,6 @@ func (s *BillingServiceStripeImpl) SetCheckoutSessionAsComplete(ctx context.Cont
 		sessionId,
 	).Scan(
 		&o.OrderId,
-		&o.SpecialId,
 		&o.UserId,
 		&o.UnitAmmount,
 		&o.UnitCurrency,
