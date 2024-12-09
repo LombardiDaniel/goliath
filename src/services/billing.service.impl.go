@@ -53,9 +53,9 @@ func (s *BillingServiceStripeImpl) CreateOrder(ctx context.Context, currencyUnit
 	var orderId uint32
 	err = tx.QueryRowContext(ctx, `
 		INSERT INTO orders
-			(user_id, unit_ammount, unit_currency)
+			(special_id, user_id, unit_ammount, unit_currency)
 		VALUES
-			($1, $2, LOWER($3))
+			(md5(random()::text), $1, $2, LOWER($3))
 		RETURNING order_id;
 		`,
 		userId,
@@ -123,6 +123,7 @@ func (s *BillingServiceStripeImpl) SetCheckoutSessionAsComplete(ctx context.Cont
 		sessionId,
 	).Scan(
 		&o.OrderId,
+		&o.SpecialId,
 		&o.UserId,
 		&o.UnitAmmount,
 		&o.UnitCurrency,

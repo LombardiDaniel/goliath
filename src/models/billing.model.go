@@ -4,6 +4,7 @@ import "time"
 
 type Order struct {
 	OrderId                 uint32     `json:"orderId"`
+	SpecialId               string     `json:"specialId"`
 	UserId                  uint32     `json:"userId"`
 	UnitAmmount             uint32     `json:"unitAmmount"`
 	UnitCurrency            string     `json:"unitCurrency"`

@@ -1,6 +1,6 @@
 BEGIN;
 
-CREATE TABLE users ( 
+CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     email VARCHAR(100) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE users (
     date_of_birth DATE,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    is_active BOOLEAN NOT NULL DEFAULT true,
 
     UNIQUE (user_id, email)
 );
@@ -28,7 +28,7 @@ BEFORE UPDATE ON users
 FOR EACH ROW EXECUTE PROCEDURE update_updated_at();
 
 -- unconfirmedUsers
-CREATE TABLE unconfirmed_users ( 
+CREATE TABLE unconfirmed_users (
     email VARCHAR(100) PRIMARY KEY,
     otp VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
@@ -116,6 +116,7 @@ CREATE TABLE oauth_users (
 -- orders
 CREATE TABLE orders (
     order_id SERIAL PRIMARY KEY,
+    special_id CHAR(32) UNIQUE NOT NULL,
     -- reverse: the product sold references the order
     -- product_id VARCHAR(255), -- REFERENCES products(product_id),
     user_id INT REFERENCES users (user_id) NOT NULL,
