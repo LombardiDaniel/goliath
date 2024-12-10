@@ -37,15 +37,19 @@ func NewBillingController(
 // @Tags Billing
 // @Description Gets the CheckoutSession Url
 // @Produce plain
-// @Param 	value 	path 		string true "value"
+// @Param 	product_id 	path 		string true "product_id"
 // @Success 200 		{string} 	OKResponse "OK"
 // @Failure 400 		{string} 	ErrorResponse "Bad Request"
 // @Failure 409 		{string} 	ErrorResponse "Conflict"
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
-// @Router /v1/billing/stripe/get-checkout-session-url/{value} [POST]
+// @Router /v1/billing/stripe/get-checkout-session-url/{product_id} [POST]
 func (c *BillingController) GetCheckoutSessionUrl(ctx *gin.Context) {
-	valStr := ctx.Param("value")
-	if valStr != "300" {
+	prodIdStr := ctx.Param("product_id")
+	var val int64 = 300
+
+	fmt.Printf("prodIdStr: %v\n", prodIdStr)
+
+	if prodIdStr != "0" {
 		ctx.String(http.StatusUnauthorized, "Unauthorized")
 		return
 	}
@@ -57,7 +61,7 @@ func (c *BillingController) GetCheckoutSessionUrl(ctx *gin.Context) {
 		return
 	}
 
-	url, err := c.billingService.CreateOrder(ctx, stripe.CurrencyBRL, 300*100, "event", claims.UserId)
+	url, err := c.billingService.CreateOrder(ctx, stripe.CurrencyBRL, val*100, "event", claims.UserId)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -142,6 +146,6 @@ func (c *BillingController) CheckoutSessionCompletedCallback(ctx *gin.Context) {
 func (c *BillingController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware) {
 	g := rg.Group("/billing")
 
-	g.POST("/stripe/get-checkout-session-url/:value", authMiddleware.AuthorizeUser(), c.GetCheckoutSessionUrl)
+	g.POST("/stripe/get-checkout-session-url/:product_id", authMiddleware.AuthorizeUser(), c.GetCheckoutSessionUrl)
 	g.POST("/stripe/checkout-session-completed", c.CheckoutSessionCompletedCallback)
 }
