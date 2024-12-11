@@ -55,7 +55,7 @@ func (s *BillingServiceStripeImpl) CreatePayment(ctx context.Context, currencyUn
 			(user_id, unit_ammount, unit_currency)
 		VALUES
 			($1, $2, LOWER($3))
-		RETURNING order_id;
+		RETURNING payment_id;
 		`,
 		userId,
 		unitAmmount,
@@ -94,7 +94,7 @@ func (s *BillingServiceStripeImpl) CreatePayment(ctx context.Context, currencyUn
 		SET
 			stripe_checkout_session_id = $1,
 			completed_at = NOW()
-		WHERE order_id = $2;
+		WHERE payment_id = $2;
 		`,
 		checkout.ID,
 		paymentId,
@@ -114,7 +114,7 @@ func (s *BillingServiceStripeImpl) GetCheckoutSession(ctx context.Context, sessi
 func (s *BillingServiceStripeImpl) SetCheckoutSessionAsComplete(ctx context.Context, sessionId string) (models.Payment, error) {
 	var p models.Payment
 	err := s.db.QueryRowContext(ctx, `
-		UPDATE orders
+		UPDATE payments
 		SET payment_status = 'complete'
 		WHERE stripe_checkout_session_id = $1
 		RETURNING *;

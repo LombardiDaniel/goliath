@@ -175,14 +175,14 @@ func (s *EmailServiceResendImpl) SendPasswordReset(email string, name string, ot
 
 type htmlPaymentAccepted struct {
 	FirstName string
-	OrderId   string
+	PaymentId string
 }
 
 func (s *EmailServiceResendImpl) SendPaymentAccepted(email string, name string, payment models.Payment) error {
 	body := new(bytes.Buffer)
 	err := s.paymentAcceptedTemplate.Execute(body, htmlPaymentAccepted{
 		FirstName: name,
-		OrderId:   payment.PaymentId,
+		PaymentId: payment.PaymentId,
 	})
 	if err != nil {
 		slog.Error(err.Error())

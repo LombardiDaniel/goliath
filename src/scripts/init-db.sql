@@ -116,8 +116,8 @@ CREATE TABLE oauth_users (
 -- NOTE: There needs to be a way to link it to the product, coding that is up to the final user
 -- payments
 CREATE TABLE payments (
-    order_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    -- reverse: the product sold references the order
+    payment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    -- reverse: the product sold references the payment
     -- product_id VARCHAR(255), -- REFERENCES products(product_id),
     user_id INT REFERENCES users (user_id) NOT NULL,
     -- ammount DECIMAL(20, 2) NOT NULL,

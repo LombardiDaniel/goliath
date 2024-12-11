@@ -119,21 +119,21 @@ func (c *BillingController) CheckoutSessionCompletedCallback(ctx *gin.Context) {
 		return
 	}
 
-	order, err := c.billingService.SetCheckoutSessionAsComplete(ctx, checkoutSession.ID)
+	payment, err := c.billingService.SetCheckoutSessionAsComplete(ctx, checkoutSession.ID)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
 	}
 
-	user, err := c.userService.GetUserFromId(ctx, order.UserId)
+	user, err := c.userService.GetUserFromId(ctx, payment.UserId)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
 	}
 
-	err = c.emailService.SendPaymentAccepted(user.Email, user.FirstName, order)
+	err = c.emailService.SendPaymentAccepted(user.Email, user.FirstName, payment)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
