@@ -2,8 +2,8 @@ package models
 
 import "time"
 
-type Order struct {
-	OrderId                 string     `json:"orderId"`
+type Payment struct {
+	PaymentId               string     `json:"paymentId"`
 	UserId                  uint32     `json:"userId"`
 	UnitAmmount             uint32     `json:"unitAmmount"`
 	UnitCurrency            string     `json:"unitCurrency"`

@@ -61,7 +61,7 @@ func (c *BillingController) GetCheckoutSessionUrl(ctx *gin.Context) {
 		return
 	}
 
-	url, err := c.billingService.CreateOrder(ctx, stripe.CurrencyBRL, val*100, "event", claims.UserId)
+	url, err := c.billingService.CreatePayment(ctx, stripe.CurrencyBRL, val*100, "event", claims.UserId)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")

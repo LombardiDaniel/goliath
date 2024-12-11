@@ -178,11 +178,11 @@ type htmlPaymentAccepted struct {
 	OrderId   string
 }
 
-func (s *EmailServiceResendImpl) SendPaymentAccepted(email string, name string, order models.Order) error {
+func (s *EmailServiceResendImpl) SendPaymentAccepted(email string, name string, payment models.Payment) error {
 	body := new(bytes.Buffer)
 	err := s.paymentAcceptedTemplate.Execute(body, htmlPaymentAccepted{
 		FirstName: name,
-		OrderId:   order.OrderId,
+		OrderId:   payment.PaymentId,
 	})
 	if err != nil {
 		slog.Error(err.Error())

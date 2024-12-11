@@ -42,16 +42,16 @@ func NewBillingService(db *sql.DB, stripeApiKey string) BillingService {
 	}
 }
 
-func (s *BillingServiceStripeImpl) CreateOrder(ctx context.Context, currencyUnit stripe.Currency, unitAmmount int64, planName string, userId uint32) (string, error) {
+func (s *BillingServiceStripeImpl) CreatePayment(ctx context.Context, currencyUnit stripe.Currency, unitAmmount int64, planName string, userId uint32) (string, error) {
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return "", err
 	}
 	defer tx.Rollback()
 
-	var orderId string
+	var paymentId string
 	err = tx.QueryRowContext(ctx, `
-		INSERT INTO orders
+		INSERT INTO payment
 			(user_id, unit_ammount, unit_currency)
 		VALUES
 			($1, $2, LOWER($3))
@@ -60,13 +60,13 @@ func (s *BillingServiceStripeImpl) CreateOrder(ctx context.Context, currencyUnit
 		userId,
 		unitAmmount,
 		string(currencyUnit),
-	).Scan(&orderId)
+	).Scan(&paymentId)
 	if err != nil {
 		return "", err
 	}
 
 	params := &stripe.CheckoutSessionParams{
-		ClientReferenceID: stripe.String(orderId),
+		ClientReferenceID: stripe.String(paymentId),
 		Mode:              stripe.String(string(stripe.CheckoutSessionModePayment)),
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
@@ -90,14 +90,14 @@ func (s *BillingServiceStripeImpl) CreateOrder(ctx context.Context, currencyUnit
 	}
 
 	_, err = tx.ExecContext(ctx, `
-		UPDATE orders
+		UPDATE payments
 		SET
 			stripe_checkout_session_id = $1,
 			completed_at = NOW()
 		WHERE order_id = $2;
 		`,
 		checkout.ID,
-		orderId,
+		paymentId,
 	)
 	if err != nil {
 		return "", err
@@ -111,8 +111,8 @@ func (s *BillingServiceStripeImpl) GetCheckoutSession(ctx context.Context, sessi
 	return checkout, err
 }
 
-func (s *BillingServiceStripeImpl) SetCheckoutSessionAsComplete(ctx context.Context, sessionId string) (models.Order, error) {
-	var o models.Order
+func (s *BillingServiceStripeImpl) SetCheckoutSessionAsComplete(ctx context.Context, sessionId string) (models.Payment, error) {
+	var p models.Payment
 	err := s.db.QueryRowContext(ctx, `
 		UPDATE orders
 		SET payment_status = 'complete'
@@ -121,17 +121,17 @@ func (s *BillingServiceStripeImpl) SetCheckoutSessionAsComplete(ctx context.Cont
 		`,
 		sessionId,
 	).Scan(
-		&o.OrderId,
-		&o.UserId,
-		&o.UnitAmmount,
-		&o.UnitCurrency,
-		&o.PaymentStatus,
-		&o.StripeCheckoutSessionId,
-		&o.CreatedAt,
-		&o.CompletedAt,
+		&p.PaymentId,
+		&p.UserId,
+		&p.UnitAmmount,
+		&p.UnitCurrency,
+		&p.PaymentStatus,
+		&p.StripeCheckoutSessionId,
+		&p.CreatedAt,
+		&p.CompletedAt,
 	)
 
-	return o, err
+	return p, err
 }
 
 // func (s *BillingServiceStripeImpl) GetClientSecret(ctx context.Context, currencyUnit stripe.Currency, unitAmmount int64, planName string) (string, error) {

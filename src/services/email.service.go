@@ -7,5 +7,5 @@ type EmailService interface {
 	SendAccountCreated(email string, name string) error
 	SendOrganizationInvite(email string, name string, otp string, orgName string) error
 	SendPasswordReset(email string, name string, otp string) error
-	SendPaymentAccepted(email string, name string, order models.Order) error
+	SendPaymentAccepted(email string, name string, payment models.Payment) error
 }
