@@ -51,7 +51,7 @@ func (s *BillingServiceStripeImpl) CreatePayment(ctx context.Context, currencyUn
 
 	var paymentId string
 	err = tx.QueryRowContext(ctx, `
-		INSERT INTO payment
+		INSERT INTO payments
 			(user_id, unit_ammount, unit_currency)
 		VALUES
 			($1, $2, LOWER($3))
