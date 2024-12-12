@@ -37,15 +37,15 @@ func (s *ObjectServiceMinioImpl) Download(ctx context.Context, bucket string, pa
 	return data, nil
 }
 
-func (s *ObjectServiceMinioImpl) SignedUrl(ctx context.Context, bucket string, path string) (string, error) {
-	url, err := s.client.PresignedGetObject(ctx, bucket, path, time.Hour*24, nil)
+func (s *ObjectServiceMinioImpl) SignedUrl(ctx context.Context, bucket string, path string, exp time.Duration) (string, error) {
+	url, err := s.client.PresignedGetObject(ctx, bucket, path, exp, nil)
 	if err != nil {
 		return "", err
 	}
 	return url.String(), nil
 }
 
-func (s *ObjectServiceMinioImpl) UploadUrl(ctx context.Context, bucket string, path string) (string, error) {
+func (s *ObjectServiceMinioImpl) UploadUrl(ctx context.Context, bucket string, path string, exp time.Duration) (string, error) {
 	url, err := s.client.PresignedPutObject(ctx, bucket, path, time.Minute*5)
 	if err != nil {
 		return "", err
