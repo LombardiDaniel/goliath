@@ -11,5 +11,5 @@ func GetFullObjStorageUrl(objPath string) (string, error) {
 	if !common.S3_SECURE {
 		prefix = "http://"
 	}
-	return url.JoinPath(prefix+common.S3_ENDPOINT, common.DEFAULT_BUCKET, objPath)
+	return url.JoinPath(prefix+common.S3_ENDPOINT, common.S3_BUCKET, objPath)
 }

@@ -27,5 +27,5 @@ var (
 	S3_SECURE                              bool   = strings.ToLower(GetEnvVarDefault("S3_SECURE", "true")) == "true"
 	JWT_COOKIE_NAME                        string = PROJECT_NAME + "_jwt"
 	PASSWORD_RESET_TIMEOUT_JWT_COOKIE_NAME string = PROJECT_NAME + "_pwreset_jwt"
-	DEFAULT_BUCKET                         string = PROJECT_NAME + "-gopherbase"
+	S3_BUCKET                              string = GetEnvVarDefault("S3_BUCKET", PROJECT_NAME+"-gopherbase")
 )

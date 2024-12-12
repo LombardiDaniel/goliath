@@ -357,7 +357,7 @@ func (c *UserController) SetPicture(ctx *gin.Context) {
 	}
 
 	objPath := path.Join("public", strconv.Itoa(int(claims.UserId)))
-	err = c.objService.Upload(ctx, common.DEFAULT_BUCKET, objPath, bytes.NewReader(picBytes))
+	err = c.objService.Upload(ctx, common.S3_BUCKET, objPath, bytes.NewReader(picBytes))
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadRequest, err.Error())
