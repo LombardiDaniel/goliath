@@ -1,0 +1,63 @@
+name: cd
+
+on:
+  push:
+    branches:
+      - prod
+      - staging
+
+env:
+  REGION: southamerica-east1
+  BASE_URL: 
+  PROD_DOMAIN_NAME: 
+  STAGING_DOMAIN_NAME: 
+  IMAGE_TAG: pnpm-base-build
+  BUILD_DIR: /app/out
+
+jobs:
+  update-object-storage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - id: "auth"
+        uses: "google-github-actions/auth@v1"
+        with:
+          credentials_json: "${{ secrets.SERVICE_ACCOUNT_KEY }}"
+
+      - name: "Set up Cloud SDK"
+        uses: "google-github-actions/setup-gcloud@v1"
+
+      - name: "Use gcloud CLI"
+        run: "gcloud info"
+
+      - name: Build image
+        # run: docker build --build-arg BASE_URL=${BASE_URL} . --tag ${{ env.IMAGE_TAG }}
+        run: |
+          docker build . -t ${{ env.IMAGE_TAG }}
+        working-directory: .
+
+      - name: Set BUCKET_NAME
+        run: |
+          if [[ ${GITHUB_REF##*/} == "prod" ]]; then
+            echo "BUCKET_NAME=${{ env.PROD_DOMAIN_NAME }}" >> $GITHUB_ENV
+          fi
+
+          if [[ ${GITHUB_REF##*/} == "staging" ]]; then
+            echo "BUCKET_NAME=staging.${{ env.STAGING_DOMAIN_NAME }}" >> $GITHUB_ENV
+          fi
+
+      - name: Extract files from docker img
+        run: |
+          docker run --rm -d --name temp_container ${{ env.IMAGE_TAG }}
+          mkdir dist
+          docker cp temp_container:${{ env.BUILD_DIR }} dist
+          docker stop temp_container
+
+      - name: Rollout upload-to-bucket-storage
+        uses: google-github-actions/upload-cloud-storage@v2
+        with:
+          path: "dist/out"
+          destination: "${{ env.BUCKET_NAME }}"
+          parent: false
