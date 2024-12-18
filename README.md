@@ -10,3 +10,7 @@ API_HOST_URL + v1/auth/google/callback
 API_HOST_URL + v1/auth/github/callback
 
 https://github.com/CrunchyData/postgres-operator-examples
+
+https://github.com/neobrutalism-templates/saas/generate
+
+https://neobrutalism-components.vercel.app/docs/styling
