@@ -140,7 +140,7 @@ func init() {
 			"",
 		),
 	}, func(o *s3.Options) {
-		o.BaseEndpoint = aws.String("https://" + common.S3_ENDPOINT)
+		o.BaseEndpoint = aws.String(common.S3_ENDPOINT)
 	},
 	)
 

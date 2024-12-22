@@ -106,6 +106,8 @@ spec:
               value: no-reply@patos.dev
             - name: S3_BUCKET
               value: gopher-base
+            - name: S3_REGION
+              value: br-se1
             - name: POSTGRES_URI
               valueFrom:
                 secretKeyRef:
