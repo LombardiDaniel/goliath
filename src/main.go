@@ -10,10 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/credentials"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	_ "github.com/lib/pq"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
@@ -117,39 +116,36 @@ func init() {
 		Endpoint: github.Endpoint,
 	})
 
-	// minioClient, err := minio.New(
-	// 	common.S3_ENDPOINT,
-	// 	&minio.Options{
-	// 		Creds: credentials.NewStaticV4(
-	// 			os.Getenv("S3_ACCESS_KEY_ID"),
-	// 			os.Getenv("S3_SECRET_ACCESS_KEY"),
-	// 			"",
-	// 		),
-	// 		Secure: common.S3_SECURE,
-	// 	},
-	// )
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	s3Client := s3.NewFromConfig(aws.Config{
-		Region: os.Getenv("S3_REGION"),
-		Credentials: credentials.NewStaticCredentialsProvider(
-			os.Getenv("S3_ACCESS_KEY_ID"),
-			os.Getenv("S3_SECRET_ACCESS_KEY"),
-			"",
-		),
-	}, func(o *s3.Options) {
-		o.BaseEndpoint = aws.String(common.S3_ENDPOINT)
-	},
+	s3Host, err := common.ExtractHostFromUrl(common.S3_ENDPOINT)
+	if err != nil {
+		panic(err)
+	}
+	s3Secure, err := common.UrlIsSecure(common.S3_ENDPOINT)
+	if err != nil {
+		panic(err)
+	}
+	minioClient, err := minio.New(
+		s3Host,
+		&minio.Options{
+			Creds: credentials.NewStaticV4(
+				os.Getenv("S3_ACCESS_KEY_ID"),
+				os.Getenv("S3_SECRET_ACCESS_KEY"),
+				"",
+			),
+			Region: common.S3_REGION,
+			Secure: s3Secure,
+		},
 	)
+	if err != nil {
+		panic(err)
+	}
 
 	// Services
 	authService = services.NewAuthServiceJwtImpl(os.Getenv("JWT_SECRET_KEY"), db)
 	userService = services.NewUserServicePgImpl(db)
 	emailService = services.NewEmailServiceResendImpl(os.Getenv("RESEND_API_KEY"), "./templates")
 	organizationService = services.NewOrganizationServicePgImpl(db)
-	objectService = services.NewObjectServiceS3Impl(s3Client)
+	objectService = services.NewObjectServiceMinioImpl(minioClient)
 	billingService = services.NewBillingService(db, os.Getenv("STRIPE_API_KEY"))
 
 	// Middleware

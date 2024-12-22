@@ -2,6 +2,7 @@ package common
 
 import (
 	"log/slog"
+	"net/url"
 	"os"
 	"strings"
 	"text/template"
@@ -89,4 +90,24 @@ func IsSubset(subset []string, superset []string) bool {
 		}
 	}
 	return true // Return true if all elements are found in the superset
+}
+
+func ExtractHostFromUrl(rawUrl string) (string, error) {
+	parsedURL, err := url.Parse(rawUrl)
+	if err != nil {
+		return "", err
+	}
+
+	host := parsedURL.Hostname()
+
+	return host, nil
+}
+
+func UrlIsSecure(rawUrl string) (bool, error) {
+	parsedURL, err := url.Parse(rawUrl)
+	if err != nil {
+		return false, err
+	}
+
+	return parsedURL.Scheme == "https", nil
 }

@@ -1,6 +1,8 @@
 package common
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestSplitName(t *testing.T) {
 	type args struct {
@@ -45,6 +47,39 @@ func TestSplitName(t *testing.T) {
 			}
 			if got1 != tt.want1 {
 				t.Errorf("SplitName() got1 = %v, want %v", got1, tt.want1)
+			}
+		})
+	}
+}
+
+func TestExtractHostFromUrl(t *testing.T) {
+	type args struct {
+		rawUrl string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			"magaluObjs",
+			args{
+				"https://br-se1.magaluobjects.com",
+			},
+			"br-se1.magaluobjects.com",
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ExtractHostFromUrl(tt.args.rawUrl)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ExtractHostFromUrl() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ExtractHostFromUrl() = %v, want %v", got, tt.want)
 			}
 		})
 	}
