@@ -6,12 +6,6 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-// type OauthUser struct {
-// 	Email         string
-// 	UserId        uint32
-// 	OauthProvider string
-// }
-
 type JwtClaims struct {
 	UserId         uint32  `json:"userId" binding:"required"`
 	Email          string  `json:"email" binding:"required"`
