@@ -360,21 +360,21 @@ func (c *UserController) SetPicture(ctx *gin.Context) {
 	err = c.objService.Upload(ctx, common.S3_BUCKET, objPath, bytes.NewReader(picBytes))
 	if err != nil {
 		slog.Error(err.Error())
-		ctx.String(http.StatusBadRequest, err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
 	}
 
 	objUrl, err := storage.GetFullObjUrl(objPath)
 	if err != nil {
 		slog.Error(err.Error())
-		ctx.String(http.StatusBadRequest, err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
 	}
 
 	err = c.userService.SetAvatarUrl(ctx, claims.UserId, objUrl)
 	if err != nil {
 		slog.Error(err.Error())
-		ctx.String(http.StatusBadRequest, err.Error())
+		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
 	}
 
