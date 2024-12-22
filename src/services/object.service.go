@@ -7,7 +7,7 @@ import (
 )
 
 type ObjectService interface {
-	Upload(ctx context.Context, bucket string, path string, data io.Reader) error
+	Upload(ctx context.Context, bucket string, path string, size int64, data io.Reader) error
 	Download(ctx context.Context, bucket string, path string) ([]byte, error)
 	SignedUrl(ctx context.Context, bucket string, path string, exp time.Duration) (string, error)
 	UploadUrl(ctx context.Context, bucket string, path string, exp time.Duration) (string, error)

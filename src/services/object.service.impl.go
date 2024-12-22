@@ -18,8 +18,8 @@ func NewObjectServiceMinioImpl(client *minio.Client) ObjectService {
 	}
 }
 
-func (s *ObjectServiceMinioImpl) Upload(ctx context.Context, bucket string, path string, data io.Reader) error {
-	_, err := s.client.PutObject(ctx, bucket, path, data, -1, minio.PutObjectOptions{})
+func (s *ObjectServiceMinioImpl) Upload(ctx context.Context, bucket string, path string, size int64, data io.Reader) error {
+	_, err := s.client.PutObject(ctx, bucket, path, data, size, minio.PutObjectOptions{})
 	return err
 }
 
