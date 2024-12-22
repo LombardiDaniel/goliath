@@ -10,7 +10,7 @@ import (
 type storagePrefix string
 
 const (
-	USER_AVATARS storagePrefix = "public/user-avatars"
+	USER_AVATARS storagePrefix = "user-avatars"
 )
 
 func GetFullObjUrl(objPath string) (string, error) {
