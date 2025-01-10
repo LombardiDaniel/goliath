@@ -107,7 +107,8 @@ func (c *UserController) ConfirmUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.Header("location", "/")
+	// ctx.Header("location", "/")
+	ctx.Header("location", common.APP_HOST_URL)
 	ctx.String(http.StatusFound, "Found")
 }
 
