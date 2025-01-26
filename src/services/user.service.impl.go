@@ -99,7 +99,7 @@ func (s *UserServicePgImpl) ConfirmUser(ctx context.Context, otp string) error {
 	defer tx.Rollback()
 
 	unconfirmedUser := models.UnconfirmedUser{}
-	err = s.db.QueryRowContext(ctx, `
+	err = tx.QueryRowContext(ctx, `
 			SELECT
 				email,
 				otp,
@@ -108,7 +108,9 @@ func (s *UserServicePgImpl) ConfirmUser(ctx context.Context, otp string) error {
 				last_name,
 				date_of_birth
 			FROM
-				unconfirmed_users WHERE otp = $1
+				unconfirmed_users
+			WHERE
+				otp = $1
 		`, otp).Scan(
 		&unconfirmedUser.Email,
 		&unconfirmedUser.Otp,
@@ -368,7 +370,6 @@ func (s *UserServicePgImpl) UpdateUserPassword(ctx context.Context, userId uint3
 }
 
 func (s *UserServicePgImpl) EditUser(ctx context.Context, userId uint32, user schemas.EditUser) error {
-
 	_, err := s.db.ExecContext(ctx, `
 			UPDATE users
 			SET 
@@ -399,7 +400,8 @@ func (s *UserServicePgImpl) SetAvatarUrl(ctx context.Context, userId uint32, url
 			UPDATE users
 			SET 
 				avatar_url = $1
-			WHERE user_id = $2;
+			WHERE
+				user_id = $2;
 		`,
 		url,
 		userId,

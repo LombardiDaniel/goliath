@@ -132,6 +132,17 @@ func (s *AuthServiceJwtImpl) LoginOauth(ctx context.Context, oauthUser oauth.Use
 
 	defer tx.Rollback()
 
+	// LOCK not neeed because next query already locks the `email = $1` user
+	// err = tx.QueryRowContext(ctx, `
+	// 	SELECT *
+	// 	FROM users
+	// 	WHERE email = $1
+	// 	FOR UPDATE
+	// `, oauthUser.Email).Err()
+	// if err != nil {
+	// 	return user, false, err
+	// }
+
 	// check if user exists on curr email
 	// also creates oauth_users entry for this provider
 	err = tx.QueryRowContext(ctx, `
