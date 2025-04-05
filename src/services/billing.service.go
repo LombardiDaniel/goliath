@@ -8,13 +8,13 @@ import (
 )
 
 type BillingService interface {
-	// Gets the Stripe Checkout URL to be redirected to in the frontend
+	// CreatePayment gets the Stripe Checkout URL to be redirected to in the frontend
 	CreatePayment(ctx context.Context, currencyUnit stripe.Currency, unitAmmount int64, planName string, userId uint32) (string, error)
 
-	// Webhook to be used in a daemon
+	// GetCheckoutSession is the webhook to be used in a daemon
 	GetCheckoutSession(ctx context.Context, sessionId string) (*stripe.CheckoutSession, error)
 
-	// Webhook to be used in a daemon
+	// SetCheckoutSessionAsComplete is the webhook to be used in a daemon
 	SetCheckoutSessionAsComplete(ctx context.Context, sessionId string) (models.Payment, error)
 
 	// // Gets the Stripe Client Secret to be used in Embedded Checkout Form
