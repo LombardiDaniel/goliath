@@ -163,7 +163,6 @@ func init() {
 	authMiddleware = middlewares.NewAuthMiddlewareJwt(authService)
 	telemetryMiddleware = middlewares.NewTelemetryMiddleware(telemetryService)
 
-	// Controllers
 	authController = controllers.NewAuthController(authService, userService, emailService, oauthConfigMap)
 	userController = controllers.NewUserController(authService, userService, emailService, objectService)
 	organizationController = controllers.NewOrganizationController(userService, emailService, organizationService)
@@ -203,6 +202,9 @@ func init() {
 	// Daemons
 	taskRunner.RegisterTask(24*time.Hour, userService.DeleteExpiredPwResets, 1)
 	taskRunner.RegisterTask(24*time.Hour, organizationService.DeleteExpiredOrgInvites, 1)
+	taskRunner.RegisterTask(time.Second, func() error {
+		return telemetryService.Upload(context.Background())
+	}, 1)
 }
 
 // @securityDefinitions.apiKey JWT
