@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log/slog"
@@ -13,6 +14,9 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
@@ -33,26 +37,25 @@ import (
 )
 
 var (
+	ctx    context.Context
 	router *gin.Engine
 
-	// Services
 	authService         services.AuthService
 	userService         services.UserService
 	emailService        services.EmailService
 	organizationService services.OrganizationService
 	objectService       services.ObjectService
 	billingService      services.BillingService
+	telemetryService    services.TelemetryService
 
-	// Controllers
 	authController         controllers.AuthController
 	userController         controllers.UserController
 	organizationController controllers.OrganizationController
 	billingController      controllers.BillingController
 
-	// Middlewares
-	authMiddleware middlewares.AuthMiddleware
+	authMiddleware      middlewares.AuthMiddleware
+	telemetryMiddleware middlewares.TelemetryMiddleware
 
-	// Daemons
 	taskRunner daemons.TaskRunner
 
 	db *sql.DB
@@ -64,34 +67,43 @@ func init() {
 	common.InitSlogger()
 
 	pgConnStr := common.GetEnvVarDefault("POSTGRES_URI", "postgres://user:password@localhost:5432/db?sslmode=disable")
-
 	db, err = sql.Open("postgres", pgConnStr)
 	if err != nil {
 		panic(err)
 	}
-
 	err = db.Ping()
 	if err != nil {
 		panic(err)
 	}
-
 	pgIdleConns, err := strconv.Atoi(common.GetEnvVarDefault("POSTGRES_IDLE_CONNS", "2"))
 	if err != nil {
 		panic(err)
 	}
-
 	pgOpenConns, err := strconv.Atoi(common.GetEnvVarDefault("POSTGRES_OPEN_CONNS", "10"))
 	if err != nil {
 		panic(err)
 	}
-
 	db.SetMaxIdleConns(pgIdleConns)
 	db.SetMaxOpenConns(pgOpenConns)
-
 	_, err = db.Exec(fmt.Sprintf("SET TIME ZONE '%s';", common.DEFAULT_TIMEZONE))
 	if err != nil {
 		panic(err)
 	}
+
+	mongoConn := options.Client().ApplyURI(
+		common.GetEnvVarDefault("MONGO_URI", "mongodb://localhost:27017"),
+	)
+	mongoClient, err := mongo.Connect(ctx, mongoConn)
+	if err != nil {
+		slog.Error(err.Error())
+	}
+	err = mongoClient.Ping(ctx, readpref.Primary())
+	if err != nil {
+		slog.Error(err.Error())
+	}
+
+	eventsCol := mongoClient.Database("telemetry").Collection("events")
+	metricsCol := mongoClient.Database("telemetry").Collection("metrics")
 
 	oauthBaseCallback := common.API_HOST_URL + "v1/auth/%s/callback"
 
@@ -140,16 +152,16 @@ func init() {
 		panic(err)
 	}
 
-	// Services
 	authService = services.NewAuthServiceJwtImpl(os.Getenv("JWT_SECRET_KEY"), db)
 	userService = services.NewUserServicePgImpl(db)
 	emailService = services.NewEmailServiceResendImpl(os.Getenv("RESEND_API_KEY"), "./templates")
 	organizationService = services.NewOrganizationServicePgImpl(db)
 	objectService = services.NewObjectServiceMinioImpl(minioClient)
 	billingService = services.NewBillingService(db, os.Getenv("STRIPE_API_KEY"))
+	telemetryService = services.NewTelemetryServiceMongoAsyncImpl(mongoClient, eventsCol, metricsCol, 100)
 
-	// Middleware
 	authMiddleware = middlewares.NewAuthMiddlewareJwt(authService)
+	telemetryMiddleware = middlewares.NewTelemetryMiddleware(telemetryService)
 
 	// Controllers
 	authController = controllers.NewAuthController(authService, userService, emailService, oauthConfigMap)
@@ -209,10 +221,10 @@ func main() {
 	})
 
 	basePath := router.Group("/v1")
-	authController.RegisterRoutes(basePath, authMiddleware)
-	userController.RegisterRoutes(basePath, authMiddleware)
-	organizationController.RegisterRoutes(basePath, authMiddleware)
-	billingController.RegisterRoutes(basePath, authMiddleware)
+	authController.RegisterRoutes(basePath, authMiddleware, telemetryMiddleware)
+	userController.RegisterRoutes(basePath, authMiddleware, telemetryMiddleware)
+	organizationController.RegisterRoutes(basePath, authMiddleware, telemetryMiddleware)
+	billingController.RegisterRoutes(basePath, authMiddleware, telemetryMiddleware)
 
 	taskRunner.Dispatch()
 

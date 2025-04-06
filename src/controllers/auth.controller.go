@@ -265,15 +265,15 @@ func (c *AuthController) OauthCallback(ctx *gin.Context) {
 }
 
 // Register Routes, needs jwtService use on authentication middleware
-func (c *AuthController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware) {
+func (c *AuthController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware, telemetryMiddleware middlewares.TelemetryMiddleware) {
 	g := rg.Group("/auth")
 
-	g.POST("/login", c.Login)
-	g.POST("/logout", c.Logout)
-	g.POST("/set-organization/:orgId", authMiddleware.AuthorizeUser(), c.SetOrg)
-	g.GET("/validate", authMiddleware.AuthorizeUser(), c.Validate)
+	g.POST("/login", telemetryMiddleware.CollectApiCalls(), c.Login)
+	g.POST("/logout", telemetryMiddleware.CollectApiCalls(), c.Logout)
+	g.POST("/set-organization/:orgId", authMiddleware.AuthorizeUser(), telemetryMiddleware.CollectApiCalls(), c.SetOrg)
+	g.GET("/validate", authMiddleware.AuthorizeUser(), telemetryMiddleware.CollectApiCalls(), c.Validate)
 
 	// Oauth
-	g.GET("/providers", c.GetOauthProviders)
-	g.GET("/:provider/callback", c.OauthCallback)
+	g.GET("/providers", telemetryMiddleware.CollectApiCalls(), c.GetOauthProviders)
+	g.GET("/:provider/callback", telemetryMiddleware.CollectApiCalls(), c.OauthCallback)
 }

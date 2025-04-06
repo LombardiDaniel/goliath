@@ -382,15 +382,15 @@ func (c *UserController) SetPicture(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "OK")
 }
 
-func (c *UserController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware) {
+func (c *UserController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware, telemetryMiddleware middlewares.TelemetryMiddleware) {
 	g := rg.Group("/users")
 
-	g.PUT("", c.CreateUser)
-	g.GET("/confirm", c.ConfirmUser)
-	g.POST("/init-reset-password", c.InitResetPassword)
-	g.GET("/set-password-reset-cookie", c.SetPasswordResetCookie)
-	g.POST("/reset-password", c.ResetPassword)
-	g.GET("/organizations", authMiddleware.AuthorizeUser(), c.GetUserOrgs)
-	g.POST("/edit", authMiddleware.AuthorizeUser(), c.EditUser)
-	g.PUT("/profile-picture", authMiddleware.AuthorizeUser(), c.SetPicture)
+	g.PUT("", telemetryMiddleware.CollectApiCalls(), c.CreateUser)
+	g.GET("/confirm", telemetryMiddleware.CollectApiCalls(), c.ConfirmUser)
+	g.POST("/init-reset-password", telemetryMiddleware.CollectApiCalls(), c.InitResetPassword)
+	g.GET("/set-password-reset-cookie", telemetryMiddleware.CollectApiCalls(), c.SetPasswordResetCookie)
+	g.POST("/reset-password", telemetryMiddleware.CollectApiCalls(), c.ResetPassword)
+	g.GET("/organizations", authMiddleware.AuthorizeUser(), telemetryMiddleware.CollectApiCalls(), c.GetUserOrgs)
+	g.POST("/edit", authMiddleware.AuthorizeUser(), telemetryMiddleware.CollectApiCalls(), c.EditUser)
+	g.PUT("/profile-picture", authMiddleware.AuthorizeUser(), telemetryMiddleware.CollectApiCalls(), c.SetPicture)
 }
