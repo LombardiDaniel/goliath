@@ -220,11 +220,13 @@ func main() {
 		ctx.String(http.StatusOK, "OK")
 	})
 
+	router.Use(telemetryMiddleware.CollectApiCalls())
+
 	basePath := router.Group("/v1")
-	authController.RegisterRoutes(basePath, authMiddleware, telemetryMiddleware)
-	userController.RegisterRoutes(basePath, authMiddleware, telemetryMiddleware)
-	organizationController.RegisterRoutes(basePath, authMiddleware, telemetryMiddleware)
-	billingController.RegisterRoutes(basePath, authMiddleware, telemetryMiddleware)
+	authController.RegisterRoutes(basePath, authMiddleware)
+	userController.RegisterRoutes(basePath, authMiddleware)
+	organizationController.RegisterRoutes(basePath, authMiddleware)
+	billingController.RegisterRoutes(basePath, authMiddleware)
 
 	taskRunner.Dispatch()
 

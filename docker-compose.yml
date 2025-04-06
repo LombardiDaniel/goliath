@@ -46,6 +46,13 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  mongo:
+    image: mongo:latest
+    expose:
+      - 27017:27017
+    volumes:
+      - mongo_data:/data/db
+
   # backup:
   #   image: eeshugerman/postgres-backup-s3:16
   #   environment:
@@ -70,3 +77,4 @@ services:
 
 volumes:
   postgres_data:
+  mongo_data:

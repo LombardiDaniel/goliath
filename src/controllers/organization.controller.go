@@ -287,12 +287,12 @@ func (c *OrganizationController) ChangeOwner(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "OK")
 }
 
-func (c *OrganizationController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware, telemetryMiddleware middlewares.TelemetryMiddleware) {
+func (c *OrganizationController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware) {
 	g := rg.Group("/organizations")
 
-	g.PUT("", authMiddleware.AuthorizeUser(), telemetryMiddleware.CollectApiCalls(), c.CreateOrganization)
-	g.PUT("/:orgId/invite", authMiddleware.AuthorizeOrganization(true), telemetryMiddleware.CollectApiCalls(), c.InviteToOrg)
-	g.POST("/:orgId/owner", authMiddleware.AuthorizeOrganization(true), telemetryMiddleware.CollectApiCalls(), c.ChangeOwner, authMiddleware.Reauthorize())
-	g.GET("/accept-invite", telemetryMiddleware.CollectApiCalls(), c.AcceptOrgInvite)
-	g.DELETE("/:orgId/users/:userId", authMiddleware.AuthorizeOrganization(true), telemetryMiddleware.CollectApiCalls(), c.RemoveFromOrg)
+	g.PUT("", authMiddleware.AuthorizeUser(), c.CreateOrganization)
+	g.PUT("/:orgId/invite", authMiddleware.AuthorizeOrganization(true), c.InviteToOrg)
+	g.POST("/:orgId/owner", authMiddleware.AuthorizeOrganization(true), c.ChangeOwner, authMiddleware.Reauthorize())
+	g.GET("/accept-invite", c.AcceptOrgInvite)
+	g.DELETE("/:orgId/users/:userId", authMiddleware.AuthorizeOrganization(true), c.RemoveFromOrg)
 }

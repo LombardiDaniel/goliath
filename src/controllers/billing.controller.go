@@ -143,9 +143,9 @@ func (c *BillingController) CheckoutSessionCompletedCallback(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "OK")
 }
 
-func (c *BillingController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware, telemetryMiddleware middlewares.TelemetryMiddleware) {
+func (c *BillingController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware) {
 	g := rg.Group("/billing")
 
-	g.POST("/stripe/get-checkout-session-url/:product_id", authMiddleware.AuthorizeUser(), telemetryMiddleware.CollectApiCalls(), c.GetCheckoutSessionUrl)
-	g.POST("/stripe/checkout-session-completed", telemetryMiddleware.CollectApiCalls(), c.CheckoutSessionCompletedCallback)
+	g.POST("/stripe/get-checkout-session-url/:product_id", authMiddleware.AuthorizeUser(), c.GetCheckoutSessionUrl)
+	g.POST("/stripe/checkout-session-completed", c.CheckoutSessionCompletedCallback)
 }
