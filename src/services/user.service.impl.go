@@ -313,7 +313,7 @@ func (s *UserServicePgImpl) InitPasswordReset(ctx context.Context, userId uint32
 	_, err := s.db.ExecContext(ctx, query,
 		userId,
 		otp,
-		time.Now().Add(24*time.Hour*time.Duration(common.PASSWORD_RESET_TIMEOUT_DAYS)),
+		time.Now().Add(24*time.Hour*time.Duration(common.PasswordResetTimeoutDays)),
 	)
 
 	return common.FilterSqlPgError(err)

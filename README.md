@@ -5,9 +5,9 @@
 
 To rapidy bootstrap apps, base written in Go, for Go
 
-API_HOST_URL + v1/auth/google/callback
+ApiHostUrl + v1/auth/google/callback
 
-API_HOST_URL + v1/auth/github/callback
+ApiHostUrl + v1/auth/github/callback
 
 https://github.com/CrunchyData/postgres-operator-examples
 

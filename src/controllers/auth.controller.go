@@ -113,7 +113,7 @@ func (c *AuthController) Login(ctx *gin.Context) {
 // @Failure 502 string BadGateway
 // @Router /v1/auth/validate [GET]
 func (c *AuthController) Validate(ctx *gin.Context) {
-	userClaimsRaw, ok := ctx.Get(common.GIN_CTX_JWT_CLAIM_KEY_NAME)
+	userClaimsRaw, ok := ctx.Get(common.GinCtxJwtClaimKeyName)
 	if !ok {
 		ctx.String(http.StatusUnauthorized, "Unauthorized")
 		return
@@ -260,7 +260,7 @@ func (c *AuthController) OauthCallback(ctx *gin.Context) {
 	common.SetAuthCookie(ctx, token)
 
 	// ctx.Header("location", "/")
-	ctx.Header("location", common.APP_HOST_URL)
+	ctx.Header("location", common.AppHostUrl)
 	ctx.String(http.StatusFound, "Found")
 }
 

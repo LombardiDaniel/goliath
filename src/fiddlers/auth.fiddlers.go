@@ -7,7 +7,7 @@ import (
 )
 
 func GetClaimsFromGinCtx(ctx *gin.Context) (models.JwtClaims, error) {
-	claims, ok := ctx.Get(common.GIN_CTX_JWT_CLAIM_KEY_NAME)
+	claims, ok := ctx.Get(common.GinCtxJwtClaimKeyName)
 	if !ok {
 		return models.JwtClaims{}, common.ErrAuth
 	}

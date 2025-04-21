@@ -85,7 +85,7 @@ func init() {
 	}
 	db.SetMaxIdleConns(pgIdleConns)
 	db.SetMaxOpenConns(pgOpenConns)
-	_, err = db.Exec(fmt.Sprintf("SET TIME ZONE '%s';", common.DEFAULT_TIMEZONE))
+	_, err = db.Exec(fmt.Sprintf("SET TIME ZONE '%s';", common.DefaultTimzone))
 	if err != nil {
 		panic(err)
 	}
@@ -105,7 +105,7 @@ func init() {
 	eventsCol := mongoClient.Database("telemetry").Collection("events")
 	metricsCol := mongoClient.Database("telemetry").Collection("metrics")
 
-	oauthBaseCallback := common.API_HOST_URL + "v1/auth/%s/callback"
+	oauthBaseCallback := common.ApiHostUrl + "v1/auth/%s/callback"
 
 	oauthConfigMap := make(map[string]oauth.Provider)
 	oauthConfigMap[oauth.GOOGLE_PROVIDER] = oauth.NewGoogleProvider(&oauth2.Config{
@@ -128,11 +128,11 @@ func init() {
 		Endpoint: github.Endpoint,
 	})
 
-	s3Host, err := common.ExtractHostFromUrl(common.S3_ENDPOINT)
+	s3Host, err := common.ExtractHostFromUrl(common.S3Endpoint)
 	if err != nil {
 		panic(err)
 	}
-	s3Secure, err := common.UrlIsSecure(common.S3_ENDPOINT)
+	s3Secure, err := common.UrlIsSecure(common.S3Endpoint)
 	if err != nil {
 		panic(err)
 	}
@@ -144,7 +144,7 @@ func init() {
 				os.Getenv("S3_SECRET_ACCESS_KEY"),
 				"",
 			),
-			Region: common.S3_REGION,
+			Region: common.S3Region,
 			Secure: s3Secure,
 		},
 	)
@@ -172,20 +172,20 @@ func init() {
 	router.SetTrustedProxies([]string{"*"})
 
 	corsCfg := cors.DefaultConfig()
-	corsCfg.AllowOrigins = []string{common.API_HOST_URL, common.APP_HOST_URL}
+	corsCfg.AllowOrigins = []string{common.ApiHostUrl, common.AppHostUrl}
 	corsCfg.AllowCredentials = true
 	corsCfg.AddAllowHeaders("Authorization")
 
 	slog.Info(fmt.Sprintf("corsCfg: %+v", corsCfg))
 
 	router.Use(cors.New(corsCfg))
-	router.Use(limits.RequestSizeLimiter(common.MAX_REQUEST_SIZE))
+	router.Use(limits.RequestSizeLimiter(common.MaxRequestSize))
 
 	docs.SwaggerInfo.Title = "Generic Forms API"
 	docs.SwaggerInfo.Description = "Generic Forms API"
 	docs.SwaggerInfo.Version = "1.0"
 	docs.SwaggerInfo.BasePath = ""
-	docs.SwaggerInfo.Host = strings.Split(common.API_HOST_URL, "://")[1]
+	docs.SwaggerInfo.Host = strings.Split(common.ApiHostUrl, "://")[1]
 
 	if os.Getenv("GIN_MODE") == "release" {
 		docs.SwaggerInfo.Schemes = []string{"https"}

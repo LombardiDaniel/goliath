@@ -94,19 +94,19 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            - name: API_HOST_URL
+            - name: ApiHostUrl
               value: https://api.patos.dev/
-            - name: APP_HOST_URL
+            - name: AppHostUrl
               value: https://app.patos.dev/
             - name: GIN_MODE
               value: release
-            - name: PROJECT_NAME
+            - name: ProjectName
               value: patos-app
-            - name: NOREPLY_EMAIL
+            - name: NoreplyEmail
               value: no-reply@patos.dev
-            - name: S3_BUCKET
+            - name: S3Bucket
               value: gopher-base
-            - name: S3_REGION
+            - name: S3Region
               value: br-se1
             - name: POSTGRES_URI
               valueFrom:
@@ -143,7 +143,7 @@ spec:
                 secretKeyRef:
                   name: oauth-secret
                   key: github_secret
-            - name: S3_ENDPOINT
+            - name: S3Endpoint
               value: br-se1.magaluobjects.com
             - name: S3_ACCESS_KEY_ID
               valueFrom:

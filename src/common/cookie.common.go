@@ -18,7 +18,7 @@ var (
 func getCookieDomain() string {
 	cookieDomain := ""
 	if secure {
-		cookieDomain = strings.Split(API_HOST_URL, "://")[1]
+		cookieDomain = strings.Split(ApiHostUrl, "://")[1]
 		if cookieDomain[len(cookieDomain)-1] == '/' {
 			cookieDomain = cookieDomain[0 : len(cookieDomain)-1]
 		}
@@ -33,7 +33,7 @@ func getCookieDomain() string {
 // 	for _, domain := range cookieDomains {
 // 		ctx.Header(
 // 			"Set-Cookie",
-// 			makeCookie(cookieName, value, JWT_TIMEOUT_SECS, "/", domain, secure, true),
+// 			makeCookie(cookieName, value, JwtTimeoutSecs, "/", domain, secure, true),
 // 		)
 // 	}
 // }
@@ -41,7 +41,7 @@ func getCookieDomain() string {
 func SetCookieForApp(ctx *gin.Context, cookieName string, value string) {
 	ctx.Header(
 		"Set-Cookie",
-		makeCookie(cookieName, value, JWT_TIMEOUT_SECS, "/", domain, secure, true),
+		makeCookie(cookieName, value, JwtTimeoutSecs, "/", domain, secure, true),
 	)
 
 }
@@ -62,7 +62,7 @@ func ClearAuthCookie(ctx *gin.Context) {
 }
 
 func makeAuthCookie(value string, domain string) string {
-	return makeCookie(JWT_COOKIE_NAME, value, JWT_TIMEOUT_SECS, "/", domain, secure, true)
+	return makeCookie(JwtCookieName, value, JwtTimeoutSecs, "/", domain, secure, true)
 }
 
 func makeCookie(name string, value string, maxAge int, path string, domain string, secure bool, httpOnly bool) string {

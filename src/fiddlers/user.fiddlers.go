@@ -13,7 +13,7 @@ func NewUnconfirmedUser(email string, password string, firstName string, lastNam
 		return nil, err
 	}
 
-	otp, err := common.GenerateRandomString(common.OTP_LEN)
+	otp, err := common.GenerateRandomString(common.OptLen)
 	if err != nil {
 		return nil, err
 	}
