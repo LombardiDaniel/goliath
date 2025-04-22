@@ -3,6 +3,10 @@
 
 # GopherBase
 
+```sh
+docker compose up --watch
+```
+
 To rapidy bootstrap apps, base written in Go, for Go
 
 ApiHostUrl + v1/auth/google/callback

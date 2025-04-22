@@ -1,7 +1,6 @@
 package common
 
 import (
-	"log/slog"
 	"os"
 	"strconv"
 	"strings"
@@ -18,13 +17,13 @@ var (
 func getCookieDomain() string {
 	cookieDomain := ""
 	if secure {
-		cookieDomain = strings.Split(ApiHostUrl, "://")[1]
+		cookieDomain = strings.SplitN(ApiHostUrl, "://", 2)[1]
 		if cookieDomain[len(cookieDomain)-1] == '/' {
 			cookieDomain = cookieDomain[0 : len(cookieDomain)-1]
 		}
 	}
 
-	slog.Info("Cookie Domain: " + cookieDomain)
+	// slog.Info("Cookie Domain: " + cookieDomain)
 
 	return cookieDomain
 }

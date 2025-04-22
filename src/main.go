@@ -14,6 +14,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -65,6 +66,7 @@ var (
 
 func init() {
 	common.InitSlogger()
+	ctx = context.Background()
 
 	pgConnStr := common.GetEnvVarDefault("POSTGRES_URI", "postgres://user:password@localhost:5432/db?sslmode=disable")
 	db, err = sql.Open("postgres", pgConnStr)
@@ -102,8 +104,22 @@ func init() {
 		slog.Error(err.Error())
 	}
 
-	eventsCol := mongoClient.Database("telemetry").Collection("events")
+	tsIdxModel := mongo.IndexModel{
+		Keys:    bson.M{"ts": 1},
+		Options: options.Index(),
+	}
+
 	metricsCol := mongoClient.Database("telemetry").Collection("metrics")
+	eventsCol := mongoClient.Database("telemetry").Collection("events")
+
+	_, err = metricsCol.Indexes().CreateOne(ctx, tsIdxModel)
+	if err != nil {
+		panic(err)
+	}
+	_, err = eventsCol.Indexes().CreateOne(ctx, tsIdxModel)
+	if err != nil {
+		panic(err)
+	}
 
 	oauthBaseCallback := common.ApiHostUrl + "v1/auth/%s/callback"
 
@@ -158,7 +174,7 @@ func init() {
 	organizationService = services.NewOrganizationServicePgImpl(db)
 	objectService = services.NewObjectServiceMinioImpl(minioClient)
 	billingService = services.NewBillingService(db, os.Getenv("STRIPE_API_KEY"))
-	telemetryService = services.NewTelemetryServiceMongoAsyncImpl(mongoClient, eventsCol, metricsCol, 100)
+	telemetryService = services.NewTelemetryServiceMongoAsyncImpl(mongoClient, metricsCol, eventsCol, 100)
 
 	authMiddleware = middlewares.NewAuthMiddlewareJwt(authService)
 	telemetryMiddleware = middlewares.NewTelemetryMiddleware(telemetryService)
