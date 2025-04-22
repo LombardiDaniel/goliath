@@ -3,11 +3,23 @@
 
 # GopherBase
 
+To rapidy bootstrap apps, base written in Go, for Go
+
+Dev Env:
+
 ```sh
 docker compose up --watch
 ```
 
-To rapidy bootstrap apps, base written in Go, for Go
+App: http://localhost:8008/
+
+Swagger UI: http://localhost:8080/docs
+
+MinIO UI: http://localhost:9001/
+
+Adminer: http://localhost:8000/
+
+---
 
 ApiHostUrl + v1/auth/google/callback
 
