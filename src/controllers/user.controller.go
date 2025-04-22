@@ -357,7 +357,7 @@ func (c *UserController) SetPicture(ctx *gin.Context) {
 		return
 	}
 
-	objPath := storage.GetPublicPath(storage.USER_AVATARS, strconv.Itoa(int(claims.UserId)))
+	objPath := storage.GetPublicPath(storage.UserAvatars, strconv.Itoa(int(claims.UserId)))
 	err = c.objService.Upload(ctx, common.S3Bucket, objPath, int64(len(picBytes)), bytes.NewReader(picBytes))
 	if err != nil {
 		slog.Error(err.Error())

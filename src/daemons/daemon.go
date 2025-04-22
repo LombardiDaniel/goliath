@@ -6,13 +6,14 @@ import (
 	"time"
 )
 
+// Task is a struct that defines a task to be run in the background.
 type Task struct {
 	Interval time.Duration
 	Callable func() error
 	Workers  uint32
 }
 
-// TaskRunner runs Tasks specifiedby the user, use TaskRunner.RegisterTask() to
+// TaskRunner runs Tasks specified by the user, use TaskRunner.RegisterTask() to
 // specify daemons.
 type TaskRunner struct {
 	// List Of Tasks to be run in the background

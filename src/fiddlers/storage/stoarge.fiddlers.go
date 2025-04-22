@@ -10,7 +10,7 @@ import (
 type storageDir string
 
 const (
-	USER_AVATARS storageDir = "user-avatars"
+	UserAvatars storageDir = "user-avatars"
 )
 
 func GetFullObjUrl(objPath string) (string, error) {
