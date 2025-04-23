@@ -129,6 +129,12 @@ func (s *TelemetryServiceMongoAsyncImpl) Upload(ctx context.Context) error {
 			return err
 		}
 	}
+	for _, c := range s.counters {
+		err := c.Upload(ctx)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
