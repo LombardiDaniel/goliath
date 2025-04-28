@@ -7,6 +7,7 @@ import (
 	"github.com/stripe/stripe-go/v81"
 )
 
+// BillingService defines the interface for all billing-related operations.
 type BillingService interface {
 	// CreatePayment gets the Stripe Checkout URL to be redirected to in the frontend
 	CreatePayment(ctx context.Context, currencyUnit stripe.Currency, unitAmmount int64, planName string, userId uint32) (string, error)
