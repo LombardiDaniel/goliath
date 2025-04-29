@@ -2,24 +2,30 @@ package services
 
 import (
 	"context"
-
-	"github.com/LombardiDaniel/gopherbase/models"
 )
 
 // TelemetryService defines the interface for storing and retrieving telemetry data.
 type TelemetryService interface {
 	// RecordEvent logs a specific event with associated metadata.
-	RecordEvent(ctx context.Context, eventName string, metadata map[string]any) error
+	RecordEvent(ctx context.Context, eventName string, metadata map[string]any, tags map[string]string) error
 
 	// RecordMetric logs a numerical metric with a value and optional tags.
 	RecordMetric(ctx context.Context, metricName string, value float64, tags map[string]string) error
 
-	// RecordError logs an error with a message and optional metadata.
-	RecordError(ctx context.Context, err error, metadata map[string]any) error
+	// Upload uploads telemetry the enqueued data. This method should be called
+	// in a separate goroutine to avoid blocking. Should panic if impl is not async.
+	Upload(ctx context.Context) error
 
-	// GetMetrics retrieves metrics based on a query (e.g., metric name, tags, time range).
-	GetMetrics(ctx context.Context, query map[string]string) ([]models.Metric, error)
+	// Creates a counter metric with the given name and tags.
+	GetCounter(ctx context.Context, metricName string, tags map[string]string) (Counter, error)
+}
 
-	// GetEvents retrieves events based on a query (e.g., event name, time range).
-	GetEvents(ctx context.Context, query map[string]string) ([]models.Event, error)
+// Counter defines the interface for a counter metric.
+type Counter interface {
+	// Increment increments the counter by the given count.
+	Increment(count uint64)
+
+	// Upload uploads telemetry the enqueued data. This method should be called
+	// in a separate goroutine to avoid blocking. Should panic if impl is not async.
+	Upload(ctx context.Context) error
 }

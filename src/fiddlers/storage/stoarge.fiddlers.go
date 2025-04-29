@@ -10,11 +10,11 @@ import (
 type storageDir string
 
 const (
-	USER_AVATARS storageDir = "user-avatars"
+	UserAvatars storageDir = "user-avatars"
 )
 
 func GetFullObjUrl(objPath string) (string, error) {
-	return url.JoinPath(common.S3_ENDPOINT, common.S3_BUCKET, objPath)
+	return url.JoinPath(common.S3Endpoint, common.S3Bucket, objPath)
 }
 
 func GetPublicPath(p storageDir, filename string) string {

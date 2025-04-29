@@ -27,17 +27,17 @@ type EmailServiceResendImpl struct {
 }
 
 func NewEmailServiceResendImpl(resendApiKey string, templatesDir string) EmailService {
-	usersConfirmUrl, err := url.JoinPath(common.API_HOST_URL, "/v1/users/confirm")
+	usersConfirmUrl, err := url.JoinPath(common.ApiHostUrl, "/v1/users/confirm")
 	if err != nil {
 		panic(err)
 	}
 
-	acceptInviteUrl, err := url.JoinPath(common.API_HOST_URL, "/v1/organizations/accept-invite")
+	acceptInviteUrl, err := url.JoinPath(common.ApiHostUrl, "/v1/organizations/accept-invite")
 	if err != nil {
 		panic(err)
 	}
 
-	passwordResetUrl, err := url.JoinPath(common.API_HOST_URL, "/v1/users/set-password-reset-cookie")
+	passwordResetUrl, err := url.JoinPath(common.ApiHostUrl, "/v1/users/set-password-reset-cookie")
 	if err != nil {
 		panic(err)
 	}
@@ -64,7 +64,7 @@ type htmlConfirmationVars struct {
 func (s *EmailServiceResendImpl) SendEmailConfirmation(email string, name string, otp string) error {
 	body := new(bytes.Buffer)
 	err := s.emailConfirmationTemplate.Execute(body, htmlConfirmationVars{
-		ProjectName: common.PROJECT_NAME,
+		ProjectName: common.ProjectName,
 		FirstName:   name,
 		OtpUrl:      s.usersConfirmUrl + "?otp=" + otp,
 	})
@@ -74,7 +74,7 @@ func (s *EmailServiceResendImpl) SendEmailConfirmation(email string, name string
 	}
 
 	params := &resend.SendEmailRequest{
-		From:    common.NOREPLY_EMAIL,
+		From:    common.NoreplyEmail,
 		To:      []string{email},
 		Subject: "Confirm Your Account!",
 		Html:    body.String(),
@@ -100,7 +100,7 @@ func (s *EmailServiceResendImpl) SendAccountCreated(email string, name string) e
 	}
 
 	params := &resend.SendEmailRequest{
-		From:    common.NOREPLY_EMAIL,
+		From:    common.NoreplyEmail,
 		To:      []string{email},
 		Subject: "Account Created!",
 		Html:    body.String(),
@@ -121,7 +121,7 @@ type htmlOrgInviteVars struct {
 func (s *EmailServiceResendImpl) SendOrganizationInvite(email string, name string, otp string, orgName string) error {
 	body := new(bytes.Buffer)
 	err := s.organizationInviteTemplate.Execute(body, htmlOrgInviteVars{
-		ProjectName:      common.PROJECT_NAME,
+		ProjectName:      common.ProjectName,
 		OrganizationName: orgName,
 		FirstName:        name,
 		OtpUrl:           s.acceptInviteUrl + "?otp=" + otp,
@@ -132,7 +132,7 @@ func (s *EmailServiceResendImpl) SendOrganizationInvite(email string, name strin
 	}
 
 	params := &resend.SendEmailRequest{
-		From:    common.NOREPLY_EMAIL,
+		From:    common.NoreplyEmail,
 		To:      []string{email},
 		Subject: "Organization Invite",
 		Html:    body.String(),
@@ -152,7 +152,7 @@ type htmlPwResetVars struct {
 func (s *EmailServiceResendImpl) SendPasswordReset(email string, name string, otp string) error {
 	body := new(bytes.Buffer)
 	err := s.passwordResetTemplate.Execute(body, htmlPwResetVars{
-		ProjectName: common.PROJECT_NAME,
+		ProjectName: common.ProjectName,
 		FirstName:   name,
 		OtpUrl:      s.passwordResetUrl + "?otp=" + otp,
 	})
@@ -162,7 +162,7 @@ func (s *EmailServiceResendImpl) SendPasswordReset(email string, name string, ot
 	}
 
 	params := &resend.SendEmailRequest{
-		From:    common.NOREPLY_EMAIL,
+		From:    common.NoreplyEmail,
 		To:      []string{email},
 		Subject: "Password Reset",
 		Html:    body.String(),
@@ -190,7 +190,7 @@ func (s *EmailServiceResendImpl) SendPaymentAccepted(email string, name string, 
 	}
 
 	params := &resend.SendEmailRequest{
-		From:    common.NOREPLY_EMAIL,
+		From:    common.NoreplyEmail,
 		To:      []string{email},
 		Subject: "Payment Accepted",
 		Html:    body.String(),

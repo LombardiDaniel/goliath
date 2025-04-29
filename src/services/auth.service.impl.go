@@ -33,8 +33,8 @@ func (s *AuthServiceJwtImpl) InitToken(userId uint32, email string, organization
 		OrganizationId: organizationId,
 		IsAdmin:        isAdmin,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Second * time.Duration(common.JWT_TIMEOUT_SECS)).Unix(),
-			Issuer:    common.PROJECT_NAME + "-auth",
+			ExpiresAt: time.Now().Add(time.Second * time.Duration(common.JwtTimeoutSecs)).Unix(),
+			Issuer:    common.ProjectName + "-auth",
 		},
 	}
 
@@ -89,8 +89,8 @@ func (s *AuthServiceJwtImpl) InitPasswordResetToken(userId uint32) (string, erro
 		UserId:  userId,
 		Allowed: true,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Second * time.Duration(common.JWT_TIMEOUT_SECS)).Unix(),
-			Issuer:    common.PROJECT_NAME + "-auth",
+			ExpiresAt: time.Now().Add(time.Second * time.Duration(common.JwtTimeoutSecs)).Unix(),
+			Issuer:    common.ProjectName + "-auth",
 		},
 	}
 

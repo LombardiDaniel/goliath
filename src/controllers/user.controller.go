@@ -108,7 +108,7 @@ func (c *UserController) ConfirmUser(ctx *gin.Context) {
 	}
 
 	// ctx.Header("location", "/")
-	ctx.Header("location", common.APP_HOST_URL)
+	ctx.Header("location", common.AppHostUrl)
 	ctx.String(http.StatusFound, "Found")
 }
 
@@ -160,7 +160,7 @@ func (c *UserController) InitResetPassword(ctx *gin.Context) {
 		return
 	}
 
-	otp, err := common.GenerateRandomString(common.OTP_LEN)
+	otp, err := common.GenerateRandomString(common.OptLen)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadRequest, err.Error())
@@ -218,7 +218,7 @@ func (c *UserController) SetPasswordResetCookie(ctx *gin.Context) {
 		return
 	}
 
-	common.SetCookieForApp(ctx, common.PASSWORD_RESET_TIMEOUT_JWT_COOKIE_NAME, tokenStr)
+	common.SetCookieForApp(ctx, common.PasswordResetTimeoutJwtCookieName, tokenStr)
 
 	ctx.Header("location", "/reset-password")
 	ctx.String(http.StatusFound, "Found")
@@ -245,7 +245,7 @@ func (c *UserController) ResetPassword(ctx *gin.Context) {
 		return
 	}
 
-	cookieVal, err := ctx.Cookie(common.PASSWORD_RESET_TIMEOUT_JWT_COOKIE_NAME)
+	cookieVal, err := ctx.Cookie(common.PasswordResetTimeoutJwtCookieName)
 	if err != nil {
 		ctx.String(http.StatusUnauthorized, "Unauthorized")
 		return
@@ -265,7 +265,7 @@ func (c *UserController) ResetPassword(ctx *gin.Context) {
 		return
 	}
 
-	common.SetCookieForApp(ctx, common.PASSWORD_RESET_TIMEOUT_JWT_COOKIE_NAME, "")
+	common.SetCookieForApp(ctx, common.PasswordResetTimeoutJwtCookieName, "")
 	ctx.String(http.StatusOK, "OK")
 }
 
@@ -357,8 +357,8 @@ func (c *UserController) SetPicture(ctx *gin.Context) {
 		return
 	}
 
-	objPath := storage.GetPublicPath(storage.USER_AVATARS, strconv.Itoa(int(claims.UserId)))
-	err = c.objService.Upload(ctx, common.S3_BUCKET, objPath, int64(len(picBytes)), bytes.NewReader(picBytes))
+	objPath := storage.GetPublicPath(storage.UserAvatars, strconv.Itoa(int(claims.UserId)))
+	err = c.objService.Upload(ctx, common.S3Bucket, objPath, int64(len(picBytes)), bytes.NewReader(picBytes))
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")

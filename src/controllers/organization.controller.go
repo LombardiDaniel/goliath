@@ -112,7 +112,7 @@ func (c *OrganizationController) InviteToOrg(ctx *gin.Context) {
 		return
 	}
 
-	otp, err := common.GenerateRandomString(common.OTP_LEN)
+	otp, err := common.GenerateRandomString(common.OptLen)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")

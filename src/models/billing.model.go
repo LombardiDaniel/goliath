@@ -2,6 +2,7 @@ package models
 
 import "time"
 
+// Payment represents a payment in the system.
 type Payment struct {
 	PaymentId               string     `json:"paymentId"`
 	UserId                  uint32     `json:"userId"`

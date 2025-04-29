@@ -1,35 +1,39 @@
-version: "3.7"
-
 services:
-  # app:
-  #   container_name: app
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #     target: dev
-  #   ports:
-  #     - 8080:8080
-  #   environment:
-  #     GIN_MODE: debug # release
-  #     POSTGRES_URI: postgres://user:password@db:5432/db?sslmode=disable
-  #     JWT_SECRET_KEY: jw_secret_key
-  #     RESEND_API_KEY: re_123456
-  #     NOREPLY_EMAIL: no-reply@example.com
-  #     API_HOST_URL: https://api.example.com/
-  #     APP_HOST_URL: https://app.example.com/
-  #     PROJECT_NAME: example-app
-  #     OAUTH_GOOGLE_CLIENT_ID: oauth-creds
-  #     OAUTH_GOOGLE_SECRET: oauth-creds
-  #     OAUTH_GITHUB_CLIENT_ID: oauth-creds
-  #     OAUTH_GITHUB_SECRET: oauth-creds
-  #     POSTGRES_OPEN_CONNS: 0
-  #     POSTGRES_IDLE_CONNS: 2
-  #     S3_ACCESS_KEY_ID:
-  #     S3_SECRET_ACCESS_KEY:
-  #     S3_ENDPOINT: br-se1.magaluobjects.com
-  #     S3_SECURE: "true"
-  #     S3_BUCKET: base-gopher
-  #     STRIPE_API_KEY: api-key
+  app:
+    container_name: app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    ports:
+      - 8080:8080
+    develop:
+      watch:
+        - action: rebuild
+          path: ./src/
+    environment:
+      GIN_MODE: debug # release
+      POSTGRES_URI: postgres://user:password@db:5432/db?sslmode=disable
+      JWT_SECRET_KEY: jw_secret_key
+      RESEND_API_KEY: re_123456
+      NO_REPLY_EMAIL: no-reply@example.com
+      API_HOST_URL: http://localhost:8080/
+      APP_HOST_URL: http://localhost:8080/
+      PROJECT_NAME: example-app
+      OAUTH_GOOGLE_CLIENT_ID: oauth-creds
+      OAUTH_GOOGLE_SECRET: oauth-creds
+      OAUTH_GITHUB_CLIENT_ID: oauth-creds
+      OAUTH_GITHUB_SECRET: oauth-creds
+      POSTGRES_OPEN_CONNS: 0
+      POSTGRES_IDLE_CONNS: 2
+      S3_ACCESS_KEY_ID: minioadmin
+      S3_SECRET_ACCESS_KEY: minioadmin
+      S3_ENDPOINT: http://minio:9000/
+      S3_SECURE: "true"
+      S3_BUCKET: base-gopher
+      S3_REGION: us-east-1
+      STRIPE_API_KEY: api-key
+      MONGO_URI: mongodb://mongo:27017
 
   db:
     # image: postgres:latest
@@ -46,22 +50,28 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  # backup:
-  #   image: eeshugerman/postgres-backup-s3:16
-  #   environment:
-  #     SCHEDULE: "@daily" # optional
-  #     S3_ENDPOINT: "https://your-custom-server/"
-  #     BACKUP_KEEP_DAYS: 7 # optional
-  #     PASSPHRASE: passphrase # optional
-  #     S3_REGION: region
-  #     S3_ACCESS_KEY_ID: key
-  #     S3_SECRET_ACCESS_KEY: secret
-  #     S3_BUCKET: my-bucket
-  #     S3_PREFIX: backup
-  #     POSTGRES_HOST: db
-  #     POSTGRES_DATABASE: db
-  #     POSTGRES_USER: user
-  #     POSTGRES_PASSWORD: password
+  minio:
+    image: minio/minio:latest
+    ports:
+      - 9000:9000
+      - 9001:9001
+    expose:
+      - 9000
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    expose:
+      - 27017
+    volumes:
+      - mongo_data:/data/db
 
   adminer:
     image: adminer
@@ -70,3 +80,5 @@ services:
 
 volumes:
   postgres_data:
+  mongo_data:
+  minio_data:

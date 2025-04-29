@@ -5,9 +5,25 @@
 
 To rapidy bootstrap apps, base written in Go, for Go
 
-API_HOST_URL + v1/auth/google/callback
+Dev Env:
 
-API_HOST_URL + v1/auth/github/callback
+```sh
+docker compose up --watch
+```
+
+App: http://localhost:8008/
+
+Swagger UI: http://localhost:8080/docs
+
+MinIO UI: http://localhost:9001/
+
+Adminer: http://localhost:8000/
+
+---
+
+ApiHostUrl + v1/auth/google/callback
+
+ApiHostUrl + v1/auth/github/callback
 
 https://github.com/CrunchyData/postgres-operator-examples
 

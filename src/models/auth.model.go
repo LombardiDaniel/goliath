@@ -6,6 +6,7 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
+// JwtClaims represents the claims in a JWT token.
 type JwtClaims struct {
 	UserId         uint32  `json:"userId" binding:"required"`
 	Email          string  `json:"email" binding:"required"`
@@ -30,12 +31,14 @@ type JwtClaimsOutput struct {
 	Subject   string `json:"sub"`
 }
 
+// PasswordReset represents a password reset struct.
 type PasswordReset struct {
 	UserId uint32
 	Otp    string
 	Exp    time.Time
 }
 
+// JwtPasswordResetClaims represents the claims in a JWT token for password reset.
 type JwtPasswordResetClaims struct {
 	UserId  uint32 `json:"userId" binding:"required"`
 	Allowed bool   `json:"allowrd" binding:"required"`

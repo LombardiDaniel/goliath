@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// Organization represents an organization in the system.
 type Organization struct {
 	OrganizationId   string     `json:"organizationId" binding:"required,min=1"`
 	OrganizationName string     `json:"organizationName" binding:"required,min=1"`
@@ -13,12 +14,14 @@ type Organization struct {
 	OwnerUserId      uint32     `json:"ownerUserId,omitempty"`
 }
 
+// FrontendConfig represents the frontend configuration for an organization.
 type FrontendConfig struct {
 	OrganizationId string `json:"organizationId"`
 	PrimaryColor   string `json:"primaryColor"`
 	SecondaryColor string `json:"secondaryColor"`
 }
 
+// OrganizationInvite represents an invitation to join an organization.
 type OrganizationInvite struct {
 	OrganizationId string     `json:"organizationId" binding:"required,min=1"`
 	UserId         uint32     `json:"userId" binding:"required"`

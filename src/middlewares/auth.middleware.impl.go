@@ -22,11 +22,11 @@ func NewAuthMiddlewareJwt(authService services.AuthService) AuthMiddleware {
 	}
 }
 
-// Authorizes the JWT, if it is valid, the attribute `common.GIN_CTX_JWT_CLAIM_KEY_NAME` is set with the `models.JwtClaimsOutput`
+// Authorizes the JWT, if it is valid, the attribute `common.GinCtxJwtClaimKeyName` is set with the `models.JwtClaimsOutput`
 // allows use of JWT in cookie
 func (m *AuthMiddlewareJwt) AuthorizeUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenStr, err := c.Cookie(common.JWT_COOKIE_NAME)
+		tokenStr, err := c.Cookie(common.JwtCookieName)
 		if err != nil && err != http.ErrNoCookie {
 			c.String(http.StatusUnauthorized, "Unauthorized")
 			common.ClearAuthCookie(c)
@@ -48,7 +48,7 @@ func (m *AuthMiddlewareJwt) AuthorizeUser() gin.HandlerFunc {
 
 		expTTL := time.Until(expTime)
 
-		if expTTL > time.Minute*time.Duration(common.JWT_TIMEOUT_SECS/2) {
+		if expTTL > time.Minute*time.Duration(common.JwtTimeoutSecs/2) {
 			slog.Info(fmt.Sprintf("renewing jwt: %s", jwtClaims.Email))
 			token, err := m.authService.InitToken(jwtClaims.UserId, jwtClaims.Email, jwtClaims.OrganizationId, jwtClaims.IsAdmin)
 			if err != nil {
@@ -62,14 +62,14 @@ func (m *AuthMiddlewareJwt) AuthorizeUser() gin.HandlerFunc {
 			common.SetAuthCookie(c, token)
 		}
 
-		c.Set(common.GIN_CTX_JWT_CLAIM_KEY_NAME, jwtClaims)
+		c.Set(common.GinCtxJwtClaimKeyName, jwtClaims)
 		c.Next()
 	}
 }
 
 func (m *AuthMiddlewareJwt) AuthorizeOrganization(needAdmin bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenStr, err := c.Cookie(common.JWT_COOKIE_NAME)
+		tokenStr, err := c.Cookie(common.JwtCookieName)
 		if err != nil && err != http.ErrNoCookie {
 			c.String(http.StatusUnauthorized, "Unauthorized")
 			common.ClearAuthCookie(c)
@@ -113,7 +113,7 @@ func (m *AuthMiddlewareJwt) AuthorizeOrganization(needAdmin bool) gin.HandlerFun
 
 		expTTL := time.Until(expTime)
 
-		if expTTL > time.Minute*time.Duration(common.JWT_TIMEOUT_SECS/2) {
+		if expTTL > time.Minute*time.Duration(common.JwtTimeoutSecs/2) {
 			slog.Info(fmt.Sprintf("renewing jwt: %s", jwtClaims.Email))
 			token, err := m.authService.InitToken(jwtClaims.UserId, jwtClaims.Email, jwtClaims.OrganizationId, jwtClaims.IsAdmin)
 			if err != nil {
@@ -127,7 +127,7 @@ func (m *AuthMiddlewareJwt) AuthorizeOrganization(needAdmin bool) gin.HandlerFun
 			common.SetAuthCookie(c, token)
 		}
 
-		c.Set(common.GIN_CTX_JWT_CLAIM_KEY_NAME, jwtClaims)
+		c.Set(common.GinCtxJwtClaimKeyName, jwtClaims)
 		c.Next()
 	}
 }
@@ -155,7 +155,7 @@ func (m *AuthMiddlewareJwt) Reauthorize() gin.HandlerFunc {
 
 		common.SetAuthCookie(c, token)
 
-		c.Set(common.GIN_CTX_JWT_CLAIM_KEY_NAME, jwtClaims)
+		c.Set(common.GinCtxJwtClaimKeyName, jwtClaims)
 		c.Next()
 	}
 }

@@ -23,12 +23,12 @@ type BillingServiceStripeImpl struct {
 // https://www.youtube.com/watch?v=ePmEVBu8w6Y
 
 func NewBillingService(db *sql.DB, stripeApiKey string) BillingService {
-	successUrl, err := url.JoinPath(common.APP_HOST_URL, "/billing/success")
+	successUrl, err := url.JoinPath(common.AppHostUrl, "/billing/success")
 	if err != nil {
 		panic(err)
 	}
 
-	cancelUrl, err := url.JoinPath(common.APP_HOST_URL, "/billing/cancel")
+	cancelUrl, err := url.JoinPath(common.AppHostUrl, "/billing/cancel")
 	if err != nil {
 		panic(err)
 	}
