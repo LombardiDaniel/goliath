@@ -1,26 +1,47 @@
 package models
 
 import (
+	"math"
 	"time"
 
 	"github.com/golang-jwt/jwt"
 )
 
+type Permissions int32
+
+const (
+	NonePermissions      Permissions = 0
+	ReadPermissions      Permissions = 1 << 0
+	WritePermissions     Permissions = 1 << 1
+	ReadWritePermissions Permissions = ReadPermissions | WritePermissions
+	AllPermissions       Permissions = math.MaxInt32
+)
+
+type OrganizationPermission struct {
+	OrganizationId string      `json:"organizationId" binding:"required,min=1"`
+	UserId         uint32      `json:"userId" binding:"required"`
+	ActionName     string      `json:"actionName" binding:"required"`
+	Perms          Permissions `json:"perms" binding:"required"`
+}
+
 // JwtClaims represents the claims in a JWT token.
 type JwtClaims struct {
-	UserId         uint32  `json:"userId" binding:"required"`
-	Email          string  `json:"email" binding:"required"`
-	OrganizationId *string `json:"organizationId" binding:"required"`
-	IsAdmin        *bool   `json:"isAdmin" binding:"required"`
+	UserId         uint32                 `json:"userId" binding:"required"`
+	Email          string                 `json:"email" binding:"required"`
+	OrganizationId *string                `json:"organizationId" binding:"required"`
+	IsAdmin        *bool                  `json:"isAdmin" binding:"required"`
+	ActionPerms    map[string]Permissions `json:"actionPerms" binding:"required"`
 
 	jwt.StandardClaims
 }
 
 // only here because swaggo cant expand the above example (but same thing, KEEP IN SYNC!!)
 type JwtClaimsOutput struct {
-	UserId         uint32  `json:"userId" binding:"required"`
-	Email          string  `json:"email" binding:"required"`
-	OrganizationId *string `json:"organizationId" binding:"required"`
+	UserId         uint32                 `json:"userId" binding:"required"`
+	Email          string                 `json:"email" binding:"required"`
+	OrganizationId *string                `json:"organizationId" binding:"required"`
+	IsAdmin        *bool                  `json:"isAdmin" binding:"required"`
+	ActionPerms    map[string]Permissions `json:"actionPerms" binding:"required"`
 
 	Audience  string `json:"aud"`
 	ExpiresAt int64  `json:"exp"`
