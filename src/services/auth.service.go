@@ -12,7 +12,10 @@ import (
 // handling password reset tokens, and managing OAuth user logins.
 type AuthService interface {
 	// InitToken generates a new JWT for a user.
-	InitToken(userId uint32, email string, organizationId *string, isAdmin *bool) (string, error)
+	InitToken(ctx context.Context, userId uint32, email string, organizationId *string) (string, error)
+
+	// Permissions retrieves the permissions for user in organization.
+	Permissions(ctx context.Context, userId uint32, organizationId *string) (map[string]models.Permissions, error)
 
 	// ValidateToken checks the validity of a given JWT.
 	ValidateToken(tokenString string) error

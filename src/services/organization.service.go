@@ -30,4 +30,7 @@ type OrganizationService interface {
 
 	// DeleteExpiredOrgInvites deletes all expired organization invites.
 	DeleteExpiredOrgInvites() error
+
+	// // AlterPerms changes the permission of a user
+	// AlterPerms(ctx context.Context, action string, userId uint32, perms models.Permissions) error
 }

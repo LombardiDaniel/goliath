@@ -170,7 +170,11 @@ func init() {
 
 	authService = services.NewAuthServiceJwtImpl(os.Getenv("JWT_SECRET_KEY"), db)
 	userService = services.NewUserServicePgImpl(db)
-	emailService = services.NewEmailServiceResendImpl(os.Getenv("RESEND_API_KEY"), "./templates")
+	if os.Getenv("RESEND_API_KEY") != "mock" {
+		emailService = services.NewEmailServiceResendImpl(os.Getenv("RESEND_API_KEY"), "./templates")
+	} else {
+		emailService = &services.EmailServiceMock{}
+	}
 	organizationService = services.NewOrganizationServicePgImpl(db)
 	objectService = services.NewObjectServiceMinioImpl(minioClient)
 	billingService = services.NewBillingService(db, os.Getenv("STRIPE_API_KEY"))
@@ -197,8 +201,8 @@ func init() {
 	router.Use(cors.New(corsCfg))
 	router.Use(limits.RequestSizeLimiter(common.MaxRequestSize))
 
-	docs.SwaggerInfo.Title = "Generic Forms API"
-	docs.SwaggerInfo.Description = "Generic Forms API"
+	docs.SwaggerInfo.Title = "Gopherbase"
+	docs.SwaggerInfo.Description = "Gopherbase"
 	docs.SwaggerInfo.Version = "1.0"
 	docs.SwaggerInfo.BasePath = ""
 	docs.SwaggerInfo.Host = strings.Split(common.ApiHostUrl, "://")[1]
@@ -218,9 +222,13 @@ func init() {
 	// Daemons
 	taskRunner.RegisterTask(24*time.Hour, userService.DeleteExpiredPwResets, 1)
 	taskRunner.RegisterTask(24*time.Hour, organizationService.DeleteExpiredOrgInvites, 1)
-	taskRunner.RegisterTask(time.Second, func() error {
-		return telemetryService.Upload(context.Background())
-	}, 1)
+	taskRunner.RegisterTask(
+		time.Second,
+		func() error {
+			return telemetryService.Upload(context.Background())
+		},
+		1,
+	)
 }
 
 // @securityDefinitions.apiKey JWT
