@@ -78,9 +78,9 @@ func (c *AuthController) Login(ctx *gin.Context) {
 	slog.Info(fmt.Sprintf("user login: %s", user.Email))
 
 	token, err := c.authService.InitToken(
+		ctx,
 		user.UserId,
 		user.Email,
-		nil,
 		nil,
 	)
 	if err != nil {
@@ -179,7 +179,7 @@ func (c *AuthController) SetOrg(ctx *gin.Context) {
 		return
 	}
 
-	token, err := c.authService.InitToken(claims.UserId, claims.Email, &claimsOrg.OrganizationId, &claimsOrg.IsAdmin)
+	token, err := c.authService.InitToken(ctx, claims.UserId, claims.Email, &claimsOrg.OrganizationId)
 	if err != nil {
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
@@ -250,7 +250,7 @@ func (c *AuthController) OauthCallback(ctx *gin.Context) {
 		}
 	}
 
-	token, err := c.authService.InitToken(user.UserId, user.Email, nil, nil)
+	token, err := c.authService.InitToken(ctx, user.UserId, user.Email, nil)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")

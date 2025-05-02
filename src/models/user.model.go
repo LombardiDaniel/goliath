@@ -1,10 +1,13 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 // User represents a user in the system.
 type User struct {
 	UserId       uint32
+	Perms        Permissions
 	Email        string
 	PasswordHash string
 	FirstName    string

@@ -8,6 +8,7 @@ import (
 
 	"github.com/LombardiDaniel/gopherbase/common"
 	"github.com/LombardiDaniel/gopherbase/fiddlers"
+	"github.com/LombardiDaniel/gopherbase/models"
 	"github.com/LombardiDaniel/gopherbase/services"
 	"github.com/gin-gonic/gin"
 )
@@ -50,7 +51,7 @@ func (m *AuthMiddlewareJwt) AuthorizeUser() gin.HandlerFunc {
 
 		if expTTL > time.Minute*time.Duration(common.JwtTimeoutSecs/2) {
 			slog.Info(fmt.Sprintf("renewing jwt: %s", jwtClaims.Email))
-			token, err := m.authService.InitToken(jwtClaims.UserId, jwtClaims.Email, jwtClaims.OrganizationId, jwtClaims.IsAdmin)
+			token, err := m.authService.InitToken(c, jwtClaims.UserId, jwtClaims.Email, jwtClaims.OrganizationId)
 			if err != nil {
 				slog.Error(err.Error())
 				c.String(http.StatusBadGateway, "BadGateway")
@@ -67,7 +68,7 @@ func (m *AuthMiddlewareJwt) AuthorizeUser() gin.HandlerFunc {
 	}
 }
 
-func (m *AuthMiddlewareJwt) AuthorizeOrganization(needAdmin bool) gin.HandlerFunc {
+func (m *AuthMiddlewareJwt) AuthorizeOrganization(need map[string]models.Permissions) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenStr, err := c.Cookie(common.JwtCookieName)
 		if err != nil && err != http.ErrNoCookie {
@@ -87,7 +88,7 @@ func (m *AuthMiddlewareJwt) AuthorizeOrganization(needAdmin bool) gin.HandlerFun
 		}
 
 		orgId := c.Param("orgId")
-		if jwtClaims.OrganizationId == nil || jwtClaims.IsAdmin == nil {
+		if jwtClaims.OrganizationId == nil {
 			c.String(http.StatusUnauthorized, "Unauthorized")
 			common.ClearAuthCookie(c)
 			c.Abort()
@@ -101,11 +102,20 @@ func (m *AuthMiddlewareJwt) AuthorizeOrganization(needAdmin bool) gin.HandlerFun
 			return
 		}
 
-		if needAdmin && !*jwtClaims.IsAdmin {
-			c.String(http.StatusUnauthorized, "Unauthorized")
-			common.ClearAuthCookie(c)
-			c.Abort()
-			return
+		// if needAdmin && !*jwtClaims.IsAdmin {
+		// 	c.String(http.StatusUnauthorized, "Unauthorized")
+		// 	common.ClearAuthCookie(c)
+		// 	c.Abort()
+		// 	return
+		// }
+
+		for action, needPerms := range need {
+			if needPerms&jwtClaims.Perms[action] == needPerms { // simple bitwise ops for perms
+				c.String(http.StatusUnauthorized, "Unauthorized")
+				common.ClearAuthCookie(c)
+				c.Abort()
+				return
+			}
 		}
 
 		// Renew Cycle:
@@ -115,7 +125,7 @@ func (m *AuthMiddlewareJwt) AuthorizeOrganization(needAdmin bool) gin.HandlerFun
 
 		if expTTL > time.Minute*time.Duration(common.JwtTimeoutSecs/2) {
 			slog.Info(fmt.Sprintf("renewing jwt: %s", jwtClaims.Email))
-			token, err := m.authService.InitToken(jwtClaims.UserId, jwtClaims.Email, jwtClaims.OrganizationId, jwtClaims.IsAdmin)
+			token, err := m.authService.InitToken(c, jwtClaims.UserId, jwtClaims.Email, jwtClaims.OrganizationId)
 			if err != nil {
 				slog.Error(err.Error())
 				c.String(http.StatusBadGateway, "BadGateway")
@@ -144,7 +154,7 @@ func (m *AuthMiddlewareJwt) Reauthorize() gin.HandlerFunc {
 		}
 
 		slog.Info(fmt.Sprintf("renewing jwt: %s", jwtClaims.Email))
-		token, err := m.authService.InitToken(jwtClaims.UserId, jwtClaims.Email, jwtClaims.OrganizationId, jwtClaims.IsAdmin)
+		token, err := m.authService.InitToken(c, jwtClaims.UserId, jwtClaims.Email, jwtClaims.OrganizationId)
 		if err != nil {
 			slog.Error(err.Error())
 			c.String(http.StatusBadGateway, "BadGateway")

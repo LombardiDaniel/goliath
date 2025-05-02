@@ -59,6 +59,16 @@ CREATE TABLE organizations_users (
     PRIMARY KEY (organization_id, user_id)
 );
 
+-- join users, orgs and permissions
+CREATE TABLE organization_user_permsissions (
+    organization_id CHAR(5) REFERENCES organizations (organization_id) NOT NULL,
+    user_id INT REFERENCES users (user_id) NOT NULL,
+    action_name VARCHAR(255) NOT NULL,
+    permission INT DEFAULT 0 NOT NULL,
+
+    PRIMARY KEY (organization_id, user_id)
+)
+
 -- org invites
 CREATE TABLE organization_invites (
     organization_id CHAR(5) REFERENCES organizations (organization_id) NOT NULL,

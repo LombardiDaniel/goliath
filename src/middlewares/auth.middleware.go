@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"github.com/LombardiDaniel/gopherbase/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,9 +14,8 @@ type AuthMiddleware interface {
 	AuthorizeUser() gin.HandlerFunc
 
 	// AuthorizeOrganization returns a middleware handler function that ensures
-	// the user is authorized to access organization-specific resources. The
-	// needAdmin parameter determines if administrative privileges are required.
-	AuthorizeOrganization(needAdmin bool) gin.HandlerFunc
+	// the user is authorized to access organization-specific resources.
+	AuthorizeOrganization(need map[string]models.Permissions) gin.HandlerFunc
 
 	// Reauthorize returns a middleware handler function that handles
 	// reauthorization logic, such as refreshing tokens or revalidating

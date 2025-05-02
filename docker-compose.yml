@@ -15,7 +15,8 @@ services:
       GIN_MODE: debug # release
       POSTGRES_URI: postgres://user:password@db:5432/db?sslmode=disable
       JWT_SECRET_KEY: jw_secret_key
-      RESEND_API_KEY: re_123456
+      # RESEND_API_KEY: re_123456
+      RESEND_API_KEY: mock
       NO_REPLY_EMAIL: no-reply@example.com
       API_HOST_URL: http://localhost:8080/
       APP_HOST_URL: http://localhost:8080/
@@ -49,6 +50,7 @@ services:
       - 5432
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    attach: false
 
   minio:
     image: minio/minio:latest
@@ -63,6 +65,7 @@ services:
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
+    attach: false
 
   mongo:
     image: mongo:latest
@@ -72,11 +75,13 @@ services:
       - 27017
     volumes:
       - mongo_data:/data/db
+    attach: false
 
   adminer:
     image: adminer
     ports:
       - 8000:8080
+    attach: false
 
 volumes:
   postgres_data:

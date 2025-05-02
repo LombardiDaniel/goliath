@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/LombardiDaniel/gopherbase/common"
@@ -180,7 +181,7 @@ func (s *UserServicePgImpl) GetUser(ctx context.Context, email string) (models.U
 		&user.IsActive,
 	)
 	if err != nil {
-		return user, common.FilterSqlPgError(err)
+		return user, errors.Join(common.FilterSqlPgError(err), err)
 	}
 
 	return user, nil
