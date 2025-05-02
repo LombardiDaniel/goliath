@@ -2,7 +2,7 @@ package services
 
 import (
 	"bytes"
-	"log/slog"
+	"errors"
 	"net/url"
 	"path/filepath"
 	"text/template"
@@ -11,6 +11,8 @@ import (
 	"github.com/LombardiDaniel/gopherbase/models"
 	"github.com/resendlabs/resend-go"
 )
+
+var errResend = errors.New("could not send email via resend")
 
 type EmailServiceResendImpl struct {
 	resendClient *resend.Client
@@ -69,8 +71,7 @@ func (s *EmailServiceResendImpl) SendEmailConfirmation(email string, name string
 		OtpUrl:      s.usersConfirmUrl + "?otp=" + otp,
 	})
 	if err != nil {
-		slog.Error(err.Error())
-		return err
+		return errors.Join(err, errors.New("could not execute emailConfirmationTemplate"))
 	}
 
 	params := &resend.SendEmailRequest{
@@ -81,8 +82,7 @@ func (s *EmailServiceResendImpl) SendEmailConfirmation(email string, name string
 	}
 
 	_, err = s.resendClient.Emails.Send(params)
-
-	return err
+	return errors.Join(err, errResend)
 }
 
 type htmlAccountCreatedVars struct {
@@ -95,8 +95,7 @@ func (s *EmailServiceResendImpl) SendAccountCreated(email string, name string) e
 		FirstName: name,
 	})
 	if err != nil {
-		slog.Error(err.Error())
-		return err
+		return errors.Join(err, errors.New("could not execute accountCreationTemplate"))
 	}
 
 	params := &resend.SendEmailRequest{
@@ -107,8 +106,7 @@ func (s *EmailServiceResendImpl) SendAccountCreated(email string, name string) e
 	}
 
 	_, err = s.resendClient.Emails.Send(params)
-
-	return err
+	return errors.Join(err, errResend)
 }
 
 type htmlOrgInviteVars struct {
@@ -127,8 +125,7 @@ func (s *EmailServiceResendImpl) SendOrganizationInvite(email string, name strin
 		OtpUrl:           s.acceptInviteUrl + "?otp=" + otp,
 	})
 	if err != nil {
-		slog.Error(err.Error())
-		return err
+		return errors.Join(err, errors.New("could not execute organizationInviteTemplate"))
 	}
 
 	params := &resend.SendEmailRequest{
@@ -139,8 +136,7 @@ func (s *EmailServiceResendImpl) SendOrganizationInvite(email string, name strin
 	}
 
 	_, err = s.resendClient.Emails.Send(params)
-
-	return err
+	return errors.Join(err, errResend)
 }
 
 type htmlPwResetVars struct {
@@ -157,8 +153,7 @@ func (s *EmailServiceResendImpl) SendPasswordReset(email string, name string, ot
 		OtpUrl:      s.passwordResetUrl + "?otp=" + otp,
 	})
 	if err != nil {
-		slog.Error(err.Error())
-		return err
+		return errors.Join(err, errors.New("could not execute passwordResetTemplate"))
 	}
 
 	params := &resend.SendEmailRequest{
@@ -169,8 +164,7 @@ func (s *EmailServiceResendImpl) SendPasswordReset(email string, name string, ot
 	}
 
 	_, err = s.resendClient.Emails.Send(params)
-
-	return err
+	return errors.Join(err, errResend)
 }
 
 type htmlPaymentAccepted struct {
@@ -185,8 +179,7 @@ func (s *EmailServiceResendImpl) SendPaymentAccepted(email string, name string, 
 		PaymentId: payment.PaymentId,
 	})
 	if err != nil {
-		slog.Error(err.Error())
-		return err
+		return errors.Join(err, errors.New("could not execute paymentAcceptedTemplate"))
 	}
 
 	params := &resend.SendEmailRequest{
@@ -197,6 +190,5 @@ func (s *EmailServiceResendImpl) SendPaymentAccepted(email string, name string, 
 	}
 
 	_, err = s.resendClient.Emails.Send(params)
-
-	return err
+	return errors.Join(err, errResend)
 }

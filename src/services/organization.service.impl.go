@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/LombardiDaniel/gopherbase/common"
 	"github.com/LombardiDaniel/gopherbase/models"
@@ -32,23 +33,6 @@ func (s *OrganizationServicePgImpl) GetOrganization(ctx context.Context, orgId s
 		WHERE
 			organization_id = $1;
 	`
-	// query := `
-	// 	SELECT
-	// 		o.organization_id,
-	// 		o.organization_name,
-	// 		o.billing_plan_id,
-	// 		o.created_at,
-	// 		o.deleted_at,
-	// 		u.email
-	// 	FROM
-	// 		organizations o
-	// 	INNER JOIN
-	// 		organizations_users ou ON o.organization_id = ou.organization_id
-	// 	INNER JOIN
-	// 		users u ON ou.user_id = u.user_id
-	// 	WHERE
-	// 		ou.user_id = $1;
-	// `
 
 	org := models.Organization{}
 
@@ -60,14 +44,13 @@ func (s *OrganizationServicePgImpl) GetOrganization(ctx context.Context, orgId s
 		&org.DeletedAt,
 		&org.OwnerUserId,
 	)
-
-	return org, err
+	return org, errors.Join(err, common.FilterSqlPgError(err))
 }
 
 func (s *OrganizationServicePgImpl) CreateOrganization(ctx context.Context, org models.Organization) error {
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
-		return err
+		return errors.Join(err, common.ErrDbTransactionCreate)
 	}
 	defer tx.Rollback()
 
@@ -80,7 +63,7 @@ func (s *OrganizationServicePgImpl) CreateOrganization(ctx context.Context, org 
 		org.OwnerUserId,
 	)
 	if err != nil {
-		return err
+		return errors.Join(err, common.FilterSqlPgError(err))
 	}
 
 	_, err = tx.ExecContext(ctx, `
@@ -91,11 +74,11 @@ func (s *OrganizationServicePgImpl) CreateOrganization(ctx context.Context, org 
 		org.OwnerUserId,
 	)
 	if err != nil {
-		return err
+		return errors.Join(err, common.FilterSqlPgError(err))
 	}
 
 	err = tx.Commit()
-	return common.FilterSqlPgError(err)
+	return errors.Join(err, common.FilterSqlPgError(err))
 }
 
 func (s *OrganizationServicePgImpl) CreateOrganizationInvite(ctx context.Context, invite models.OrganizationInvite) error {
@@ -117,13 +100,13 @@ func (s *OrganizationServicePgImpl) CreateOrganizationInvite(ctx context.Context
 		invite.Otp,
 		invite.Exp,
 	)
-	return common.FilterSqlPgError(err)
+	return errors.Join(err, common.FilterSqlPgError(err))
 }
 
 func (s *OrganizationServicePgImpl) ConfirmOrganizationInvite(ctx context.Context, otp string) error {
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
-		return err
+		return errors.Join(err, common.ErrDbTransactionCreate)
 	}
 	defer tx.Rollback()
 
@@ -148,7 +131,7 @@ func (s *OrganizationServicePgImpl) ConfirmOrganizationInvite(ctx context.Contex
 		&inv.Exp,
 	)
 	if err != nil {
-		return err
+		return errors.Join(err, common.FilterSqlPgError(err))
 	}
 
 	_, err = tx.ExecContext(ctx, `
@@ -160,7 +143,7 @@ func (s *OrganizationServicePgImpl) ConfirmOrganizationInvite(ctx context.Contex
 		inv.IsAdmin,
 	)
 	if err != nil {
-		return err
+		return errors.Join(err, common.FilterSqlPgError(err))
 	}
 
 	_, err = tx.ExecContext(ctx, `
@@ -168,7 +151,7 @@ func (s *OrganizationServicePgImpl) ConfirmOrganizationInvite(ctx context.Contex
 		WHERE otp = $1;
 	`, otp)
 	if err != nil {
-		return err
+		return errors.Join(err, common.FilterSqlPgError(err))
 	}
 
 	return tx.Commit()
@@ -177,7 +160,7 @@ func (s *OrganizationServicePgImpl) ConfirmOrganizationInvite(ctx context.Contex
 func (s *OrganizationServicePgImpl) RemoveUserFromOrg(ctx context.Context, orgId string, userId uint32) error {
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
-		return err
+		return errors.Join(err, common.ErrDbTransactionCreate)
 	}
 
 	defer tx.Rollback()
@@ -192,11 +175,11 @@ func (s *OrganizationServicePgImpl) RemoveUserFromOrg(ctx context.Context, orgId
 		orgId,
 	).Scan(&isOwner)
 	if err != nil {
-		return err
+		return errors.Join(err, common.FilterSqlPgError(err))
 	}
 
 	if isOwner {
-		return common.ErrDbConflict
+		return errors.Join(common.ErrDbConflict, errors.New("cannot remove owner of organization"))
 	}
 
 	_, err = s.db.ExecContext(ctx, `
@@ -207,16 +190,16 @@ func (s *OrganizationServicePgImpl) RemoveUserFromOrg(ctx context.Context, orgId
 		userId,
 	)
 	if err != nil {
-		return err
+		return errors.Join(err, common.FilterSqlPgError(err))
 	}
 
-	return common.FilterSqlPgError(tx.Commit())
+	return tx.Commit()
 }
 
 func (s *OrganizationServicePgImpl) SetOrganizationOwner(ctx context.Context, orgId string, userId uint32) error {
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
-		return err
+		return errors.Join(err, common.ErrDbTransactionCreate)
 	}
 
 	defer tx.Rollback()
@@ -230,7 +213,7 @@ func (s *OrganizationServicePgImpl) SetOrganizationOwner(ctx context.Context, or
 		orgId,
 	)
 	if err != nil {
-		return err
+		return errors.Join(err, common.FilterSqlPgError(err))
 	}
 
 	_, err = tx.ExecContext(ctx, `
@@ -242,10 +225,10 @@ func (s *OrganizationServicePgImpl) SetOrganizationOwner(ctx context.Context, or
 		userId,
 	)
 	if err != nil {
-		return err
+		return errors.Join(err, common.FilterSqlPgError(err))
 	}
 
-	return common.FilterSqlPgError(tx.Commit())
+	return tx.Commit()
 }
 
 func (s *OrganizationServicePgImpl) DeleteExpiredOrgInvites() error {
@@ -253,5 +236,5 @@ func (s *OrganizationServicePgImpl) DeleteExpiredOrgInvites() error {
 		DELETE FROM organization_invites
     	WHERE exp < NOW();
 	`)
-	return err
+	return errors.Join(err, common.FilterSqlPgError(err))
 }

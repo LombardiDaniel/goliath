@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"net/url"
 
 	"github.com/LombardiDaniel/gopherbase/common"
@@ -42,10 +43,10 @@ func NewBillingService(db *sql.DB, stripeApiKey string) BillingService {
 	}
 }
 
-func (s *BillingServiceStripeImpl) CreatePayment(ctx context.Context, currencyUnit stripe.Currency, unitAmmount int64, planName string, userId uint32) (string, error) {
+func (s *BillingServiceStripeImpl) CheckoutURL(ctx context.Context, currencyUnit stripe.Currency, unitAmmount int64, planName string, userId uint32) (string, error) {
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
-		return "", err
+		return "", errors.Join(err, common.ErrDbTransactionCreate)
 	}
 	defer tx.Rollback()
 
@@ -62,7 +63,7 @@ func (s *BillingServiceStripeImpl) CreatePayment(ctx context.Context, currencyUn
 		string(currencyUnit),
 	).Scan(&paymentId)
 	if err != nil {
-		return "", err
+		return "", errors.Join(err, common.FilterSqlPgError(err))
 	}
 
 	params := &stripe.CheckoutSessionParams{
@@ -86,7 +87,7 @@ func (s *BillingServiceStripeImpl) CreatePayment(ctx context.Context, currencyUn
 
 	checkout, err := session.New(params)
 	if err != nil {
-		return "", err
+		return "", errors.Join(err, errors.New("could not create stripe session"))
 	}
 
 	_, err = tx.ExecContext(ctx, `
@@ -100,15 +101,15 @@ func (s *BillingServiceStripeImpl) CreatePayment(ctx context.Context, currencyUn
 		paymentId,
 	)
 	if err != nil {
-		return "", err
+		return "", errors.Join(err, common.FilterSqlPgError(err))
 	}
 
 	return checkout.URL, tx.Commit()
 }
 
-func (s *BillingServiceStripeImpl) GetCheckoutSession(ctx context.Context, sessionId string) (*stripe.CheckoutSession, error) {
+func (s *BillingServiceStripeImpl) CheckoutSession(ctx context.Context, sessionId string) (*stripe.CheckoutSession, error) {
 	checkout, err := session.Get(sessionId, nil)
-	return checkout, err
+	return checkout, errors.Join(err, errors.New("could not get session from stripe"))
 }
 
 func (s *BillingServiceStripeImpl) SetCheckoutSessionAsComplete(ctx context.Context, sessionId string) (models.Payment, error) {
@@ -131,7 +132,7 @@ func (s *BillingServiceStripeImpl) SetCheckoutSessionAsComplete(ctx context.Cont
 		&p.CompletedAt,
 	)
 
-	return p, err
+	return p, errors.Join(err, common.FilterSqlPgError(err))
 }
 
 // func (s *BillingServiceStripeImpl) GetClientSecret(ctx context.Context, currencyUnit stripe.Currency, unitAmmount int64, planName string) (string, error) {

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 
@@ -51,7 +52,7 @@ func (c *CounterMongoAsyncImpl) Upload(ctx context.Context) error {
 	update := bson.M{"value": bson.M{"$inc": v}}
 	upsert := true
 	_, err := c.metricsCol.UpdateOne(ctx, filter, update, &options.UpdateOptions{Upsert: &upsert})
-	return err
+	return errors.Join(err, errors.New("could not increment counter"))
 }
 
 func NewTelemetryServiceMongoAsyncImpl(mongoClient *mongo.Client, metricsCol, eventsCol *mongo.Collection, batchInsertSize uint32) TelemetryService {
