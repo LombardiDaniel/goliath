@@ -22,3 +22,21 @@ type EmailService interface {
 	// SendPaymentAccepted notifies a user that their payment has been accepted.
 	SendPaymentAccepted(email string, name string, payment models.Payment) error
 }
+
+type EmailServiceMock struct{}
+
+func (s *EmailServiceMock) SendEmailConfirmation(email string, name string, otp string) error {
+	return nil
+}
+func (s *EmailServiceMock) SendAccountCreated(email string, name string) error {
+	return nil
+}
+func (s *EmailServiceMock) SendOrganizationInvite(email string, name string, otp string, orgName string) error {
+	return nil
+}
+func (s *EmailServiceMock) SendPasswordReset(email string, name string, otp string) error {
+	return nil
+}
+func (s *EmailServiceMock) SendPaymentAccepted(email string, name string, payment models.Payment) error {
+	return nil
+}

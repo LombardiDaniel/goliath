@@ -26,12 +26,17 @@ func NewAuthServiceJwtImpl(jwtSecretKey string, db *sql.DB) AuthService {
 	}
 }
 
-func (s *AuthServiceJwtImpl) InitToken(userId uint32, email string, organizationId *string, isAdmin *bool) (string, error) {
+func (s *AuthServiceJwtImpl) InitToken(ctx context.Context, userId uint32, email string, organizationId *string) (string, error) {
+	perms, err := s.Permissions(ctx, userId, organizationId)
+	if err != nil {
+		return "", err
+	}
+
 	claims := models.JwtClaims{
 		UserId:         userId,
 		Email:          email,
 		OrganizationId: organizationId,
-		IsAdmin:        isAdmin,
+		Perms:          perms,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Second * time.Duration(common.JwtTimeoutSecs)).Unix(),
 			Issuer:    common.ProjectName + "-auth",
@@ -46,6 +51,35 @@ func (s *AuthServiceJwtImpl) InitToken(userId uint32, email string, organization
 	}
 
 	return tokenString, nil
+}
+
+func (s *AuthServiceJwtImpl) Permissions(ctx context.Context, userId uint32, organizationId *string) (map[string]models.Permissions, error) {
+	q := `
+		SELECT
+			action_name,
+			permission
+		FROM organization_user_permsissions
+		WHERE
+			user_id = $1 AND
+			organization_id = $2;
+	`
+	rows, err := s.db.QueryContext(ctx, q, userId, organizationId)
+	if err != nil && !errors.Is(common.FilterSqlPgError(err), common.ErrNoRows) {
+		return nil, err
+	}
+
+	actionPerms := make(map[string]models.Permissions)
+	for rows.Next() {
+		var actionName string
+		var perm models.Permissions
+		if err := rows.Scan(&actionName, &perm); err != nil {
+			return nil, err
+		}
+
+		actionPerms[actionName] = perm
+	}
+
+	return actionPerms, nil
 }
 
 func (s *AuthServiceJwtImpl) ValidateToken(tokenString string) error {

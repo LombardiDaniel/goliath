@@ -9,6 +9,7 @@ import (
 	"github.com/LombardiDaniel/gopherbase/common"
 	"github.com/LombardiDaniel/gopherbase/fiddlers"
 	"github.com/LombardiDaniel/gopherbase/middlewares"
+	"github.com/LombardiDaniel/gopherbase/models"
 	"github.com/LombardiDaniel/gopherbase/schemas"
 	"github.com/LombardiDaniel/gopherbase/services"
 	"github.com/gin-gonic/gin"
@@ -290,9 +291,14 @@ func (c *OrganizationController) ChangeOwner(ctx *gin.Context) {
 func (c *OrganizationController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware) {
 	g := rg.Group("/organizations")
 
+	adminPerms := map[string]models.Permissions{
+		"admin": models.AllPermissions,
+		// "PUT:orgInvite": models.ReadWritePermissions,
+	}
+
 	g.PUT("", authMiddleware.AuthorizeUser(), c.CreateOrganization)
-	g.PUT("/:orgId/invite", authMiddleware.AuthorizeOrganization(true), c.InviteToOrg)
-	g.POST("/:orgId/owner", authMiddleware.AuthorizeOrganization(true), c.ChangeOwner, authMiddleware.Reauthorize())
+	g.PUT("/:orgId/invite", authMiddleware.AuthorizeOrganization(adminPerms), c.InviteToOrg)
+	g.POST("/:orgId/owner", authMiddleware.AuthorizeOrganization(adminPerms), c.ChangeOwner, authMiddleware.Reauthorize())
 	g.GET("/accept-invite", c.AcceptOrgInvite)
-	g.DELETE("/:orgId/users/:userId", authMiddleware.AuthorizeOrganization(true), c.RemoveFromOrg)
+	g.DELETE("/:orgId/users/:userId", authMiddleware.AuthorizeOrganization(adminPerms), c.RemoveFromOrg)
 }

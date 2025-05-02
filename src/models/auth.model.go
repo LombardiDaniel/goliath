@@ -17,6 +17,7 @@ const (
 	AllPermissions       Permissions = math.MaxInt32
 )
 
+// OrganizationPermissions represents permission to be used with in each org and action.
 type OrganizationPermission struct {
 	OrganizationId string      `json:"organizationId" binding:"required,min=1"`
 	UserId         uint32      `json:"userId" binding:"required"`
@@ -29,8 +30,7 @@ type JwtClaims struct {
 	UserId         uint32                 `json:"userId" binding:"required"`
 	Email          string                 `json:"email" binding:"required"`
 	OrganizationId *string                `json:"organizationId" binding:"required"`
-	IsAdmin        *bool                  `json:"isAdmin" binding:"required"`
-	ActionPerms    map[string]Permissions `json:"actionPerms" binding:"required"`
+	Perms          map[string]Permissions `json:"perms" binding:"required"`
 
 	jwt.StandardClaims
 }
@@ -40,8 +40,7 @@ type JwtClaimsOutput struct {
 	UserId         uint32                 `json:"userId" binding:"required"`
 	Email          string                 `json:"email" binding:"required"`
 	OrganizationId *string                `json:"organizationId" binding:"required"`
-	IsAdmin        *bool                  `json:"isAdmin" binding:"required"`
-	ActionPerms    map[string]Permissions `json:"actionPerms" binding:"required"`
+	Perms          map[string]Permissions `json:"perms" binding:"required"`
 
 	Audience  string `json:"aud"`
 	ExpiresAt int64  `json:"exp"`
@@ -62,7 +61,7 @@ type PasswordReset struct {
 // JwtPasswordResetClaims represents the claims in a JWT token for password reset.
 type JwtPasswordResetClaims struct {
 	UserId  uint32 `json:"userId" binding:"required"`
-	Allowed bool   `json:"allowrd" binding:"required"`
+	Allowed bool   `json:"allowed" binding:"required"`
 
 	jwt.StandardClaims
 }

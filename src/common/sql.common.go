@@ -1,16 +1,8 @@
 package common
 
-import (
-	"strings"
-)
-
 const (
 	errUniqueConstraint string = "duplicate key value violates unique constraint"
 	errNoRows           string = "no rows in result"
-)
-
-var (
-	conflictErrStrings []string = []string{errUniqueConstraint, errNoRows}
 )
 
 func FilterSqlPgError(err error) error {
@@ -20,10 +12,11 @@ func FilterSqlPgError(err error) error {
 
 	errStr := err.Error()
 
-	for _, v := range conflictErrStrings {
-		if strings.Contains(errStr, v) {
-			return ErrDbConflict
-		}
+	switch errStr {
+	case errUniqueConstraint:
+		return ErrDbConflict
+	case errNoRows:
+		return ErrNoRows
 	}
 
 	return err
