@@ -51,7 +51,7 @@ func (s *AuthServiceJwtImpl) InitToken(ctx context.Context, userId uint32, email
 	return tokenString, nil
 }
 
-func (s *AuthServiceJwtImpl) Permissions(ctx context.Context, userId uint32, organizationId *string) (map[string]models.Permissions, error) {
+func (s *AuthServiceJwtImpl) Permissions(ctx context.Context, userId uint32, organizationId *string) (map[string]models.Permission, error) {
 	q := `
 		SELECT
 			action_name,
@@ -66,10 +66,10 @@ func (s *AuthServiceJwtImpl) Permissions(ctx context.Context, userId uint32, org
 		return nil, err
 	}
 
-	actionPerms := make(map[string]models.Permissions)
+	actionPerms := make(map[string]models.Permission)
 	for rows.Next() {
 		var actionName string
-		var perm models.Permissions
+		var perm models.Permission
 		if err := rows.Scan(&actionName, &perm); err != nil {
 			return nil, err
 		}

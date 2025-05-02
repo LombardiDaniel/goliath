@@ -23,9 +23,9 @@ type FrontendConfig struct {
 
 // OrganizationInvite represents an invitation to join an organization.
 type OrganizationInvite struct {
-	OrganizationId string     `json:"organizationId" binding:"required,min=1"`
-	UserId         uint32     `json:"userId" binding:"required"`
-	IsAdmin        bool       `json:"isAdmin" biding:"required"`
-	Otp            *string    `json:"otp,omitempty"`
-	Exp            *time.Time `json:"exp,omitempty"`
+	OrganizationId string                `json:"organizationId" binding:"required,min=1"`
+	UserId         uint32                `json:"userId" binding:"required"`
+	Perms          map[string]Permission `json:"perms" binding:"required"`
+	Otp            *string               `json:"otp,omitempty"`
+	Exp            *time.Time            `json:"exp,omitempty"`
 }

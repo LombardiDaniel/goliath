@@ -7,7 +7,7 @@ import (
 // User represents a user in the system.
 type User struct {
 	UserId       uint32
-	Perms        Permissions
+	Perms        map[string]Permission
 	Email        string
 	PasswordHash string
 	FirstName    string

@@ -273,7 +273,6 @@ func (s *UserServicePgImpl) GetUserOrgs(ctx context.Context, userId uint32) ([]s
 		SELECT DISTINCT
 			o.organization_id,
 			o.organization_name,
-			ou.is_admin,
 			o.owner_user_id = ou.user_id
 		FROM
 			organizations o
@@ -292,7 +291,7 @@ func (s *UserServicePgImpl) GetUserOrgs(ctx context.Context, userId uint32) ([]s
 
 	for rows.Next() {
 		newOrg := schemas.OrganizationOutput{}
-		err := rows.Scan(&newOrg.OrganizationId, &newOrg.OrganizationName, &newOrg.IsAdmin, &newOrg.IsOwner)
+		err := rows.Scan(&newOrg.OrganizationId, &newOrg.OrganizationName, &newOrg.IsOwner)
 		if err != nil {
 			return orgs, errors.Join(err, common.FilterSqlPgError(err))
 		}

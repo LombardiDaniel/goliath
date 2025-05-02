@@ -135,7 +135,7 @@ func (c *OrganizationController) InviteToOrg(ctx *gin.Context) {
 		return
 	}
 
-	inv := fiddlers.NewOrganizationInvite(*currUser.OrganizationId, user.UserId, createInv.IsAdmin, otp)
+	inv := fiddlers.NewOrganizationInvite(*currUser.OrganizationId, user.UserId, createInv.Perms, otp)
 	err = c.orgService.CreateOrganizationInvite(ctx, inv)
 	if err != nil {
 		slog.Error(err.Error())
@@ -168,13 +168,6 @@ func (c *OrganizationController) InviteToOrg(ctx *gin.Context) {
 func (c *OrganizationController) AcceptOrgInvite(ctx *gin.Context) {
 
 	otp := ctx.Query("otp")
-
-	// currUser, err := common.GetClaimsFromGinCtx(ctx)
-	// if err != nil {
-	// 	slog.Error(err.Error())
-	// 	ctx.String(http.StatusBadGateway, "BadGateway")
-	// 	return
-	// }
 
 	err := c.orgService.ConfirmOrganizationInvite(ctx, otp)
 	if err != nil {
@@ -292,14 +285,18 @@ func (c *OrganizationController) ChangeOwner(ctx *gin.Context) {
 func (c *OrganizationController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware) {
 	g := rg.Group("/organizations")
 
-	adminPerms := map[string]models.Permissions{
-		"admin": models.AllPermissions,
-		// "PUT:orgInvite": models.ReadWritePermissions,
+	adminPerms := map[string]models.Permission{
+		"admin": models.ReadWritePermission,
+		// "PUT:orgInvite": models.ReadWritePermission,
+	}
+
+	ownerPerms := map[string]models.Permission{
+		"owner": models.ReadWritePermission,
 	}
 
 	g.PUT("", authMiddleware.AuthorizeUser(), c.CreateOrganization)
 	g.PUT("/:orgId/invite", authMiddleware.AuthorizeOrganization(adminPerms), c.InviteToOrg)
-	g.POST("/:orgId/owner", authMiddleware.AuthorizeOrganization(adminPerms), c.ChangeOwner, authMiddleware.Reauthorize())
+	g.POST("/:orgId/owner", authMiddleware.AuthorizeOrganization(ownerPerms), c.ChangeOwner, authMiddleware.Reauthorize())
 	g.GET("/accept-invite", c.AcceptOrgInvite)
 	g.DELETE("/:orgId/users/:userId", authMiddleware.AuthorizeOrganization(adminPerms), c.RemoveFromOrg)
 }

@@ -7,40 +7,42 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-type Permissions int32
+type Permission int32
+
+// type Permissions map[string]Permission
 
 const (
-	NonePermissions      Permissions = 0
-	ReadPermissions      Permissions = 1 << 0
-	WritePermissions     Permissions = 1 << 1
-	ReadWritePermissions Permissions = ReadPermissions | WritePermissions
-	AllPermissions       Permissions = math.MaxInt32
+	NonePermission      Permission = 0
+	ReadPermission      Permission = 1 << 0
+	WritePermission     Permission = 1 << 1
+	ReadWritePermission Permission = ReadPermission | WritePermission
+	AllPermission       Permission = math.MaxInt32
 )
 
-// OrganizationPermissions represents permission to be used with in each org and action.
+// OrganizationPermission represents permission to be used with in each org and action.
 type OrganizationPermission struct {
-	OrganizationId string      `json:"organizationId" binding:"required,min=1"`
-	UserId         uint32      `json:"userId" binding:"required"`
-	ActionName     string      `json:"actionName" binding:"required"`
-	Perms          Permissions `json:"perms" binding:"required"`
+	OrganizationId string     `json:"organizationId" binding:"required,min=1"`
+	UserId         uint32     `json:"userId" binding:"required"`
+	ActionName     string     `json:"actionName" binding:"required"`
+	Perms          Permission `json:"perms" binding:"required"`
 }
 
 // JwtClaims represents the claims in a JWT token.
 type JwtClaims struct {
-	UserId         uint32                 `json:"userId" binding:"required"`
-	Email          string                 `json:"email" binding:"required"`
-	OrganizationId *string                `json:"organizationId" binding:"required"`
-	Perms          map[string]Permissions `json:"perms" binding:"required"`
+	UserId         uint32                `json:"userId" binding:"required"`
+	Email          string                `json:"email" binding:"required"`
+	OrganizationId *string               `json:"organizationId" binding:"required"`
+	Perms          map[string]Permission `json:"perms" binding:"required"`
 
 	jwt.StandardClaims
 }
 
 // only here because swaggo cant expand the above example (but same thing, KEEP IN SYNC!!)
 type JwtClaimsOutput struct {
-	UserId         uint32                 `json:"userId" binding:"required"`
-	Email          string                 `json:"email" binding:"required"`
-	OrganizationId *string                `json:"organizationId" binding:"required"`
-	Perms          map[string]Permissions `json:"perms" binding:"required"`
+	UserId         uint32                `json:"userId" binding:"required"`
+	Email          string                `json:"email" binding:"required"`
+	OrganizationId *string               `json:"organizationId" binding:"required"`
+	Perms          map[string]Permission `json:"perms" binding:"required"`
 
 	Audience  string `json:"aud"`
 	ExpiresAt int64  `json:"exp"`

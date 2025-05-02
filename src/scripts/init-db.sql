@@ -54,26 +54,25 @@ CREATE TABLE organizations (
 CREATE TABLE organizations_users (
     organization_id CHAR(5) REFERENCES organizations (organization_id) NOT NULL,
     user_id INT REFERENCES users (user_id) NOT NULL,
-    is_admin BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (organization_id, user_id)
 );
 
--- join users, orgs and permissions
-CREATE TABLE organization_user_permsissions (
+-- set permissions on users in an orgs
+CREATE TABLE organization_user_permissions (
     organization_id CHAR(5) REFERENCES organizations (organization_id) NOT NULL,
     user_id INT REFERENCES users (user_id) NOT NULL,
     action_name VARCHAR(255) NOT NULL,
     permission INT DEFAULT 0 NOT NULL,
 
-    PRIMARY KEY (organization_id, user_id)
+    PRIMARY KEY (action_name, organization_id, user_id)
 )
 
 -- org invites
 CREATE TABLE organization_invites (
     organization_id CHAR(5) REFERENCES organizations (organization_id) NOT NULL,
     user_id INT REFERENCES users (user_id) NOT NULL,
-    is_admin BOOLEAN NOT NULL DEFAULT false,
+    perms_json JSON NOT NULL,
     otp VARCHAR(255) NOT NULL UNIQUE,
     exp TIMESTAMPTZ
 );

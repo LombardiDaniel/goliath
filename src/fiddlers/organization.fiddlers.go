@@ -20,12 +20,12 @@ func NewOrganization(orgName string, ownerId uint32) (*models.Organization, erro
 	}, nil
 }
 
-func NewOrganizationInvite(organizationId string, userId uint32, isAdmin bool, otp string) models.OrganizationInvite {
+func NewOrganizationInvite(organizationId string, userId uint32, perms map[string]models.Permission, otp string) models.OrganizationInvite {
 	invExp := time.Now().Add(24 * time.Hour * time.Duration(common.OrgInviteTimeoutDays))
 	return models.OrganizationInvite{
 		OrganizationId: organizationId,
 		UserId:         userId,
-		IsAdmin:        isAdmin,
+		Perms:          perms,
 		Otp:            &otp,
 		Exp:            &invExp,
 	}

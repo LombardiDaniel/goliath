@@ -15,7 +15,7 @@ type AuthMiddleware interface {
 
 	// AuthorizeOrganization returns a middleware handler function that ensures
 	// the user is authorized to access organization-specific resources.
-	AuthorizeOrganization(need map[string]models.Permissions) gin.HandlerFunc
+	AuthorizeOrganization(need map[string]models.Permission) gin.HandlerFunc
 
 	// Reauthorize returns a middleware handler function that handles
 	// reauthorization logic, such as refreshing tokens or revalidating

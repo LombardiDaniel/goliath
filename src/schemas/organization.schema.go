@@ -1,10 +1,12 @@
 package schemas
 
+import "github.com/LombardiDaniel/gopherbase/models"
+
 type OrganizationOutput struct {
-	OrganizationId   string `json:"organizationId" binding:"required"`
-	OrganizationName string `json:"organizationName" binding:"required"`
-	IsAdmin          bool   `json:"isAdmin" binding:"required"`
-	IsOwner          bool   `json:"isOwner" binding:"required"`
+	OrganizationId   string                       `json:"organizationId" binding:"required"`
+	OrganizationName string                       `json:"organizationName" binding:"required"`
+	Perms            map[string]models.Permission `json:"perms" binding:"required"`
+	IsOwner          bool                         `json:"isOwner" binding:"required"`
 }
 
 type CreateOrganization struct {
@@ -12,7 +14,6 @@ type CreateOrganization struct {
 }
 
 type CreateOrganizationInvite struct {
-	// UserId  uint32 `json:"userId" binding:"required"`
-	UserEmail string `json:"userEmail" binding:"required"`
-	IsAdmin   bool   `json:"isAdmin" biding:"required"`
+	UserEmail string                       `json:"userEmail" binding:"required"`
+	Perms     map[string]models.Permission `json:"perms" binding:"required"`
 }

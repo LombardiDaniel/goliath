@@ -68,7 +68,7 @@ func (m *AuthMiddlewareJwt) AuthorizeUser() gin.HandlerFunc {
 	}
 }
 
-func (m *AuthMiddlewareJwt) AuthorizeOrganization(need map[string]models.Permissions) gin.HandlerFunc {
+func (m *AuthMiddlewareJwt) AuthorizeOrganization(need map[string]models.Permission) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenStr, err := c.Cookie(common.JwtCookieName)
 		if err != nil && err != http.ErrNoCookie {
@@ -102,15 +102,8 @@ func (m *AuthMiddlewareJwt) AuthorizeOrganization(need map[string]models.Permiss
 			return
 		}
 
-		// if needAdmin && !*jwtClaims.IsAdmin {
-		// 	c.String(http.StatusUnauthorized, "Unauthorized")
-		// 	common.ClearAuthCookie(c)
-		// 	c.Abort()
-		// 	return
-		// }
-
 		for action, needPerms := range need {
-			if needPerms&jwtClaims.Perms[action] == needPerms { // simple bitwise ops for perms
+			if needPerms&jwtClaims.Perms[action] != needPerms { // simple bitwise ops for perms
 				c.String(http.StatusUnauthorized, "Unauthorized")
 				common.ClearAuthCookie(c)
 				c.Abort()

@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 
 	"github.com/LombardiDaniel/gopherbase/common"
@@ -67,14 +68,33 @@ func (s *OrganizationServicePgImpl) CreateOrganization(ctx context.Context, org 
 	}
 
 	_, err = tx.ExecContext(ctx, `
-			INSERT INTO organizations_users (organization_id, user_id, is_admin)
-			VALUES ($1, $2, true);
+			INSERT INTO organizations_users (organization_id, user_id)
+			VALUES ($1, $2);
 		`,
 		org.OrganizationId,
 		org.OwnerUserId,
 	)
 	if err != nil {
 		return errors.Join(err, common.FilterSqlPgError(err))
+	}
+
+	perms := map[string]models.Permission{
+		"admin": models.AllPermission,
+		"owner": models.AllPermission,
+	}
+	for action, perm := range perms {
+		_, err = tx.ExecContext(ctx, `
+			INSERT INTO organization_user_permissions (organization_id, user_id, action_name, permission)
+			VALUES ($1, $2, $3, $4);
+		`,
+			org.OrganizationId,
+			org.OwnerUserId,
+			action,
+			perm,
+		)
+		if err != nil {
+			return errors.Join(err, common.FilterSqlPgError(err))
+		}
 	}
 
 	err = tx.Commit()
@@ -86,17 +106,21 @@ func (s *OrganizationServicePgImpl) CreateOrganizationInvite(ctx context.Context
 		INSERT INTO organization_invites (
 			organization_id,
 			user_id,
-			is_admin,
+			perms_json,
 			otp,
 			exp
 		)
 		VALUES ($1, $2, $3, $4, $5);
 	`
 
-	_, err := s.db.ExecContext(ctx, query,
+	permStr, err := json.Marshal(invite.Perms)
+	if err != nil {
+		return errors.Join(err, errors.New("could not marshal invite perms"))
+	}
+	_, err = s.db.ExecContext(ctx, query,
 		invite.OrganizationId,
 		invite.UserId,
-		invite.IsAdmin,
+		permStr,
 		invite.Otp,
 		invite.Exp,
 	)
@@ -111,11 +135,12 @@ func (s *OrganizationServicePgImpl) ConfirmOrganizationInvite(ctx context.Contex
 	defer tx.Rollback()
 
 	var inv models.OrganizationInvite
+	var permsString string
 	err = tx.QueryRowContext(ctx, `
 		SELECT
 			organization_id,
 			user_id,
-			is_admin,
+			perms_json,
 			otp,
 			exp
 		FROM
@@ -126,7 +151,7 @@ func (s *OrganizationServicePgImpl) ConfirmOrganizationInvite(ctx context.Contex
 	`, otp).Scan(
 		&inv.OrganizationId,
 		&inv.UserId,
-		&inv.IsAdmin,
+		&permsString,
 		&inv.Otp,
 		&inv.Exp,
 	)
@@ -134,16 +159,35 @@ func (s *OrganizationServicePgImpl) ConfirmOrganizationInvite(ctx context.Contex
 		return errors.Join(err, common.FilterSqlPgError(err))
 	}
 
+	err = json.Unmarshal([]byte(permsString), &inv.Perms)
+	if err != nil {
+		return errors.Join(err, errors.New("could not unmarshal perms to json"))
+	}
+
 	_, err = tx.ExecContext(ctx, `
-		INSERT INTO organizations_users (organization_id, user_id, is_admin)
-		VALUES ($1, $2, $3);
+		INSERT INTO organizations_users (organization_id, user_id)
+		VALUES ($1, $2);
 	`,
 		inv.OrganizationId,
 		inv.UserId,
-		inv.IsAdmin,
 	)
 	if err != nil {
 		return errors.Join(err, common.FilterSqlPgError(err))
+	}
+
+	for action, perm := range inv.Perms {
+		_, err = tx.ExecContext(ctx, `
+			INSERT INTO organization_user_permissions (organization_id, user_id, action_name, permission)
+			VALUES ($1, $2, $3, $4);
+		`,
+			inv.OrganizationId,
+			inv.UserId,
+			action,
+			perm,
+		)
+		if err != nil {
+			return errors.Join(err, common.FilterSqlPgError(err))
+		}
 	}
 
 	_, err = tx.ExecContext(ctx, `
@@ -162,7 +206,6 @@ func (s *OrganizationServicePgImpl) RemoveUserFromOrg(ctx context.Context, orgId
 	if err != nil {
 		return errors.Join(err, common.ErrDbTransactionCreate)
 	}
-
 	defer tx.Rollback()
 
 	var isOwner bool
@@ -201,7 +244,6 @@ func (s *OrganizationServicePgImpl) SetOrganizationOwner(ctx context.Context, or
 	if err != nil {
 		return errors.Join(err, common.ErrDbTransactionCreate)
 	}
-
 	defer tx.Rollback()
 
 	_, err = tx.ExecContext(ctx, `
@@ -217,12 +259,14 @@ func (s *OrganizationServicePgImpl) SetOrganizationOwner(ctx context.Context, or
 	}
 
 	_, err = tx.ExecContext(ctx, `
-		UPDATE organizations_users
-		SET is_admin = true
-		WHERE organization_id = $1 AND user_id = $2;
+		UPDATE organization_user_permissions
+		SET user_id = $1
+		WHERE
+			action_name = 'owner' AND
+			organization_id = $2;
 	`,
-		orgId,
 		userId,
+		orgId,
 	)
 	if err != nil {
 		return errors.Join(err, common.FilterSqlPgError(err))
@@ -236,5 +280,16 @@ func (s *OrganizationServicePgImpl) DeleteExpiredOrgInvites() error {
 		DELETE FROM organization_invites
     	WHERE exp < NOW();
 	`)
+	return errors.Join(err, common.FilterSqlPgError(err))
+}
+
+func (s *OrganizationServicePgImpl) SetPerms(ctx context.Context, action string, userId uint32, perms models.Permission) error {
+	_, err := s.db.Exec(`
+        INSERT INTO organization_user_permissions (organization_id, user_id, action_name, permission)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (action_name, organization_id, user_id)
+        DO UPDATE SET
+            permission = EXCLUDED.permission;
+    `)
 	return errors.Join(err, common.FilterSqlPgError(err))
 }
