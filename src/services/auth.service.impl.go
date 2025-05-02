@@ -56,7 +56,7 @@ func (s *AuthServiceJwtImpl) Permissions(ctx context.Context, userId uint32, org
 		SELECT
 			action_name,
 			permission
-		FROM organization_user_permsissions
+		FROM organization_user_permissions
 		WHERE
 			user_id = $1 AND
 			organization_id = $2;
