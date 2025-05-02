@@ -4,8 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
-	"log/slog"
 	"time"
 
 	"github.com/LombardiDaniel/gopherbase/common"
@@ -47,7 +45,7 @@ func (s *AuthServiceJwtImpl) InitToken(ctx context.Context, userId uint32, email
 
 	tokenString, err := token.SignedString([]byte(s.jwtSecretKey))
 	if err != nil {
-		return "", err
+		return "", errors.Join(err, errors.New("could not hash jwt"))
 	}
 
 	return tokenString, nil
@@ -83,12 +81,11 @@ func (s *AuthServiceJwtImpl) Permissions(ctx context.Context, userId uint32, org
 }
 
 func (s *AuthServiceJwtImpl) ValidateToken(tokenString string) error {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		return s.jwtSecretKey, nil
 	})
-
 	if err != nil {
-		return err
+		return errors.Join(err, errors.New("could not parse token"))
 	}
 
 	if !token.Valid {
@@ -100,16 +97,15 @@ func (s *AuthServiceJwtImpl) ValidateToken(tokenString string) error {
 
 func (s *AuthServiceJwtImpl) ParseToken(tokenString string) (models.JwtClaims, error) {
 	claims := models.JwtClaims{}
-	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (any, error) {
 		return []byte(s.jwtSecretKey), nil
 	})
-
 	if err != nil {
-		return claims, err
+		return claims, errors.Join(err, errors.New("could not parse token to claims"))
 	}
 
-	slog.Debug(fmt.Sprintf("%+v", claims))
-	slog.Debug(fmt.Sprintf("%+v", token.Valid))
+	// slog.Debug(fmt.Sprintf("%+v", claims))
+	// slog.Debug(fmt.Sprintf("%+v", token.Valid))
 
 	if !token.Valid {
 		return claims, errors.New("invalid token")
@@ -139,16 +135,15 @@ func (s *AuthServiceJwtImpl) InitPasswordResetToken(userId uint32) (string, erro
 }
 func (s *AuthServiceJwtImpl) ParsePasswordResetToken(tokenString string) (models.JwtPasswordResetClaims, error) {
 	claims := models.JwtPasswordResetClaims{}
-	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (any, error) {
 		return []byte(s.jwtSecretKey), nil
 	})
-
 	if err != nil {
-		return claims, err
+		return claims, errors.Join(err, errors.New("could not parse token to claims"))
 	}
 
-	slog.Debug(fmt.Sprintf("%+v", claims))
-	slog.Debug(fmt.Sprintf("%+v", token.Valid))
+	// slog.Debug(fmt.Sprintf("%+v", claims))
+	// slog.Debug(fmt.Sprintf("%+v", token.Valid))
 
 	if !token.Valid {
 		return claims, errors.New("invalid token")
@@ -165,17 +160,6 @@ func (s *AuthServiceJwtImpl) LoginOauth(ctx context.Context, oauthUser oauth.Use
 	}
 
 	defer tx.Rollback()
-
-	// LOCK not neeed because next query already locks the `email = $1` user
-	// err = tx.QueryRowContext(ctx, `
-	// 	SELECT *
-	// 	FROM users
-	// 	WHERE email = $1
-	// 	FOR UPDATE
-	// `, oauthUser.Email).Err()
-	// if err != nil {
-	// 	return user, false, err
-	// }
 
 	// check if user exists on curr email
 	// also creates oauth_users entry for this provider
@@ -204,7 +188,7 @@ func (s *AuthServiceJwtImpl) LoginOauth(ctx context.Context, oauthUser oauth.Use
 		&user.UpdatedAt,
 		&user.IsActive,
 	)
-	if err != nil && err != sql.ErrNoRows {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return user, false, err
 	}
 

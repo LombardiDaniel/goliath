@@ -16,7 +16,7 @@ const (
 )
 
 var (
-	ProjectName                       string = GetEnvVarDefault("PROJECT_NAME", "patos-app")
+	ProjectName                       string = GetEnvVarDefault("PROJECT_NAME", "gopherbase")
 	NoreplyEmail                      string = GetEnvVarDefault("NO_REPLY_EMAIL", "no-reply@example.com")
 	AppHostUrl                        string = GetEnvVarDefault("APP_HOST_URL", "http://127.0.0.1:8080/")
 	ApiHostUrl                        string = GetEnvVarDefault("API_HOST_URL", "http://127.0.0.1:8080/")

@@ -34,9 +34,8 @@ func (s *UserServicePgImpl) CreateUser(ctx context.Context, user models.User) er
 		user.LastName,
 		user.DateOfBirth,
 	).Err()
-
 	if err != nil {
-		return common.FilterSqlPgError(err)
+		return errors.Join(err, common.FilterSqlPgError(err))
 	}
 
 	return nil
@@ -45,9 +44,8 @@ func (s *UserServicePgImpl) CreateUser(ctx context.Context, user models.User) er
 func (s *UserServicePgImpl) CreateUnconfirmedUser(ctx context.Context, unconfirmedUser models.UnconfirmedUser) error {
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
-		return err
+		return errors.Join(err, common.ErrDbTransactionCreate)
 	}
-
 	defer tx.Rollback()
 
 	var count uint32 = 0
@@ -58,11 +56,11 @@ func (s *UserServicePgImpl) CreateUnconfirmedUser(ctx context.Context, unconfirm
 		unconfirmedUser.Email,
 	).Scan(&count)
 	if err != nil {
-		return common.FilterSqlPgError(err)
+		return errors.Join(err, common.FilterSqlPgError(err))
 	}
 
 	if count != 0 {
-		return common.ErrDbConflict
+		return errors.Join(common.ErrDbConflict, errors.New("user already exists"))
 	}
 
 	err = tx.QueryRowContext(ctx, `
@@ -85,7 +83,7 @@ func (s *UserServicePgImpl) CreateUnconfirmedUser(ctx context.Context, unconfirm
 	).Err()
 
 	if err != nil {
-		return common.FilterSqlPgError(err)
+		return errors.Join(err, common.FilterSqlPgError(err))
 	}
 
 	return tx.Commit()
@@ -94,9 +92,8 @@ func (s *UserServicePgImpl) CreateUnconfirmedUser(ctx context.Context, unconfirm
 func (s *UserServicePgImpl) ConfirmUser(ctx context.Context, otp string) error {
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
-		return err
+		return errors.Join(err, common.ErrDbTransactionCreate)
 	}
-
 	defer tx.Rollback()
 
 	unconfirmedUser := models.UnconfirmedUser{}
@@ -121,7 +118,7 @@ func (s *UserServicePgImpl) ConfirmUser(ctx context.Context, otp string) error {
 		&unconfirmedUser.DateOfBirth,
 	)
 	if err != nil {
-		return common.FilterSqlPgError(err)
+		return errors.Join(err, common.FilterSqlPgError(err))
 	}
 
 	_, err = tx.ExecContext(ctx, `
@@ -135,7 +132,7 @@ func (s *UserServicePgImpl) ConfirmUser(ctx context.Context, otp string) error {
 		unconfirmedUser.DateOfBirth,
 	)
 	if err != nil {
-		return common.FilterSqlPgError(err)
+		return errors.Join(err, common.FilterSqlPgError(err))
 	}
 
 	_, err = tx.ExecContext(ctx, `
@@ -144,7 +141,7 @@ func (s *UserServicePgImpl) ConfirmUser(ctx context.Context, otp string) error {
 		unconfirmedUser.Otp,
 	)
 	if err != nil {
-		return common.FilterSqlPgError(err)
+		return errors.Join(err, common.FilterSqlPgError(err))
 	}
 
 	return tx.Commit()
@@ -181,7 +178,7 @@ func (s *UserServicePgImpl) GetUser(ctx context.Context, email string) (models.U
 		&user.IsActive,
 	)
 	if err != nil {
-		return user, errors.Join(common.FilterSqlPgError(err), err)
+		return user, errors.Join(err, common.FilterSqlPgError(err))
 	}
 
 	return user, nil
@@ -218,7 +215,7 @@ func (s *UserServicePgImpl) GetUserFromId(ctx context.Context, id uint32) (model
 		&user.IsActive,
 	)
 	if err != nil {
-		return user, common.FilterSqlPgError(err)
+		return user, errors.Join(err, common.FilterSqlPgError(err))
 	}
 
 	return user, nil
@@ -244,7 +241,7 @@ func (s *UserServicePgImpl) GetUsers(ctx context.Context) ([]models.User, error)
 
 	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
-		return users, common.FilterSqlPgError(err)
+		return users, errors.Join(err, common.FilterSqlPgError(err))
 	}
 	defer rows.Close()
 
@@ -263,7 +260,7 @@ func (s *UserServicePgImpl) GetUsers(ctx context.Context) ([]models.User, error)
 			&u.IsActive,
 		)
 		if err != nil {
-			return users, err
+			return users, errors.Join(err, common.FilterSqlPgError(err))
 		}
 		users = append(users, u)
 	}
@@ -289,7 +286,7 @@ func (s *UserServicePgImpl) GetUserOrgs(ctx context.Context, userId uint32) ([]s
 
 	rows, err := s.db.QueryContext(ctx, query, userId)
 	if err != nil {
-		return orgs, common.FilterSqlPgError(err)
+		return orgs, errors.Join(err, common.FilterSqlPgError(err))
 	}
 	defer rows.Close()
 
@@ -297,7 +294,7 @@ func (s *UserServicePgImpl) GetUserOrgs(ctx context.Context, userId uint32) ([]s
 		newOrg := schemas.OrganizationOutput{}
 		err := rows.Scan(&newOrg.OrganizationId, &newOrg.OrganizationName, &newOrg.IsAdmin, &newOrg.IsOwner)
 		if err != nil {
-			return orgs, err
+			return orgs, errors.Join(err, common.FilterSqlPgError(err))
 		}
 		orgs = append(orgs, newOrg)
 	}
@@ -317,7 +314,7 @@ func (s *UserServicePgImpl) InitPasswordReset(ctx context.Context, userId uint32
 		time.Now().Add(24*time.Hour*time.Duration(common.PasswordResetTimeoutDays)),
 	)
 
-	return common.FilterSqlPgError(err)
+	return errors.Join(err, common.FilterSqlPgError(err))
 }
 
 func (s *UserServicePgImpl) GetPasswordReset(ctx context.Context, otp string) (models.PasswordReset, error) {
@@ -334,20 +331,19 @@ func (s *UserServicePgImpl) GetPasswordReset(ctx context.Context, otp string) (m
 		&passReset.Exp,
 	)
 
-	return passReset, common.FilterSqlPgError(err)
+	return passReset, errors.Join(err, common.FilterSqlPgError(err))
 }
 
 func (s *UserServicePgImpl) UpdateUserPassword(ctx context.Context, userId uint32, pw string) error {
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
-		return err
+		return errors.Join(err, common.ErrDbTransactionCreate)
 	}
-
 	defer tx.Rollback()
 
 	pwHash, err := common.HashPassword(pw)
 	if err != nil {
-		return err
+		return errors.Join(err, common.FilterSqlPgError(err))
 	}
 
 	_, err = tx.ExecContext(ctx, `
@@ -356,7 +352,7 @@ func (s *UserServicePgImpl) UpdateUserPassword(ctx context.Context, userId uint3
 		WHERE user_id = $2;
 	`, pwHash, userId)
 	if err != nil {
-		return err
+		return errors.Join(err, common.FilterSqlPgError(err))
 	}
 
 	_, err = tx.ExecContext(ctx, `
@@ -364,7 +360,7 @@ func (s *UserServicePgImpl) UpdateUserPassword(ctx context.Context, userId uint3
 		WHERE user_id = $1;
 	`, userId)
 	if err != nil {
-		return err
+		return errors.Join(err, common.FilterSqlPgError(err))
 	}
 
 	return tx.Commit()
@@ -384,8 +380,7 @@ func (s *UserServicePgImpl) EditUser(ctx context.Context, userId uint32, user sc
 		user.DateOfBirth,
 		userId,
 	)
-
-	return err
+	return errors.Join(err, common.FilterSqlPgError(err))
 }
 
 func (s *UserServicePgImpl) DeleteExpiredPwResets() error {
@@ -393,7 +388,7 @@ func (s *UserServicePgImpl) DeleteExpiredPwResets() error {
 		DELETE FROM password_resets
     	WHERE exp < NOW();
 	`)
-	return err
+	return errors.Join(err, common.FilterSqlPgError(err))
 }
 
 func (s *UserServicePgImpl) SetAvatarUrl(ctx context.Context, userId uint32, url string) error {
@@ -407,6 +402,5 @@ func (s *UserServicePgImpl) SetAvatarUrl(ctx context.Context, userId uint32, url
 		url,
 		userId,
 	)
-
-	return err
+	return errors.Join(err, common.FilterSqlPgError(err))
 }

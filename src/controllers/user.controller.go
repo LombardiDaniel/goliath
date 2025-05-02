@@ -3,6 +3,7 @@ package controllers
 import (
 	"bytes"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -67,7 +68,7 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 	}
 
 	err = c.userService.CreateUnconfirmedUser(ctx, *unconfirmedUser)
-	if err == common.ErrDbConflict {
+	if errors.Is(err, common.ErrDbConflict) {
 		ctx.String(http.StatusConflict, "Conflict")
 		return
 	}

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -71,7 +72,7 @@ func (c *OrganizationController) CreateOrganization(ctx *gin.Context) {
 
 	err = c.orgService.CreateOrganization(ctx, *org)
 	if err != nil {
-		if err == common.ErrDbConflict {
+		if errors.Is(err, common.ErrDbConflict) {
 			ctx.String(http.StatusConflict, "Conflict")
 			return
 		}
