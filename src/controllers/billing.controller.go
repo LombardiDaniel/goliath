@@ -32,7 +32,7 @@ func NewBillingController(
 	}
 }
 
-// @Summary GetCheckoutSessionUrl
+// @Summary CheckoutSessionUrl
 // @Security JWT
 // @Tags Billing
 // @Description Gets the CheckoutSession Url
@@ -43,7 +43,7 @@ func NewBillingController(
 // @Failure 409 		{string} 	ErrorResponse "Conflict"
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
 // @Router /v1/billing/stripe/get-checkout-session-url/{product_id} [POST]
-func (c *BillingController) GetCheckoutSessionUrl(ctx *gin.Context) {
+func (c *BillingController) CheckoutSessionUrl(ctx *gin.Context) {
 	prodIdStr := ctx.Param("product_id")
 	var val int64 = 300
 
@@ -61,7 +61,7 @@ func (c *BillingController) GetCheckoutSessionUrl(ctx *gin.Context) {
 		return
 	}
 
-	url, err := c.billingService.CreatePayment(ctx, stripe.CurrencyBRL, val*100, "event", claims.UserId)
+	url, err := c.billingService.CheckoutURL(ctx, stripe.CurrencyBRL, val*100, "event", claims.UserId)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -107,7 +107,7 @@ func (c *BillingController) CheckoutSessionCompletedCallback(ctx *gin.Context) {
 		return
 	}
 
-	checkoutSession, err := c.billingService.GetCheckoutSession(ctx, inputCheckoutSession.ID)
+	checkoutSession, err := c.billingService.CheckoutSession(ctx, inputCheckoutSession.ID)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -146,6 +146,6 @@ func (c *BillingController) CheckoutSessionCompletedCallback(ctx *gin.Context) {
 func (c *BillingController) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware) {
 	g := rg.Group("/billing")
 
-	g.POST("/stripe/get-checkout-session-url/:product_id", authMiddleware.AuthorizeUser(), c.GetCheckoutSessionUrl)
+	g.POST("/stripe/get-checkout-session-url/:product_id", authMiddleware.AuthorizeUser(), c.CheckoutSessionUrl)
 	g.POST("/stripe/checkout-session-completed", c.CheckoutSessionCompletedCallback)
 }

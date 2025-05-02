@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"io"
 	"time"
 
@@ -20,19 +21,19 @@ func NewObjectServiceMinioImpl(client *minio.Client) ObjectService {
 
 func (s *ObjectServiceMinioImpl) Upload(ctx context.Context, bucket string, path string, size int64, data io.Reader) error {
 	_, err := s.client.PutObject(ctx, bucket, path, data, size, minio.PutObjectOptions{})
-	return err
+	return errors.Join(err, errors.New("could not put obj"))
 }
 
 func (s *ObjectServiceMinioImpl) Download(ctx context.Context, bucket string, path string) ([]byte, error) {
 	obj, err := s.client.GetObject(ctx, bucket, path, minio.GetObjectOptions{})
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(err, errors.New("could not get obj"))
 	}
 	defer obj.Close()
 
 	data, err := io.ReadAll(obj)
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(err, errors.New("could not io.ReadAll(obj)"))
 	}
 	return data, nil
 }
@@ -40,7 +41,7 @@ func (s *ObjectServiceMinioImpl) Download(ctx context.Context, bucket string, pa
 func (s *ObjectServiceMinioImpl) SignedUrl(ctx context.Context, bucket string, path string, exp time.Duration) (string, error) {
 	url, err := s.client.PresignedGetObject(ctx, bucket, path, exp, nil)
 	if err != nil {
-		return "", err
+		return "", errors.Join(err, errors.New("could not presign get obj"))
 	}
 	return url.String(), nil
 }
@@ -48,7 +49,7 @@ func (s *ObjectServiceMinioImpl) SignedUrl(ctx context.Context, bucket string, p
 func (s *ObjectServiceMinioImpl) UploadUrl(ctx context.Context, bucket string, path string, exp time.Duration) (string, error) {
 	url, err := s.client.PresignedPutObject(ctx, bucket, path, time.Minute*5)
 	if err != nil {
-		return "", err
+		return "", errors.Join(err, errors.New("could not presign put obj"))
 	}
 	return url.String(), nil
 }

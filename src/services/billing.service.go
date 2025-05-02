@@ -9,11 +9,11 @@ import (
 
 // BillingService defines the interface for all billing-related operations.
 type BillingService interface {
-	// CreatePayment gets the Stripe Checkout URL to be redirected to in the frontend
-	CreatePayment(ctx context.Context, currencyUnit stripe.Currency, unitAmmount int64, planName string, userId uint32) (string, error)
+	// CheckoutURL gets the Stripe Checkout URL to be redirected to in the frontend
+	CheckoutURL(ctx context.Context, currencyUnit stripe.Currency, unitAmmount int64, planName string, userId uint32) (string, error)
 
-	// GetCheckoutSession is the webhook to be used in a daemon
-	GetCheckoutSession(ctx context.Context, sessionId string) (*stripe.CheckoutSession, error)
+	// CheckoutSession is the webhook to be used in a daemon
+	CheckoutSession(ctx context.Context, sessionId string) (*stripe.CheckoutSession, error)
 
 	// SetCheckoutSessionAsComplete is the webhook to be used in a daemon
 	SetCheckoutSessionAsComplete(ctx context.Context, sessionId string) (models.Payment, error)
