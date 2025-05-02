@@ -201,8 +201,8 @@ func init() {
 	router.Use(cors.New(corsCfg))
 	router.Use(limits.RequestSizeLimiter(common.MaxRequestSize))
 
-	docs.SwaggerInfo.Title = "Generic Forms API"
-	docs.SwaggerInfo.Description = "Generic Forms API"
+	docs.SwaggerInfo.Title = "Gopherbase"
+	docs.SwaggerInfo.Description = "Gopherbase"
 	docs.SwaggerInfo.Version = "1.0"
 	docs.SwaggerInfo.BasePath = ""
 	docs.SwaggerInfo.Host = strings.Split(common.ApiHostUrl, "://")[1]
@@ -222,9 +222,13 @@ func init() {
 	// Daemons
 	taskRunner.RegisterTask(24*time.Hour, userService.DeleteExpiredPwResets, 1)
 	taskRunner.RegisterTask(24*time.Hour, organizationService.DeleteExpiredOrgInvites, 1)
-	taskRunner.RegisterTask(time.Second, func() error {
-		return telemetryService.Upload(context.Background())
-	}, 1)
+	taskRunner.RegisterTask(
+		time.Second,
+		func() error {
+			return telemetryService.Upload(context.Background())
+		},
+		1,
+	)
 }
 
 // @securityDefinitions.apiKey JWT
