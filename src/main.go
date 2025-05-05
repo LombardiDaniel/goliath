@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -71,25 +72,25 @@ func init() {
 	pgConnStr := common.GetEnvVarDefault("POSTGRES_URI", "postgres://user:password@localhost:5432/db?sslmode=disable")
 	db, err = sql.Open("postgres", pgConnStr)
 	if err != nil {
-		panic(err)
+		panic(errors.Join(err, errors.New("could not connect to pgsql")))
 	}
 	err = db.Ping()
 	if err != nil {
-		panic(err)
+		panic(errors.Join(err, errors.New("could not ping pgsql")))
 	}
 	pgIdleConns, err := strconv.Atoi(common.GetEnvVarDefault("POSTGRES_IDLE_CONNS", "2"))
 	if err != nil {
-		panic(err)
+		panic(errors.Join(err, errors.New("could not convert POSTGRES_IDLE_CONNS to int")))
 	}
 	pgOpenConns, err := strconv.Atoi(common.GetEnvVarDefault("POSTGRES_OPEN_CONNS", "10"))
 	if err != nil {
-		panic(err)
+		panic(errors.Join(err, errors.New("could not converto POSTGRES_OPEN_CONNS to int")))
 	}
 	db.SetMaxIdleConns(pgIdleConns)
 	db.SetMaxOpenConns(pgOpenConns)
 	_, err = db.Exec(fmt.Sprintf("SET TIME ZONE '%s';", common.DefaultTimzone))
 	if err != nil {
-		panic(err)
+		panic(errors.Join(err, errors.New("could not set timezone on db")))
 	}
 
 	mongoConn := options.Client().ApplyURI(
@@ -97,11 +98,11 @@ func init() {
 	)
 	mongoClient, err := mongo.Connect(ctx, mongoConn)
 	if err != nil {
-		slog.Error(err.Error())
+		panic(errors.Join(err, errors.New("could not connect to mongodb")))
 	}
 	err = mongoClient.Ping(ctx, readpref.Primary())
 	if err != nil {
-		slog.Error(err.Error())
+		panic(errors.Join(err, errors.New("could not ping mongodb")))
 	}
 
 	tsIdxModel := mongo.IndexModel{
@@ -114,11 +115,11 @@ func init() {
 
 	_, err = metricsCol.Indexes().CreateOne(ctx, tsIdxModel)
 	if err != nil {
-		panic(err)
+		panic(errors.Join(err, errors.New("could not create metricsCol idx")))
 	}
 	_, err = eventsCol.Indexes().CreateOne(ctx, tsIdxModel)
 	if err != nil {
-		panic(err)
+		panic(errors.Join(err, errors.New("could not create eventsCol idx")))
 	}
 
 	oauthBaseCallback := common.ApiHostUrl + "v1/auth/%s/callback"
@@ -146,11 +147,11 @@ func init() {
 
 	s3Host, err := common.ExtractHostFromUrl(common.S3Endpoint)
 	if err != nil {
-		panic(err)
+		panic(errors.Join(err, errors.New("could not extract host from S3 endpoint")))
 	}
 	s3Secure, err := common.UrlIsSecure(common.S3Endpoint)
 	if err != nil {
-		panic(err)
+		panic(errors.Join(err, errors.New("could not check if url is secure on S3 endpoint")))
 	}
 	minioClient, err := minio.New(
 		s3Host,
@@ -165,7 +166,7 @@ func init() {
 		},
 	)
 	if err != nil {
-		panic(err)
+		panic(errors.Join(err, errors.New("could not conneect to minio")))
 	}
 
 	authService = services.NewAuthServiceJwtImpl(os.Getenv("JWT_SECRET_KEY"), db)
