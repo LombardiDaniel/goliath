@@ -6,11 +6,11 @@ import (
 	"errors"
 	"time"
 
-	"github.com/LombardiDaniel/gopherbase/src/internal/domain"
-	"github.com/LombardiDaniel/gopherbase/src/internal/dto"
-	"github.com/LombardiDaniel/gopherbase/src/pkg/constants"
-	"github.com/LombardiDaniel/gopherbase/src/pkg/token"
-	"github.com/LombardiDaniel/gopherbase/src/pkg/validators"
+	"github.com/LombardiDaniel/goliath/src/internal/domain"
+	"github.com/LombardiDaniel/goliath/src/internal/dto"
+	"github.com/LombardiDaniel/goliath/src/pkg/constants"
+	"github.com/LombardiDaniel/goliath/src/pkg/token"
+	"github.com/LombardiDaniel/goliath/src/pkg/validators"
 )
 
 type UserServicePgImpl struct {

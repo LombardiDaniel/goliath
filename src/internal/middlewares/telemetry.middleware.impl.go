@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/LombardiDaniel/gopherbase/src/internal/services"
+	"github.com/LombardiDaniel/goliath/src/internal/services"
 	"github.com/gin-gonic/gin"
 )
 

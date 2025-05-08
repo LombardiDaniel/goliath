@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/LombardiDaniel/gopherbase/src/pkg/common"
+	"github.com/LombardiDaniel/goliath/src/pkg/common"
 	"golang.org/x/oauth2"
 )
 

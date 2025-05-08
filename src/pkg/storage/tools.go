@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/LombardiDaniel/gopherbase/src/pkg/constants"
+	"github.com/LombardiDaniel/goliath/src/pkg/constants"
 )
 
 type storageDir string

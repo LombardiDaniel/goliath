@@ -3,9 +3,9 @@ package domain
 import (
 	"time"
 
-	"github.com/LombardiDaniel/gopherbase/src/pkg/common"
-	"github.com/LombardiDaniel/gopherbase/src/pkg/constants"
-	"github.com/LombardiDaniel/gopherbase/src/pkg/token"
+	"github.com/LombardiDaniel/goliath/src/pkg/common"
+	"github.com/LombardiDaniel/goliath/src/pkg/constants"
+	"github.com/LombardiDaniel/goliath/src/pkg/token"
 )
 
 // User represents a user in the system.

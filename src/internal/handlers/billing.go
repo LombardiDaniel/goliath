@@ -6,11 +6,11 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/LombardiDaniel/gopherbase/src/internal/domain"
-	"github.com/LombardiDaniel/gopherbase/src/internal/dto"
-	"github.com/LombardiDaniel/gopherbase/src/internal/middlewares"
-	"github.com/LombardiDaniel/gopherbase/src/internal/services"
-	"github.com/LombardiDaniel/gopherbase/src/pkg/token"
+	"github.com/LombardiDaniel/goliath/src/internal/domain"
+	"github.com/LombardiDaniel/goliath/src/internal/dto"
+	"github.com/LombardiDaniel/goliath/src/internal/middlewares"
+	"github.com/LombardiDaniel/goliath/src/internal/services"
+	"github.com/LombardiDaniel/goliath/src/pkg/token"
 	"github.com/gin-gonic/gin"
 	"github.com/stripe/stripe-go/v81"
 )

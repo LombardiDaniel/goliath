@@ -7,7 +7,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/LombardiDaniel/gopherbase/src/pkg/common"
+	"github.com/LombardiDaniel/goliath/src/pkg/common"
 )
 
 // LOG_LEVEL defines the logging level for the application, defaulting to "INFO".

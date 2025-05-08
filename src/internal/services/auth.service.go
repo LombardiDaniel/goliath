@@ -3,8 +3,8 @@ package services
 import (
 	"context"
 
-	"github.com/LombardiDaniel/gopherbase/src/internal/domain"
-	"github.com/LombardiDaniel/gopherbase/src/pkg/oauth"
+	"github.com/LombardiDaniel/goliath/src/internal/domain"
+	"github.com/LombardiDaniel/goliath/src/pkg/oauth"
 )
 
 // AuthService defines the interface for authentication-related operations.

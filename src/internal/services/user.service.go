@@ -3,8 +3,8 @@ package services
 import (
 	"context"
 
-	"github.com/LombardiDaniel/gopherbase/src/internal/domain"
-	"github.com/LombardiDaniel/gopherbase/src/internal/dto"
+	"github.com/LombardiDaniel/goliath/src/internal/domain"
+	"github.com/LombardiDaniel/goliath/src/internal/dto"
 )
 
 // UserService defines the interface for user-related operations.

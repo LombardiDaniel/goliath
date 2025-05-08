@@ -1,7 +1,7 @@
 package tools
 
 import (
-	"github.com/LombardiDaniel/gopherbase/src/pkg/constants"
+	"github.com/LombardiDaniel/goliath/src/pkg/constants"
 	"github.com/gin-gonic/gin"
 )
 

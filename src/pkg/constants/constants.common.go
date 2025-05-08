@@ -3,7 +3,7 @@ package constants
 import (
 	"time"
 
-	"github.com/LombardiDaniel/gopherbase/src/pkg/common"
+	"github.com/LombardiDaniel/goliath/src/pkg/common"
 )
 
 const (
@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	ProjectName                       string = common.GetEnvVarDefault("PROJECT_NAME", "gopherbase")
+	ProjectName                       string = common.GetEnvVarDefault("PROJECT_NAME", "goliath")
 	NoreplyEmail                      string = common.GetEnvVarDefault("NO_REPLY_EMAIL", "no-reply@example.com")
 	AppHostUrl                        string = common.GetEnvVarDefault("APP_HOST_URL", "http://127.0.0.1:8080/")
 	ApiHostUrl                        string = common.GetEnvVarDefault("API_HOST_URL", "http://127.0.0.1:8080/")
@@ -26,5 +26,5 @@ var (
 	PasswordResetTimeoutJwtCookieName string = ProjectName + "_pwreset_jwt"
 	S3Endpoint                        string = common.GetEnvVarDefault("S3_ENDPOINT", "https://br-se1.magaluobjects.com")
 	S3Region                          string = common.GetEnvVarDefault("S3_REGION", "br-se1")
-	S3Bucket                          string = common.GetEnvVarDefault("S3_BUCKET", ProjectName+"-gopherbase")
+	S3Bucket                          string = common.GetEnvVarDefault("S3_BUCKET", ProjectName+"-goliath")
 )

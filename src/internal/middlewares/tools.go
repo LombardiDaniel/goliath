@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/LombardiDaniel/gopherbase/src/internal/domain"
+	"github.com/LombardiDaniel/goliath/src/internal/domain"
 	"github.com/golang-jwt/jwt"
 )
 

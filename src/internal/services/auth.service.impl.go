@@ -6,10 +6,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/LombardiDaniel/gopherbase/src/internal/domain"
-	"github.com/LombardiDaniel/gopherbase/src/pkg/constants"
-	"github.com/LombardiDaniel/gopherbase/src/pkg/oauth"
-	"github.com/LombardiDaniel/gopherbase/src/pkg/validators"
+	"github.com/LombardiDaniel/goliath/src/internal/domain"
+	"github.com/LombardiDaniel/goliath/src/pkg/constants"
+	"github.com/LombardiDaniel/goliath/src/pkg/oauth"
+	"github.com/LombardiDaniel/goliath/src/pkg/validators"
 	"github.com/golang-jwt/jwt"
 )
 

@@ -8,14 +8,14 @@
         "MGC": "TENANT-ID"
       },
       "Action": "s3:*",
-      "Resource": ["gopherbase-frontend", "gopherbase-frontend/*"]
+      "Resource": ["goliath-frontend", "goliath-frontend/*"]
     },
     {
       "Sid": "PublicReadAccess",
       "Effect": "Allow",
       "Principal": "*",
       "Action": ["s3:GetObject", "s3:ListBucket"],
-      "Resource": ["gopherbase-frontend", "gopherbase-frontend/*"]
+      "Resource": ["goliath-frontend", "goliath-frontend/*"]
     }
   ]
 }

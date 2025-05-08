@@ -1,6 +1,6 @@
 package services
 
-import "github.com/LombardiDaniel/gopherbase/src/internal/domain"
+import "github.com/LombardiDaniel/goliath/src/internal/domain"
 
 // EmailService defines the interface for email-related operations.
 // It provides methods for sending various types of emails, such as

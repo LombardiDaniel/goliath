@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"github.com/LombardiDaniel/gopherbase/src/internal/domain"
+	"github.com/LombardiDaniel/goliath/src/internal/domain"
 	"github.com/gin-gonic/gin"
 )
 

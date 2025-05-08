@@ -9,14 +9,14 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/LombardiDaniel/gopherbase/src/internal/domain"
-	"github.com/LombardiDaniel/gopherbase/src/internal/dto"
-	"github.com/LombardiDaniel/gopherbase/src/internal/middlewares"
-	"github.com/LombardiDaniel/gopherbase/src/internal/services"
-	"github.com/LombardiDaniel/gopherbase/src/pkg/common"
-	"github.com/LombardiDaniel/gopherbase/src/pkg/constants"
-	"github.com/LombardiDaniel/gopherbase/src/pkg/storage"
-	"github.com/LombardiDaniel/gopherbase/src/pkg/token"
+	"github.com/LombardiDaniel/goliath/src/internal/domain"
+	"github.com/LombardiDaniel/goliath/src/internal/dto"
+	"github.com/LombardiDaniel/goliath/src/internal/middlewares"
+	"github.com/LombardiDaniel/goliath/src/internal/services"
+	"github.com/LombardiDaniel/goliath/src/pkg/common"
+	"github.com/LombardiDaniel/goliath/src/pkg/constants"
+	"github.com/LombardiDaniel/goliath/src/pkg/storage"
+	"github.com/LombardiDaniel/goliath/src/pkg/token"
 	"github.com/gin-gonic/gin"
 )
 

@@ -6,9 +6,9 @@ import (
 	"errors"
 	"net/url"
 
-	"github.com/LombardiDaniel/gopherbase/src/internal/domain"
-	"github.com/LombardiDaniel/gopherbase/src/pkg/constants"
-	"github.com/LombardiDaniel/gopherbase/src/pkg/validators"
+	"github.com/LombardiDaniel/goliath/src/internal/domain"
+	"github.com/LombardiDaniel/goliath/src/pkg/constants"
+	"github.com/LombardiDaniel/goliath/src/pkg/validators"
 	"github.com/stripe/stripe-go/v81"
 	"github.com/stripe/stripe-go/v81/checkout/session"
 )

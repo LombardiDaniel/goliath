@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/LombardiDaniel/gopherbase/src/internal/domain"
-	"github.com/LombardiDaniel/gopherbase/src/pkg/common"
-	"github.com/LombardiDaniel/gopherbase/src/pkg/constants"
+	"github.com/LombardiDaniel/goliath/src/internal/domain"
+	"github.com/LombardiDaniel/goliath/src/pkg/common"
+	"github.com/LombardiDaniel/goliath/src/pkg/constants"
 	"github.com/resendlabs/resend-go"
 )
 

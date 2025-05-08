@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	"github.com/LombardiDaniel/gopherbase/src/internal/domain"
+	"github.com/LombardiDaniel/goliath/src/internal/domain"
 	"github.com/stripe/stripe-go/v81"
 )
 

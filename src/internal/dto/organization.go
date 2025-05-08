@@ -1,6 +1,6 @@
 package dto
 
-import "github.com/LombardiDaniel/gopherbase/src/internal/domain"
+import "github.com/LombardiDaniel/goliath/src/internal/domain"
 
 type OrganizationOutput struct {
 	OrganizationId   string                       `json:"organizationId" binding:"required"`

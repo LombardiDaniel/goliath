@@ -1,6 +1,6 @@
 package validators
 
-import "github.com/LombardiDaniel/gopherbase/src/pkg/constants"
+import "github.com/LombardiDaniel/goliath/src/pkg/constants"
 
 const (
 	errUniqueConstraint string = "duplicate key value violates unique constraint"

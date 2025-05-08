@@ -3,8 +3,8 @@ package domain
 import (
 	"time"
 
-	"github.com/LombardiDaniel/gopherbase/src/pkg/common"
-	"github.com/LombardiDaniel/gopherbase/src/pkg/constants"
+	"github.com/LombardiDaniel/goliath/src/pkg/common"
+	"github.com/LombardiDaniel/goliath/src/pkg/constants"
 )
 
 // Organization represents an organization in the system.

@@ -8,14 +8,14 @@
         "MGC": "TENANT-ID"
       },
       "Action": "s3:*",
-      "Resource": ["gopherbase", "gopherbase/*"]
+      "Resource": ["goliath", "goliath/*"]
     },
     {
       "Sid": "PublicReadOnPublicDir",
       "Effect": "Allow",
       "Principal": "*",
       "Action": "s3:GetObject",
-      "Resource": "gopherbase/public/*"
+      "Resource": "goliath/public/*"
     }
   ]
 }
