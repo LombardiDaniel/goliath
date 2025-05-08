@@ -7,11 +7,19 @@ import (
 	_ "image/png"
 )
 
-func GetImageFormat(b []byte) (string, error) {
+type ImageFmt string
+
+const (
+	JPEG ImageFmt = "jpeg"
+	PNG  ImageFmt = "png"
+	GIF  ImageFmt = "gif"
+)
+
+func ImageFormat(b []byte) (ImageFmt, error) {
 	_, format, err := image.Decode(bytes.NewReader(b))
 	if err != nil {
 		return "", err
 	}
 
-	return format, nil
+	return ImageFmt(format), nil
 }

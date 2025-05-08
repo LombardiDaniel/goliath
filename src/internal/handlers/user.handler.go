@@ -348,14 +348,14 @@ func (c *UserHandler) SetPicture(ctx *gin.Context) {
 		return
 	}
 
-	imgFmt, err := common.GetImageFormat(picBytes)
+	imgFmt, err := common.ImageFormat(picBytes)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
 	}
 
-	if imgFmt != "png" && imgFmt != "jpeg" {
+	if imgFmt != common.JPEG && imgFmt != common.PNG {
 		ctx.String(http.StatusUnsupportedMediaType, "UnsupportedMediaType")
 		return
 	}
