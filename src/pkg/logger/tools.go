@@ -6,10 +6,12 @@ import (
 	"os"
 	"strings"
 	"text/template"
+
+	"github.com/LombardiDaniel/gopherbase/src/pkg/common"
 )
 
 // LOG_LEVEL defines the logging level for the application, defaulting to "INFO".
-var LOG_LEVEL string = strings.ToUpper(GetEnvVarDefault("LOG_LEVEL", "INFO"))
+var LOG_LEVEL string = strings.ToUpper(common.GetEnvVarDefault("LOG_LEVEL", "INFO"))
 
 // InitSlogger initializes the global logger with the specified log level.
 func InitSlogger() {

@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/LombardiDaniel/gopherbase/common"
+	"github.com/LombardiDaniel/gopherbase/src/pkg/constants"
 )
 
 type storageDir string
@@ -14,7 +14,7 @@ const (
 )
 
 func GetFullObjUrl(objPath string) (string, error) {
-	return url.JoinPath(common.S3Endpoint, common.S3Bucket, objPath)
+	return url.JoinPath(constants.S3Endpoint, constants.S3Bucket, objPath)
 }
 
 func GetPublicPath(p storageDir, filename string) string {

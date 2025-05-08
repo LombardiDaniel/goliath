@@ -11,7 +11,7 @@ RUN go mod download
 COPY ./ ./
 
 RUN swag init
-CMD ["go", "run", "."]
+CMD ["go", "run", "cmd/main.go"]
 
 #### - TESTS - ####
 FROM golang:1.24.2 AS tester
@@ -39,7 +39,7 @@ RUN go mod download
 COPY ./ ./
 
 RUN swag init && \
-    go build -o /bin/main main.go
+    go build -o /bin/main cmd/main.go
 
 
 #### - SERVER - ####

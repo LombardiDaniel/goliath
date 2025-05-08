@@ -12,6 +12,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/LombardiDaniel/gopherbase/src/internal/handlers"
+	"github.com/LombardiDaniel/gopherbase/src/internal/middlewares"
+	"github.com/LombardiDaniel/gopherbase/src/internal/services"
+	"github.com/LombardiDaniel/gopherbase/src/pkg/common"
+	"github.com/LombardiDaniel/gopherbase/src/pkg/constants"
+	"github.com/LombardiDaniel/gopherbase/src/pkg/daemons"
+	"github.com/LombardiDaniel/gopherbase/src/pkg/logger"
+	"github.com/LombardiDaniel/gopherbase/src/pkg/oauth"
 	_ "github.com/lib/pq"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -23,19 +31,13 @@ import (
 	"golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
 
-	"github.com/LombardiDaniel/gopherbase/common"
-	"github.com/LombardiDaniel/gopherbase/controllers"
-	"github.com/LombardiDaniel/gopherbase/daemons"
-	"github.com/LombardiDaniel/gopherbase/docs"
-	"github.com/LombardiDaniel/gopherbase/middlewares"
-	"github.com/LombardiDaniel/gopherbase/oauth"
-	"github.com/LombardiDaniel/gopherbase/services"
 	"github.com/gin-contrib/cors"
 	limits "github.com/gin-contrib/size"
 	"github.com/gin-gonic/gin"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/swaggo/swag/example/basic/docs"
 )
 
 var (
@@ -50,10 +52,10 @@ var (
 	billingService      services.BillingService
 	telemetryService    services.TelemetryService
 
-	authController         controllers.AuthController
-	userController         controllers.UserController
-	organizationController controllers.OrganizationController
-	billingController      controllers.BillingController
+	authHandler         handlers.AuthHandler
+	userHandler         handlers.UserHandler
+	organizationHandler handlers.OrganizationHandler
+	billingHandler      handlers.BillingHandler
 
 	authMiddleware      middlewares.AuthMiddleware
 	telemetryMiddleware middlewares.TelemetryMiddleware
@@ -66,7 +68,7 @@ var (
 )
 
 func init() {
-	common.InitSlogger()
+	logger.InitSlogger()
 	ctx = context.Background()
 
 	pgConnStr := common.GetEnvVarDefault("POSTGRES_URI", "postgres://user:password@localhost:5432/db?sslmode=disable")
@@ -88,7 +90,7 @@ func init() {
 	}
 	db.SetMaxIdleConns(pgIdleConns)
 	db.SetMaxOpenConns(pgOpenConns)
-	_, err = db.Exec(fmt.Sprintf("SET TIME ZONE '%s';", common.DefaultTimzone))
+	_, err = db.Exec(fmt.Sprintf("SET TIME ZONE '%s';", constants.DefaultTimzone))
 	if err != nil {
 		panic(errors.Join(err, errors.New("could not set timezone on db")))
 	}
@@ -122,7 +124,7 @@ func init() {
 		panic(errors.Join(err, errors.New("could not create eventsCol idx")))
 	}
 
-	oauthBaseCallback := common.ApiHostUrl + "v1/auth/%s/callback"
+	oauthBaseCallback := constants.ApiHostUrl + "v1/auth/%s/callback"
 
 	oauthConfigMap := make(map[string]oauth.Provider)
 	oauthConfigMap[oauth.GOOGLE_PROVIDER] = oauth.NewGoogleProvider(&oauth2.Config{
@@ -145,11 +147,11 @@ func init() {
 		Endpoint: github.Endpoint,
 	})
 
-	s3Host, err := common.ExtractHostFromUrl(common.S3Endpoint)
+	s3Host, err := common.ExtractHostFromUrl(constants.S3Endpoint)
 	if err != nil {
 		panic(errors.Join(err, errors.New("could not extract host from S3 endpoint")))
 	}
-	s3Secure, err := common.UrlIsSecure(common.S3Endpoint)
+	s3Secure, err := common.UrlIsSecure(constants.S3Endpoint)
 	if err != nil {
 		panic(errors.Join(err, errors.New("could not check if url is secure on S3 endpoint")))
 	}
@@ -161,7 +163,7 @@ func init() {
 				os.Getenv("S3_SECRET_ACCESS_KEY"),
 				"",
 			),
-			Region: common.S3Region,
+			Region: constants.S3Region,
 			Secure: s3Secure,
 		},
 	)
@@ -184,29 +186,29 @@ func init() {
 	authMiddleware = middlewares.NewAuthMiddlewareJwt(authService)
 	telemetryMiddleware = middlewares.NewTelemetryMiddleware(telemetryService)
 
-	authController = controllers.NewAuthController(authService, userService, emailService, oauthConfigMap)
-	userController = controllers.NewUserController(authService, userService, emailService, objectService)
-	organizationController = controllers.NewOrganizationController(userService, emailService, organizationService)
-	billingController = controllers.NewBillingController(billingService, emailService, userService)
+	authHandler = handlers.NewAuthHandler(authService, userService, emailService, oauthConfigMap)
+	userHandler = handlers.NewUserHandler(authService, userService, emailService, objectService)
+	organizationHandler = handlers.NewOrganizationHandler(userService, emailService, organizationService)
+	billingHandler = handlers.NewBillingHandler(billingService, emailService, userService)
 
 	router = gin.Default()
 	router.SetTrustedProxies([]string{"*"})
 
 	corsCfg := cors.DefaultConfig()
-	corsCfg.AllowOrigins = []string{common.ApiHostUrl, common.AppHostUrl}
+	corsCfg.AllowOrigins = []string{constants.ApiHostUrl, constants.AppHostUrl}
 	corsCfg.AllowCredentials = true
 	corsCfg.AddAllowHeaders("Authorization")
 
 	slog.Info(fmt.Sprintf("corsCfg: %+v", corsCfg))
 
 	router.Use(cors.New(corsCfg))
-	router.Use(limits.RequestSizeLimiter(common.MaxRequestSize))
+	router.Use(limits.RequestSizeLimiter(constants.MaxRequestSize))
 
 	docs.SwaggerInfo.Title = "Gopherbase"
 	docs.SwaggerInfo.Description = "Gopherbase"
 	docs.SwaggerInfo.Version = "1.0"
 	docs.SwaggerInfo.BasePath = ""
-	docs.SwaggerInfo.Host = strings.Split(common.ApiHostUrl, "://")[1]
+	docs.SwaggerInfo.Host = strings.Split(constants.ApiHostUrl, "://")[1]
 
 	if os.Getenv("GIN_MODE") == "release" {
 		docs.SwaggerInfo.Schemes = []string{"https"}
@@ -250,10 +252,10 @@ func main() {
 	router.Use(telemetryMiddleware.CollectApiCalls())
 
 	basePath := router.Group("/v1")
-	authController.RegisterRoutes(basePath, authMiddleware)
-	userController.RegisterRoutes(basePath, authMiddleware)
-	organizationController.RegisterRoutes(basePath, authMiddleware)
-	billingController.RegisterRoutes(basePath, authMiddleware)
+	authHandler.RegisterRoutes(basePath, authMiddleware)
+	userHandler.RegisterRoutes(basePath, authMiddleware)
+	organizationHandler.RegisterRoutes(basePath, authMiddleware)
+	billingHandler.RegisterRoutes(basePath, authMiddleware)
 
 	taskRunner.Dispatch()
 
