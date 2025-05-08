@@ -1,47 +1,19 @@
-<img src="public/preview.png" />
+# Neobrutalism components
 
-# Saas
+<img src="public/preview.png" alt="preview">
 
-Saas is a neobrutalism-styled nextjs tailwind template for saas landing pages.
+## Introduction
 
-## Get started
+Neobrutalism components are a collection of neobrutalism-styled components based on shadcn/ui. 
 
-[Create a new repo](https://github.com/neobrutalism-templates/saas/generate) from this template.
+## Documentation
 
-### Installation
+Visit [docs](https://www.neobrutalism.dev/docs) to get started.
 
-This template uses `pnpm` package manager so make sure you have it installed.
+## About 
 
-To install all dependencies run:
+I created this collection of components for people who want to learn more about neobrutalism style and to help them get started with creating neobrutalism layouts.
 
-```bash
-pnpm i
-```
+## License
 
-To run the app locally:
-
-```bash
-pnpm run dev
-```
-
-### Config
-
-- Generate the [/client/src/app/opengraph-image.txt](/client/src/app/opengraph-image.txt)
-- Generate the [/client/src/app/opengraph-image.alt.txt](/client/src/app/opengraph-image.alt.txt)
-- Inside `layout.tsx` update the metadata
-- Update the `favicon.ico`
-- Inside `page.tsx` update the content
-
-### Sections
-
-All content is split into sections so you can edit it more easily.
-
-### Styling
-
-To change the styling visit [styling docs](https://neobrutalism-components.vercel.app/docs/styling), and copy the desired styling to tailwind config like it's shown in the styling docs.
-
-### Build
-
-```sh
-pnpm run build
-```
+[MIT](https://github.com/ekmas/neobrutalism-components/blob/main/LICENSE)
