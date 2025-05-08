@@ -173,10 +173,10 @@ func init() {
 
 	authService = services.NewAuthServiceJwtImpl(os.Getenv("JWT_SECRET_KEY"), db)
 	userService = services.NewUserServicePgImpl(db)
-	if os.Getenv("RESEND_API_KEY") != "mock" {
-		emailService = services.NewEmailServiceResendImpl(os.Getenv("RESEND_API_KEY"), "./templates")
-	} else {
+	if os.Getenv("RESEND_API_KEY") == "mock" {
 		emailService = &services.EmailServiceMock{}
+	} else {
+		emailService = services.NewEmailServiceResendImpl(os.Getenv("RESEND_API_KEY"), "internal/templates")
 	}
 	organizationService = services.NewOrganizationServicePgImpl(db)
 	objectService = services.NewObjectServiceMinioImpl(minioClient)

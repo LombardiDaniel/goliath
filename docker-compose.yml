@@ -22,8 +22,8 @@ services:
       GOMAXPROCS: 1
       POSTGRES_URI: postgres://user:password@db:5432/db?sslmode=disable
       JWT_SECRET_KEY: jw_secret_key
-      # RESEND_API_KEY: re_123456
-      RESEND_API_KEY: mock
+      RESEND_API_KEY: re_123456
+      # RESEND_API_KEY: mock
       NO_REPLY_EMAIL: no-reply@example.com
       API_HOST_URL: http://localhost:8080/
       APP_HOST_URL: http://localhost:8080/
