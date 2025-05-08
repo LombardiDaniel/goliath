@@ -1,4 +1,4 @@
-module github.com/LombardiDaniel/gopherbase
+module github.com/LombardiDaniel/gopherbase/src
 
 go 1.24.2
 

@@ -1,8 +1,14 @@
 services:
+  # client:
+  #   container_name: client
+  #   build:
+  #     context: ./client
+  #     dockerfile: Dockerfile
+  #     target: dev
   app:
     container_name: app
     build:
-      context: .
+      context: ./src
       dockerfile: Dockerfile
       target: dev
     ports:
@@ -13,6 +19,7 @@ services:
           path: ./src/
     environment:
       GIN_MODE: debug # release
+      GOMAXPROCS: 1
       POSTGRES_URI: postgres://user:password@db:5432/db?sslmode=disable
       JWT_SECRET_KEY: jw_secret_key
       # RESEND_API_KEY: re_123456
