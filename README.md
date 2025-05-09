@@ -1,11 +1,11 @@
 [![Licence](https://img.shields.io/github/license/LombardiDaniel/goliath?style=for-the-badge)](./LICENSE)
 [![BuildStatus](https://img.shields.io/github/actions/workflow/status/LombardiDaniel/goliath/ci.yml?style=for-the-badge)](https://github.com/LombardiDaniel/goliath/actions)
 
-# GopherBase
+# Goliath
 
 Frontend: https://www.neobrutalism.dev/
 
-To rapidy bootstrap apps, base written in Go, for Go
+A template repo to rapidy bootstrap web-apps in Go.
 
 Dev Env:
 
