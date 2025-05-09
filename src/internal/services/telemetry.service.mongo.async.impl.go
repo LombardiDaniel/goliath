@@ -38,7 +38,7 @@ func (c *CounterMongoAsyncImpl) Increment(count uint64) {
 	c.val += count
 }
 
-func (c *CounterMongoAsyncImpl) Upload(ctx context.Context) error {
+func (c *CounterMongoAsyncImpl) Upload() error {
 	filter := bson.M{
 		"name": c.metricName,
 		"tags": c.tags,
@@ -51,7 +51,7 @@ func (c *CounterMongoAsyncImpl) Upload(ctx context.Context) error {
 
 	update := bson.M{"value": bson.M{"$inc": v}}
 	upsert := true
-	_, err := c.metricsCol.UpdateOne(ctx, filter, update, &options.UpdateOptions{Upsert: &upsert})
+	_, err := c.metricsCol.UpdateOne(context.TODO(), filter, update, &options.UpdateOptions{Upsert: &upsert})
 	return errors.Join(err, errors.New("could not increment counter"))
 }
 
@@ -101,7 +101,7 @@ func (s *TelemetryServiceMongoAsyncImpl) RecordMetric(ctx context.Context, metri
 	return nil
 }
 
-func (s *TelemetryServiceMongoAsyncImpl) Upload(ctx context.Context) error {
+func (s *TelemetryServiceMongoAsyncImpl) Upload() error {
 	for {
 		batch := common.Batch(s.metricCh, s.batchInsertSize)
 		if len(batch) == 0 {
@@ -111,7 +111,7 @@ func (s *TelemetryServiceMongoAsyncImpl) Upload(ctx context.Context) error {
 		for i, u := range batch {
 			docs[i] = u
 		}
-		_, err := s.metricsCol.InsertMany(ctx, docs)
+		_, err := s.metricsCol.InsertMany(context.TODO(), docs)
 		if err != nil {
 			return err
 		}
@@ -125,13 +125,13 @@ func (s *TelemetryServiceMongoAsyncImpl) Upload(ctx context.Context) error {
 		for i, u := range batch {
 			docs[i] = u
 		}
-		_, err := s.metricsCol.InsertMany(ctx, docs)
+		_, err := s.metricsCol.InsertMany(context.TODO(), docs)
 		if err != nil {
 			return err
 		}
 	}
 	for _, c := range s.counters {
-		err := c.Upload(ctx)
+		err := c.Upload()
 		if err != nil {
 			return err
 		}

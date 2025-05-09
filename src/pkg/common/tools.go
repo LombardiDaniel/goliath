@@ -38,12 +38,12 @@ func LoadHTMLTemplate(templatePath string) *template.Template {
 	return t
 }
 
-// GetEnvVarDefault retrieves the value of the specified environment variable. Returns a default value if the variable is not set.
-func GetEnvVarDefault(envVarName string, defaultVal string) string {
-	envVar, ok := os.LookupEnv(envVarName)
-
+// GetEnvVarDefault retrieves the value of the specified environment variable.
+// Returns a default value if the variable is not set.
+func GetEnvVarDefault(name string, def string) string {
+	envVar, ok := os.LookupEnv(name)
 	if !ok {
-		return defaultVal
+		return def
 	}
 
 	return envVar

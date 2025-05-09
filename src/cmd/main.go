@@ -18,6 +18,7 @@ import (
 	"github.com/LombardiDaniel/goliath/src/pkg/common"
 	"github.com/LombardiDaniel/goliath/src/pkg/constants"
 	"github.com/LombardiDaniel/goliath/src/pkg/daemons"
+	"github.com/LombardiDaniel/goliath/src/pkg/it"
 	"github.com/LombardiDaniel/goliath/src/pkg/logger"
 	"github.com/LombardiDaniel/goliath/src/pkg/oauth"
 	_ "github.com/lib/pq"
@@ -61,10 +62,6 @@ var (
 	telemetryMiddleware middlewares.TelemetryMiddleware
 
 	taskRunner daemons.TaskRunner
-
-	db *sql.DB
-
-	err error
 )
 
 func init() {
@@ -72,38 +69,22 @@ func init() {
 	ctx = context.Background()
 
 	pgConnStr := common.GetEnvVarDefault("POSTGRES_URI", "postgres://user:password@localhost:5432/db?sslmode=disable")
-	db, err = sql.Open("postgres", pgConnStr)
-	if err != nil {
-		panic(errors.Join(err, errors.New("could not connect to pgsql")))
-	}
-	err = db.Ping()
-	if err != nil {
+	db := it.Must(sql.Open("postgres", pgConnStr))
+	if err := db.Ping(); err != nil {
 		panic(errors.Join(err, errors.New("could not ping pgsql")))
 	}
-	pgIdleConns, err := strconv.Atoi(common.GetEnvVarDefault("POSTGRES_IDLE_CONNS", "2"))
-	if err != nil {
-		panic(errors.Join(err, errors.New("could not convert POSTGRES_IDLE_CONNS to int")))
-	}
-	pgOpenConns, err := strconv.Atoi(common.GetEnvVarDefault("POSTGRES_OPEN_CONNS", "10"))
-	if err != nil {
-		panic(errors.Join(err, errors.New("could not converto POSTGRES_OPEN_CONNS to int")))
-	}
+
+	pgIdleConns := it.Must(strconv.Atoi(common.GetEnvVarDefault("POSTGRES_IDLE_CONNS", "2")))
+	pgOpenConns := it.Must(strconv.Atoi(common.GetEnvVarDefault("POSTGRES_OPEN_CONNS", "10")))
 	db.SetMaxIdleConns(pgIdleConns)
 	db.SetMaxOpenConns(pgOpenConns)
-	_, err = db.Exec(fmt.Sprintf("SET TIME ZONE '%s';", constants.DefaultTimzone))
-	if err != nil {
-		panic(errors.Join(err, errors.New("could not set timezone on db")))
-	}
+	it.Must(db.Exec(fmt.Sprintf("SET TIME ZONE '%s';", constants.DefaultTimzone)))
 
 	mongoConn := options.Client().ApplyURI(
 		common.GetEnvVarDefault("MONGO_URI", "mongodb://localhost:27017"),
 	)
-	mongoClient, err := mongo.Connect(ctx, mongoConn)
-	if err != nil {
-		panic(errors.Join(err, errors.New("could not connect to mongodb")))
-	}
-	err = mongoClient.Ping(ctx, readpref.Primary())
-	if err != nil {
+	mongoClient := it.Must(mongo.Connect(ctx, mongoConn))
+	if err := mongoClient.Ping(ctx, readpref.Primary()); err != nil {
 		panic(errors.Join(err, errors.New("could not ping mongodb")))
 	}
 
@@ -111,18 +92,10 @@ func init() {
 		Keys:    bson.M{"ts": 1},
 		Options: options.Index(),
 	}
-
 	metricsCol := mongoClient.Database("telemetry").Collection("metrics")
 	eventsCol := mongoClient.Database("telemetry").Collection("events")
-
-	_, err = metricsCol.Indexes().CreateOne(ctx, tsIdxModel)
-	if err != nil {
-		panic(errors.Join(err, errors.New("could not create metricsCol idx")))
-	}
-	_, err = eventsCol.Indexes().CreateOne(ctx, tsIdxModel)
-	if err != nil {
-		panic(errors.Join(err, errors.New("could not create eventsCol idx")))
-	}
+	it.Must(metricsCol.Indexes().CreateOne(ctx, tsIdxModel))
+	it.Must(eventsCol.Indexes().CreateOne(ctx, tsIdxModel))
 
 	oauthBaseCallback := constants.ApiHostUrl + "v1/auth/%s/callback"
 
@@ -147,15 +120,9 @@ func init() {
 		Endpoint: github.Endpoint,
 	})
 
-	s3Host, err := common.ExtractHostFromUrl(constants.S3Endpoint)
-	if err != nil {
-		panic(errors.Join(err, errors.New("could not extract host from S3 endpoint")))
-	}
-	s3Secure, err := common.UrlIsSecure(constants.S3Endpoint)
-	if err != nil {
-		panic(errors.Join(err, errors.New("could not check if url is secure on S3 endpoint")))
-	}
-	minioClient, err := minio.New(
+	s3Host := it.Must(common.ExtractHostFromUrl(constants.S3Endpoint))
+	s3Secure := it.Must(common.UrlIsSecure(constants.S3Endpoint))
+	minioClient := it.Must(minio.New(
 		s3Host,
 		&minio.Options{
 			Creds: credentials.NewStaticV4(
@@ -166,10 +133,7 @@ func init() {
 			Region: constants.S3Region,
 			Secure: s3Secure,
 		},
-	)
-	if err != nil {
-		panic(errors.Join(err, errors.New("could not conneect to minio")))
-	}
+	))
 
 	authService = services.NewAuthServiceJwtImpl(os.Getenv("JWT_SECRET_KEY"), db)
 	userService = services.NewUserServicePgImpl(db)
@@ -198,6 +162,7 @@ func init() {
 	corsCfg.AllowOrigins = []string{constants.ApiHostUrl, constants.AppHostUrl}
 	corsCfg.AllowCredentials = true
 	corsCfg.AddAllowHeaders("Authorization")
+	corsCfg.MaxAge = 24 * time.Hour
 
 	slog.Info(fmt.Sprintf("corsCfg: %+v", corsCfg))
 
@@ -225,13 +190,7 @@ func init() {
 	// Daemons
 	taskRunner.RegisterTask(24*time.Hour, userService.DeleteExpiredPwResets, 1)
 	taskRunner.RegisterTask(24*time.Hour, organizationService.DeleteExpiredOrgInvites, 1)
-	taskRunner.RegisterTask(
-		time.Second,
-		func() error {
-			return telemetryService.Upload(context.Background())
-		},
-		1,
-	)
+	taskRunner.RegisterTask(time.Second, telemetryService.Upload, 1)
 }
 
 // @securityDefinitions.apiKey JWT
