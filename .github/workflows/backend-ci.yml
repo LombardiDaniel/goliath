@@ -1,9 +1,11 @@
-name: ci
+name: backend-ci
 
 on:
   push:
+    paths:
+      - src
     branches:
-      - "main"
+      - main
 
 jobs:
   build:
@@ -23,8 +25,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: .
-          file: Dockerfile
+          context: src
+          file: src/Dockerfile
           target: server
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:latest
