@@ -1,5 +1,5 @@
 [![Licence](https://img.shields.io/github/license/LombardiDaniel/goliath?style=for-the-badge)](./LICENSE)
-[![BuildStatus](https://img.shields.io/github/actions/workflow/status/LombardiDaniel/goliath/ci.yml?style=for-the-badge)](https://github.com/LombardiDaniel/goliath/actions)
+[![Build](https://img.shields.io/github/actions/workflow/status/LombardiDaniel/goliath/backend-ci.yml?style=for-the-badge)](https://github.com/LombardiDaniel/goliath/actions)
 
 # Goliath
 
