@@ -42,8 +42,8 @@ func IsSubset[T comparable](subset []T, superset []T) bool {
 	}
 	for _, value := range subset {
 		if !checkMap[value] {
-			return false // Return false if an element is not found in the superset
+			return false // Early return if not found
 		}
 	}
-	return true // Return true if all elements are found in the superset
+	return true
 }

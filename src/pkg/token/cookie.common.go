@@ -64,7 +64,6 @@ func ClearAuthCookie(ctx *gin.Context) {
 		"Set-Cookie",
 		makeAuthCookie("", domain),
 	)
-
 }
 
 func makeAuthCookie(value string, domain string) string {

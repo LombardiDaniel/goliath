@@ -2,12 +2,10 @@ package common
 
 import (
 	"crypto/rand"
-	"log/slog"
 	"math/big"
 	"net/url"
 	"os"
 	"strings"
-	"text/template"
 )
 
 // SplitName splits a full name into first and last name. If no last name exists, it returns an empty string.
@@ -25,17 +23,6 @@ func SplitName(fullName string) (string, string) {
 	}
 
 	return firstName, names[1]
-}
-
-// LoadHTMLTemplate loads an HTML template from the specified file path. Panics if the file cannot be loaded.
-func LoadHTMLTemplate(templatePath string) *template.Template {
-	t, err := template.ParseFiles(templatePath)
-	if err != nil {
-		slog.Error(err.Error())
-		panic(err)
-	}
-
-	return t
 }
 
 // GetEnvVarDefault retrieves the value of the specified environment variable.

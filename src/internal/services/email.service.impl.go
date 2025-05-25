@@ -8,8 +8,8 @@ import (
 	"text/template"
 
 	"github.com/LombardiDaniel/goliath/src/internal/domain"
-	"github.com/LombardiDaniel/goliath/src/pkg/common"
 	"github.com/LombardiDaniel/goliath/src/pkg/constants"
+	"github.com/LombardiDaniel/goliath/src/pkg/it"
 	"github.com/resendlabs/resend-go"
 )
 
@@ -47,11 +47,11 @@ func NewEmailServiceResendImpl(resendApiKey string, templatesDir string) EmailSe
 
 	return &EmailServiceResendImpl{
 		resendClient:               resend.NewClient(resendApiKey),
-		emailConfirmationTemplate:  common.LoadHTMLTemplate(filepath.Join(templatesDir, "email-confirmation.html")),
-		accountCreationTemplate:    common.LoadHTMLTemplate(filepath.Join(templatesDir, "account-created.html")),
-		organizationInviteTemplate: common.LoadHTMLTemplate(filepath.Join(templatesDir, "organization-invite.html")),
-		passwordResetTemplate:      common.LoadHTMLTemplate(filepath.Join(templatesDir, "password-reset.html")),
-		paymentAcceptedTemplate:    common.LoadHTMLTemplate(filepath.Join(templatesDir, "payment-accepted.html")),
+		emailConfirmationTemplate:  it.Must(template.ParseFiles(filepath.Join(templatesDir, "email-confirmation.html"))),
+		accountCreationTemplate:    it.Must(template.ParseFiles(filepath.Join(templatesDir, "account-created.html"))),
+		organizationInviteTemplate: it.Must(template.ParseFiles(filepath.Join(templatesDir, "organization-invite.html"))),
+		passwordResetTemplate:      it.Must(template.ParseFiles(filepath.Join(templatesDir, "password-reset.html"))),
+		paymentAcceptedTemplate:    it.Must(template.ParseFiles(filepath.Join(templatesDir, "payment-accepted.html"))),
 		usersConfirmUrl:            usersConfirmUrl,
 		acceptInviteUrl:            acceptInviteUrl,
 		passwordResetUrl:           passwordResetUrl,
