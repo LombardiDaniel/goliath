@@ -169,8 +169,8 @@ func init() {
 	router.Use(cors.New(corsCfg))
 	router.Use(limits.RequestSizeLimiter(constants.MaxRequestSize))
 
-	docs.SwaggerInfo.Title = "Gopherbase"
-	docs.SwaggerInfo.Description = "Gopherbase"
+	docs.SwaggerInfo.Title = "Goliath"
+	docs.SwaggerInfo.Description = "Goliath"
 	docs.SwaggerInfo.Version = "1.0"
 	docs.SwaggerInfo.BasePath = ""
 	docs.SwaggerInfo.Host = strings.Split(constants.ApiHostUrl, "://")[1]
