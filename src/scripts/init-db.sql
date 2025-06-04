@@ -66,7 +66,7 @@ CREATE TABLE organization_user_permissions (
     permission INT DEFAULT 0 NOT NULL,
 
     PRIMARY KEY (action_name, organization_id, user_id)
-)
+);
 
 -- org invites
 CREATE TABLE organization_invites (

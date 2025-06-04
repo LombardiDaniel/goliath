@@ -29,7 +29,7 @@ type EmailServiceResendImpl struct {
 	passwordResetUrl string
 }
 
-func NewEmailServiceResendImpl(resendApiKey string, templatesDir string) EmailService {
+func NewEmailServiceResendImpl(resendClient *resend.Client, templatesDir string) EmailService {
 	usersConfirmUrl, err := url.JoinPath(constants.ApiHostUrl, "/v1/users/confirm")
 	if err != nil {
 		panic(err)
@@ -46,7 +46,7 @@ func NewEmailServiceResendImpl(resendApiKey string, templatesDir string) EmailSe
 	}
 
 	return &EmailServiceResendImpl{
-		resendClient:               resend.NewClient(resendApiKey),
+		resendClient:               resendClient,
 		emailConfirmationTemplate:  it.Must(template.ParseFiles(filepath.Join(templatesDir, "email-confirmation.html"))),
 		accountCreationTemplate:    it.Must(template.ParseFiles(filepath.Join(templatesDir, "account-created.html"))),
 		organizationInviteTemplate: it.Must(template.ParseFiles(filepath.Join(templatesDir, "organization-invite.html"))),

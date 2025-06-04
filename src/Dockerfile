@@ -10,7 +10,7 @@ RUN go mod download
 
 COPY ./ ./
 
-RUN swag init -d cmd
+RUN swag init --parseDependency --parseInternal -g cmd/main.go
 CMD ["go", "run", "cmd/main.go"]
 
 #### - TESTS - ####
@@ -38,7 +38,7 @@ RUN go mod download
 
 COPY ./ ./
 
-RUN swag init -d cmd && \
+RUN swag init --parseDependency --parseInternal -g cmd/main.go && \
     go build -o /bin/main cmd/main.go
 
 

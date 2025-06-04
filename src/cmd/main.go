@@ -1,159 +1,58 @@
 package main
 
 import (
-	"context"
-	"database/sql"
-	"errors"
+	"flag"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
-	"strconv"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
-	"github.com/LombardiDaniel/goliath/src/internal/handlers"
-	"github.com/LombardiDaniel/goliath/src/internal/middlewares"
-	"github.com/LombardiDaniel/goliath/src/internal/services"
-	"github.com/LombardiDaniel/goliath/src/pkg/common"
+	"github.com/LombardiDaniel/goliath/src/internal/di"
 	"github.com/LombardiDaniel/goliath/src/pkg/constants"
-	"github.com/LombardiDaniel/goliath/src/pkg/daemons"
 	"github.com/LombardiDaniel/goliath/src/pkg/it"
 	"github.com/LombardiDaniel/goliath/src/pkg/logger"
-	"github.com/LombardiDaniel/goliath/src/pkg/oauth"
 	_ "github.com/lib/pq"
-	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/github"
-	"golang.org/x/oauth2/google"
 
 	"github.com/gin-contrib/cors"
 	limits "github.com/gin-contrib/size"
 	"github.com/gin-gonic/gin"
 
+	"github.com/LombardiDaniel/goliath/src/docs"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/swaggo/swag/example/basic/docs"
 )
 
 var (
-	ctx    context.Context
 	router *gin.Engine
 
-	authService         services.AuthService
-	userService         services.UserService
-	emailService        services.EmailService
-	organizationService services.OrganizationService
-	objectService       services.ObjectService
-	billingService      services.BillingService
-	telemetryService    services.TelemetryService
+	container *di.Container
 
-	authHandler         handlers.AuthHandler
-	userHandler         handlers.UserHandler
-	organizationHandler handlers.OrganizationHandler
-	billingHandler      handlers.BillingHandler
-
-	authMiddleware      middlewares.AuthMiddleware
-	telemetryMiddleware middlewares.TelemetryMiddleware
-
-	taskRunner daemons.TaskRunner
+	port *string
+	env  *string
 )
 
 func init() {
 	logger.InitSlogger()
-	ctx = context.Background()
 
-	pgConnStr := common.GetEnvVarDefault("POSTGRES_URI", "postgres://user:password@localhost:5432/db?sslmode=disable")
-	db := it.Must(sql.Open("postgres", pgConnStr))
-	if err := db.Ping(); err != nil {
-		panic(errors.Join(err, errors.New("could not ping pgsql")))
+	port = flag.String("p", "8080", "Port to run the server on")
+	env = flag.String("e", "dev", "Sets the env as dev/prod")
+	flag.Parse()
+
+	allowedEnvs := map[di.Env]bool{
+		di.DevEnv:  true,
+		di.ProdEnv: true,
 	}
 
-	pgIdleConns := it.Must(strconv.Atoi(common.GetEnvVarDefault("POSTGRES_IDLE_CONNS", "2")))
-	pgOpenConns := it.Must(strconv.Atoi(common.GetEnvVarDefault("POSTGRES_OPEN_CONNS", "10")))
-	db.SetMaxIdleConns(pgIdleConns)
-	db.SetMaxOpenConns(pgOpenConns)
-	it.Must(db.Exec(fmt.Sprintf("SET TIME ZONE '%s';", constants.DefaultTimzone)))
-
-	mongoConn := options.Client().ApplyURI(
-		common.GetEnvVarDefault("MONGO_URI", "mongodb://localhost:27017"),
-	)
-	mongoClient := it.Must(mongo.Connect(ctx, mongoConn))
-	if err := mongoClient.Ping(ctx, readpref.Primary()); err != nil {
-		panic(errors.Join(err, errors.New("could not ping mongodb")))
+	envVal := di.Env(*env)
+	if !allowedEnvs[envVal] {
+		panic(fmt.Sprintf("invalid environment: %s", envVal))
 	}
 
-	tsIdxModel := mongo.IndexModel{
-		Keys:    bson.M{"ts": 1},
-		Options: options.Index(),
-	}
-	metricsCol := mongoClient.Database("telemetry").Collection("metrics")
-	eventsCol := mongoClient.Database("telemetry").Collection("events")
-	it.Must(metricsCol.Indexes().CreateOne(ctx, tsIdxModel))
-	it.Must(eventsCol.Indexes().CreateOne(ctx, tsIdxModel))
-
-	oauthBaseCallback := constants.ApiHostUrl + "v1/auth/%s/callback"
-
-	oauthConfigMap := make(map[string]oauth.Provider)
-	oauthConfigMap[oauth.GOOGLE_PROVIDER] = oauth.NewGoogleProvider(&oauth2.Config{
-		RedirectURL:  fmt.Sprintf(oauthBaseCallback, oauth.GOOGLE_PROVIDER),
-		ClientID:     os.Getenv("OAUTH_GOOGLE_CLIENT_ID"),
-		ClientSecret: os.Getenv("OAUTH_GOOGLE_SECRET"),
-		Scopes: []string{
-			"https://www.googleapis.com/auth/userinfo.email",
-			"https://www.googleapis.com/auth/userinfo.profile",
-		},
-		Endpoint: google.Endpoint,
-	})
-	oauthConfigMap[oauth.GITHUB_PROVIDER] = oauth.NewGithubProvider(&oauth2.Config{
-		RedirectURL:  fmt.Sprintf(oauthBaseCallback, oauth.GITHUB_PROVIDER),
-		ClientID:     os.Getenv("OAUTH_GITHUB_CLIENT_ID"),
-		ClientSecret: os.Getenv("OAUTH_GITHUB_SECRET"),
-		Scopes: []string{
-			"read:user",
-		},
-		Endpoint: github.Endpoint,
-	})
-
-	s3Host := it.Must(common.ExtractHostFromUrl(constants.S3Endpoint))
-	s3Secure := it.Must(common.UrlIsSecure(constants.S3Endpoint))
-	minioClient := it.Must(minio.New(
-		s3Host,
-		&minio.Options{
-			Creds: credentials.NewStaticV4(
-				os.Getenv("S3_ACCESS_KEY_ID"),
-				os.Getenv("S3_SECRET_ACCESS_KEY"),
-				"",
-			),
-			Region: constants.S3Region,
-			Secure: s3Secure,
-		},
-	))
-
-	authService = services.NewAuthServiceJwtImpl(os.Getenv("JWT_SECRET_KEY"), db)
-	userService = services.NewUserServicePgImpl(db)
-	if os.Getenv("RESEND_API_KEY") == "mock" {
-		emailService = &services.EmailServiceMock{}
-	} else {
-		emailService = services.NewEmailServiceResendImpl(os.Getenv("RESEND_API_KEY"), "internal/templates")
-	}
-	organizationService = services.NewOrganizationServicePgImpl(db)
-	objectService = services.NewObjectServiceMinioImpl(minioClient)
-	billingService = services.NewBillingService(db, os.Getenv("STRIPE_API_KEY"))
-	telemetryService = services.NewTelemetryServiceMongoAsyncImpl(mongoClient, metricsCol, eventsCol, 100)
-
-	authMiddleware = middlewares.NewAuthMiddlewareJwt(authService)
-	telemetryMiddleware = middlewares.NewTelemetryMiddleware(telemetryService)
-
-	authHandler = handlers.NewAuthHandler(authService, userService, emailService, oauthConfigMap)
-	userHandler = handlers.NewUserHandler(authService, userService, emailService, objectService)
-	organizationHandler = handlers.NewOrganizationHandler(userService, emailService, organizationService)
-	billingHandler = handlers.NewBillingHandler(billingService, emailService, userService)
+	container = it.Must(di.NewContainer(envVal))
 
 	router = gin.Default()
 	router.SetTrustedProxies([]string{"*"})
@@ -187,10 +86,7 @@ func init() {
 		ctx.String(http.StatusMovedPermanently, "MovedPermanently")
 	})
 
-	// Daemons
-	taskRunner.RegisterTask(24*time.Hour, userService.DeleteExpiredPwResets, 1)
-	taskRunner.RegisterTask(24*time.Hour, organizationService.DeleteExpiredOrgInvites, 1)
-	taskRunner.RegisterTask(time.Second, telemetryService.Upload, 1)
+	container.Setup(router)
 }
 
 // @securityDefinitions.apiKey JWT
@@ -202,21 +98,18 @@ func init() {
 // @name Authorization
 // @description "Type 'Bearer $TOKEN' to correctly set the API Key"
 func main() {
+	container.DispatchAsync()
 
-	// LB healthcheck
-	router.GET("/", func(ctx *gin.Context) {
-		ctx.String(http.StatusOK, "OK")
-	})
+	go func() {
+		if err := router.Run(":" + *port); err != nil {
+			slog.Error(err.Error())
+			os.Exit(1)
+		}
+	}()
+	slog.Info("Server running on port " + *port)
 
-	router.Use(telemetryMiddleware.CollectApiCalls())
-
-	basePath := router.Group("/v1")
-	authHandler.RegisterRoutes(basePath, authMiddleware)
-	userHandler.RegisterRoutes(basePath, authMiddleware)
-	organizationHandler.RegisterRoutes(basePath, authMiddleware)
-	billingHandler.RegisterRoutes(basePath, authMiddleware)
-
-	taskRunner.Dispatch()
-
-	slog.Error(router.Run(":8080").Error())
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	slog.Info("Shutting down server...")
 }
