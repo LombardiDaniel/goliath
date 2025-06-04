@@ -11,17 +11,16 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/LombardiDaniel/goliath/src/docs"
 	"github.com/LombardiDaniel/goliath/src/internal/di"
 	"github.com/LombardiDaniel/goliath/src/pkg/constants"
 	"github.com/LombardiDaniel/goliath/src/pkg/it"
 	"github.com/LombardiDaniel/goliath/src/pkg/logger"
-	_ "github.com/lib/pq"
 
 	"github.com/gin-contrib/cors"
 	limits "github.com/gin-contrib/size"
 	"github.com/gin-gonic/gin"
-
-	"github.com/LombardiDaniel/goliath/src/docs"
+	_ "github.com/lib/pq"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
