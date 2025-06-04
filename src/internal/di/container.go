@@ -10,6 +10,7 @@ import (
 	"github.com/LombardiDaniel/goliath/src/internal/middlewares"
 	"github.com/LombardiDaniel/goliath/src/internal/services"
 	"github.com/LombardiDaniel/goliath/src/pkg/daemons"
+
 	"github.com/gin-gonic/gin"
 )
 
