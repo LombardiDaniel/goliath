@@ -11,7 +11,7 @@ const (
 	DefaultTimzone           string = "GMT-3"
 	GinCtxJwtClaimKeyName    string = "jwtClaims"
 	JwtTimeoutSecs           int    = 30 * 60
-	OptLen                   int    = 128
+	OtpLen                   int    = 128
 	OrgInviteTimeoutDays     int    = 15
 	PasswordResetTimeoutDays int    = 1
 	MaxRequestSize           int64  = 5 * 1024 * 1024 // 5MB default

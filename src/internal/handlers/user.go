@@ -163,7 +163,7 @@ func (c *UserHandler) InitResetPassword(ctx *gin.Context) {
 		return
 	}
 
-	otp, err := common.GenerateRandomString(constants.OptLen)
+	otp, err := common.GenerateRandomString(constants.OtpLen)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadRequest, err.Error())
