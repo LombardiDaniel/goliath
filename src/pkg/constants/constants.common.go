@@ -19,7 +19,7 @@ const (
 
 var (
 	ProjectName                       string = common.GetEnvVarDefault("PROJECT_NAME", "goliath")
-	NoreplyEmail                      string = common.GetEnvVarDefault("NO_REPLY_EMAIL", "no-reply@example.com")
+	NoreplyEmail                      string = common.GetEnvVarDefault("NOREPLY_EMAIL", "no-reply@example.com")
 	AppHostUrl                        string = common.GetEnvVarDefault("APP_HOST_URL", "http://127.0.0.1:8080/")
 	ApiHostUrl                        string = common.GetEnvVarDefault("API_HOST_URL", "http://127.0.0.1:8080/")
 	JwtCookieName                     string = ProjectName + "_jwt"
