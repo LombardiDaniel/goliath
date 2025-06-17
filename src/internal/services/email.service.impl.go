@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"net/url"
-	"path/filepath"
 	"text/template"
 
 	"github.com/LombardiDaniel/goliath/src/internal/domain"
@@ -29,7 +28,7 @@ type EmailServiceResendImpl struct {
 	passwordResetUrl string
 }
 
-func NewEmailServiceResendImpl(resendClient *resend.Client, templatesDir string) EmailService {
+func NewEmailServiceResendImpl(resendClient *resend.Client) EmailService {
 	usersConfirmUrl, err := url.JoinPath(constants.ApiHostUrl, "/v1/users/confirm")
 	if err != nil {
 		panic(err)
@@ -47,11 +46,11 @@ func NewEmailServiceResendImpl(resendClient *resend.Client, templatesDir string)
 
 	return &EmailServiceResendImpl{
 		resendClient:               resendClient,
-		emailConfirmationTemplate:  it.Must(template.ParseFiles(filepath.Join(templatesDir, "email-confirmation.html"))),
-		accountCreationTemplate:    it.Must(template.ParseFiles(filepath.Join(templatesDir, "account-created.html"))),
-		organizationInviteTemplate: it.Must(template.ParseFiles(filepath.Join(templatesDir, "organization-invite.html"))),
-		passwordResetTemplate:      it.Must(template.ParseFiles(filepath.Join(templatesDir, "password-reset.html"))),
-		paymentAcceptedTemplate:    it.Must(template.ParseFiles(filepath.Join(templatesDir, "payment-accepted.html"))),
+		emailConfirmationTemplate:  it.Must(template.ParseFiles("internal/templates/email-confirmation.html")),
+		accountCreationTemplate:    it.Must(template.ParseFiles("internal/templates/account-created.html")),
+		organizationInviteTemplate: it.Must(template.ParseFiles("internal/templates/organization-invite.html")),
+		passwordResetTemplate:      it.Must(template.ParseFiles("internal/templates/password-reset.html")),
+		paymentAcceptedTemplate:    it.Must(template.ParseFiles("internal/templates/payment-accepted.html")),
 		usersConfirmUrl:            usersConfirmUrl,
 		acceptInviteUrl:            acceptInviteUrl,
 		passwordResetUrl:           passwordResetUrl,

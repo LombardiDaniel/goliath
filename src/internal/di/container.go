@@ -51,7 +51,7 @@ func NewContainer(env Env) (*Container, error) {
 	if os.Getenv("RESEND_API_KEY") == "mock" {
 		emailService = &services.EmailServiceMock{}
 	} else {
-		emailService = services.NewEmailServiceResendImpl(c.ResendClient, "internal/templates")
+		emailService = services.NewEmailServiceResendImpl(c.ResendClient)
 	}
 	organizationService := services.NewOrganizationServicePgImpl(c.PostgressConn)
 	objectService := services.NewObjectServiceMinioImpl(c.MinioClient)
