@@ -1,9 +1,0 @@
-node_modules
-.next
-.vercel
-dist
-pnpm-lock.yaml
-public
-*.mdx
-*.md
-src/data/stars.ts
