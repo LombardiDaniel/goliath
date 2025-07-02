@@ -12,21 +12,21 @@ import (
 var (
 	ginMode string = os.Getenv("GIN_MODE")
 	secure  bool   = ginMode == "release"
-	domain  string = getCookieDomain()
+	models  string = getCookiemodels()
 )
 
-func getCookieDomain() string {
-	cookieDomain := ""
+func getCookiemodels() string {
+	cookiemodels := ""
 	if secure {
-		cookieDomain = strings.SplitN(constants.ApiHostUrl, "://", 2)[1]
-		if cookieDomain[len(cookieDomain)-1] == '/' {
-			cookieDomain = cookieDomain[0 : len(cookieDomain)-1]
+		cookiemodels = strings.SplitN(constants.ApiHostUrl, "://", 2)[1]
+		if cookiemodels[len(cookiemodels)-1] == '/' {
+			cookiemodels = cookiemodels[0 : len(cookiemodels)-1]
 		}
 	}
 
-	// slog.Info("Cookie Domain: " + cookieDomain)
+	// slog.Info("Cookie models: " + cookiemodels)
 
-	return cookieDomain
+	return cookiemodels
 }
 
 func GetClaimsFromGinCtx[T any](ctx *gin.Context) (T, error) {
@@ -47,7 +47,7 @@ func GetClaimsFromGinCtx[T any](ctx *gin.Context) (T, error) {
 func SetCookieForApp(ctx *gin.Context, cookieName string, value string) {
 	ctx.Header(
 		"Set-Cookie",
-		makeCookie(cookieName, value, constants.JwtTimeoutSecs, "/", domain, secure, true),
+		makeCookie(cookieName, value, constants.JwtTimeoutSecs, "/", models, secure, true),
 	)
 
 }
@@ -55,30 +55,30 @@ func SetCookieForApp(ctx *gin.Context, cookieName string, value string) {
 func SetAuthCookie(ctx *gin.Context, token string) {
 	ctx.Header(
 		"Set-Cookie",
-		makeAuthCookie(token, domain),
+		makeAuthCookie(token, models),
 	)
 }
 
 func ClearAuthCookie(ctx *gin.Context) {
 	ctx.Header(
 		"Set-Cookie",
-		makeAuthCookie("", domain),
+		makeAuthCookie("", models),
 	)
 }
 
-func makeAuthCookie(value string, domain string) string {
-	return makeCookie(constants.JwtCookieName, value, constants.JwtTimeoutSecs, "/", domain, secure, true)
+func makeAuthCookie(value string, models string) string {
+	return makeCookie(constants.JwtCookieName, value, constants.JwtTimeoutSecs, "/", models, secure, true)
 }
 
-func makeCookie(name string, value string, maxAge int, path string, domain string, secure bool, httpOnly bool) string {
+func makeCookie(name string, value string, maxAge int, path string, models string, secure bool, httpOnly bool) string {
 	cookieStr := ""
 
 	cookieStr += name + "=" + value + "; "
 	cookieStr += "Path" + "=" + path + "; "
 	cookieStr += "Max-Age" + "=" + strconv.Itoa(maxAge) + "; "
 
-	if domain != "" {
-		cookieStr += "Domain" + "=" + domain + "; "
+	if models != "" {
+		cookieStr += "models" + "=" + models + "; "
 	}
 
 	if httpOnly {

@@ -6,9 +6,9 @@ import (
 
 	"log/slog"
 
-	"github.com/LombardiDaniel/goliath/src/internal/domain"
 	"github.com/LombardiDaniel/goliath/src/internal/dto"
 	"github.com/LombardiDaniel/goliath/src/internal/middlewares"
+	"github.com/LombardiDaniel/goliath/src/internal/models"
 	"github.com/LombardiDaniel/goliath/src/internal/services"
 	"github.com/LombardiDaniel/goliath/src/pkg/constants"
 	"github.com/LombardiDaniel/goliath/src/pkg/oauth"
@@ -51,7 +51,7 @@ func NewAuthHandler(
 // @Produce json
 // @Param email formData string true "User credentials"
 // @Param password formData string true "User credentials"
-// @Success 200 {object} domain.JwtClaimsOutput
+// @Success 200 {object} models.JwtClaimsOutput
 // @Failure 400 string BadRequest
 // @Failure 401 string Unauthorized
 // @Failure 502 string BadGateway
@@ -107,7 +107,7 @@ func (c *AuthHandler) Login(ctx *gin.Context) {
 // @Description Mock Endpoint to test validation of JSON Web Token (JWT) in Headers or Cookie
 // @Consume application/json
 // @Produce json
-// @Success 200 {object} domain.JwtClaimsOutput
+// @Success 200 {object} models.JwtClaimsOutput
 // @Failure 400 string BadRequest
 // @Failure 401 string Unauthorized
 // @Failure 502 string BadGateway
@@ -119,7 +119,7 @@ func (c *AuthHandler) Validate(ctx *gin.Context) {
 		return
 	}
 
-	userClaims, ok := userClaimsRaw.(domain.JwtClaims)
+	userClaims, ok := userClaimsRaw.(models.JwtClaims)
 	if !ok {
 		ctx.String(http.StatusBadGateway, "BadGateay")
 		return
@@ -147,7 +147,7 @@ func (c *AuthHandler) Logout(ctx *gin.Context) {
 // @Description Sets the current User Org on JWT
 // @Produce json
 // @Param orgId path string true "orgId"
-// @Success 200 		{object} 	domain.JwtClaimsOutput
+// @Success 200 		{object} 	models.JwtClaimsOutput
 // @Failure 400 		{string} 	ErrorResponse "Bad Request"
 // @Failure 409 		{string} 	ErrorResponse "Conflict"
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
@@ -155,7 +155,7 @@ func (c *AuthHandler) Logout(ctx *gin.Context) {
 func (c *AuthHandler) SetOrg(ctx *gin.Context) {
 	orgId := ctx.Param("orgId")
 
-	claims, err := token.GetClaimsFromGinCtx[domain.JwtClaims](ctx)
+	claims, err := token.GetClaimsFromGinCtx[models.JwtClaims](ctx)
 	if err != nil {
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return

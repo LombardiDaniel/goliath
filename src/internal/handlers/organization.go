@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/LombardiDaniel/goliath/src/internal/domain"
 	"github.com/LombardiDaniel/goliath/src/internal/dto"
 	"github.com/LombardiDaniel/goliath/src/internal/middlewares"
+	"github.com/LombardiDaniel/goliath/src/internal/models"
 	"github.com/LombardiDaniel/goliath/src/internal/services"
 	"github.com/LombardiDaniel/goliath/src/pkg/common"
 	"github.com/LombardiDaniel/goliath/src/pkg/constants"
@@ -57,14 +57,14 @@ func (c *OrganizationHandler) CreateOrganization(ctx *gin.Context) {
 		return
 	}
 
-	user, err := token.GetClaimsFromGinCtx[domain.JwtClaims](ctx)
+	user, err := token.GetClaimsFromGinCtx[models.JwtClaims](ctx)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
 	}
 
-	org, err := domain.NewOrganization(createOrg.OrganizationName, user.UserId)
+	org, err := models.NewOrganization(createOrg.OrganizationName, user.UserId)
 	if err != nil {
 		slog.Error(fmt.Sprintf("Error while generating organization: %s", err.Error()))
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -108,7 +108,7 @@ func (c *OrganizationHandler) InviteToOrg(ctx *gin.Context) {
 		return
 	}
 
-	currUser, err := token.GetClaimsFromGinCtx[domain.JwtClaims](ctx)
+	currUser, err := token.GetClaimsFromGinCtx[models.JwtClaims](ctx)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -136,7 +136,7 @@ func (c *OrganizationHandler) InviteToOrg(ctx *gin.Context) {
 		return
 	}
 
-	inv := domain.NewOrganizationInvite(*currUser.OrganizationId, user.UserId, createInv.Perms, otp)
+	inv := models.NewOrganizationInvite(*currUser.OrganizationId, user.UserId, createInv.Perms, otp)
 	err = c.orgService.CreateOrganizationInvite(ctx, inv)
 	if err != nil {
 		slog.Error(err.Error())
@@ -208,7 +208,7 @@ func (c *OrganizationHandler) RemoveFromOrg(ctx *gin.Context) {
 		return
 	}
 
-	currUser, err := token.GetClaimsFromGinCtx[domain.JwtClaims](ctx)
+	currUser, err := token.GetClaimsFromGinCtx[models.JwtClaims](ctx)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -247,7 +247,7 @@ func (c *OrganizationHandler) ChangeOwner(ctx *gin.Context) {
 		return
 	}
 
-	currUser, err := token.GetClaimsFromGinCtx[domain.JwtClaims](ctx)
+	currUser, err := token.GetClaimsFromGinCtx[models.JwtClaims](ctx)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusBadGateway, "BadGateway")
@@ -286,13 +286,13 @@ func (c *OrganizationHandler) ChangeOwner(ctx *gin.Context) {
 func (c *OrganizationHandler) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware) {
 	g := rg.Group("/organizations")
 
-	adminPerms := map[string]domain.Permission{
-		"admin": domain.ReadWritePermission,
-		// "PUT:orgInvite": domain.ReadWritePermission,
+	adminPerms := map[string]models.Permission{
+		"admin": models.ReadWritePermission,
+		// "PUT:orgInvite": models.ReadWritePermission,
 	}
 
-	ownerPerms := map[string]domain.Permission{
-		"owner": domain.ReadWritePermission,
+	ownerPerms := map[string]models.Permission{
+		"owner": models.ReadWritePermission,
 	}
 
 	g.PUT("", authMiddleware.AuthorizeUser(), c.CreateOrganization)

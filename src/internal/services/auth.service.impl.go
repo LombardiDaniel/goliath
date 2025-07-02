@@ -6,7 +6,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/LombardiDaniel/goliath/src/internal/domain"
+	"github.com/LombardiDaniel/goliath/src/internal/models"
 	"github.com/LombardiDaniel/goliath/src/pkg/constants"
 	"github.com/LombardiDaniel/goliath/src/pkg/oauth"
 	"github.com/LombardiDaniel/goliath/src/pkg/validators"
@@ -31,7 +31,7 @@ func (s *AuthServiceJwtImpl) InitToken(ctx context.Context, userId uint32, email
 		return "", err
 	}
 
-	claims := domain.JwtClaims{
+	claims := models.JwtClaims{
 		UserId:         userId,
 		Email:          email,
 		OrganizationId: organizationId,
@@ -52,7 +52,7 @@ func (s *AuthServiceJwtImpl) InitToken(ctx context.Context, userId uint32, email
 	return tokenString, nil
 }
 
-func (s *AuthServiceJwtImpl) Permissions(ctx context.Context, userId uint32, organizationId *string) (map[string]domain.Permission, error) {
+func (s *AuthServiceJwtImpl) Permissions(ctx context.Context, userId uint32, organizationId *string) (map[string]models.Permission, error) {
 	q := `
 		SELECT
 			action_name,
@@ -67,10 +67,10 @@ func (s *AuthServiceJwtImpl) Permissions(ctx context.Context, userId uint32, org
 		return nil, err
 	}
 
-	actionPerms := make(map[string]domain.Permission)
+	actionPerms := make(map[string]models.Permission)
 	for rows.Next() {
 		var actionName string
-		var perm domain.Permission
+		var perm models.Permission
 		if err := rows.Scan(&actionName, &perm); err != nil {
 			return nil, err
 		}
@@ -96,8 +96,8 @@ func (s *AuthServiceJwtImpl) ValidateToken(tokenString string) error {
 	return nil
 }
 
-func (s *AuthServiceJwtImpl) ParseToken(tokenString string) (domain.JwtClaims, error) {
-	claims := domain.JwtClaims{}
+func (s *AuthServiceJwtImpl) ParseToken(tokenString string) (models.JwtClaims, error) {
+	claims := models.JwtClaims{}
 	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (any, error) {
 		return []byte(s.jwtSecretKey), nil
 	})
@@ -116,7 +116,7 @@ func (s *AuthServiceJwtImpl) ParseToken(tokenString string) (domain.JwtClaims, e
 }
 
 func (s *AuthServiceJwtImpl) InitPasswordResetToken(userId uint32) (string, error) {
-	claims := domain.JwtPasswordResetClaims{
+	claims := models.JwtPasswordResetClaims{
 		UserId:  userId,
 		Allowed: true,
 		StandardClaims: jwt.StandardClaims{
@@ -134,8 +134,8 @@ func (s *AuthServiceJwtImpl) InitPasswordResetToken(userId uint32) (string, erro
 
 	return tokenString, nil
 }
-func (s *AuthServiceJwtImpl) ParsePasswordResetToken(tokenString string) (domain.JwtPasswordResetClaims, error) {
-	claims := domain.JwtPasswordResetClaims{}
+func (s *AuthServiceJwtImpl) ParsePasswordResetToken(tokenString string) (models.JwtPasswordResetClaims, error) {
+	claims := models.JwtPasswordResetClaims{}
 	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (any, error) {
 		return []byte(s.jwtSecretKey), nil
 	})
@@ -153,8 +153,8 @@ func (s *AuthServiceJwtImpl) ParsePasswordResetToken(tokenString string) (domain
 	return claims, nil
 }
 
-func (s *AuthServiceJwtImpl) LoginOauth(ctx context.Context, oauthUser oauth.User) (domain.User, bool, error) {
-	user := domain.User{}
+func (s *AuthServiceJwtImpl) LoginOauth(ctx context.Context, oauthUser oauth.User) (models.User, bool, error) {
+	user := models.User{}
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return user, false, err

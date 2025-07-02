@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/LombardiDaniel/goliath/src/internal/domain"
+	"github.com/LombardiDaniel/goliath/src/internal/models"
 	"github.com/LombardiDaniel/goliath/src/pkg/constants"
 	"github.com/LombardiDaniel/goliath/src/pkg/validators"
 )
@@ -21,7 +21,7 @@ func NewOrganizationServicePgImpl(db *sql.DB) OrganizationService {
 	}
 }
 
-func (s *OrganizationServicePgImpl) GetOrganization(ctx context.Context, orgId string) (domain.Organization, error) {
+func (s *OrganizationServicePgImpl) GetOrganization(ctx context.Context, orgId string) (models.Organization, error) {
 	query := `
 		SELECT
 			organization_id,
@@ -36,7 +36,7 @@ func (s *OrganizationServicePgImpl) GetOrganization(ctx context.Context, orgId s
 			organization_id = $1;
 	`
 
-	org := domain.Organization{}
+	org := models.Organization{}
 
 	err := s.db.QueryRowContext(ctx, query, orgId).Scan(
 		&org.OrganizationId,
@@ -49,7 +49,7 @@ func (s *OrganizationServicePgImpl) GetOrganization(ctx context.Context, orgId s
 	return org, errors.Join(err, validators.FilterSqlPgError(err))
 }
 
-func (s *OrganizationServicePgImpl) CreateOrganization(ctx context.Context, org domain.Organization) error {
+func (s *OrganizationServicePgImpl) CreateOrganization(ctx context.Context, org models.Organization) error {
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return errors.Join(err, constants.ErrDbTransactionCreate)
@@ -79,9 +79,9 @@ func (s *OrganizationServicePgImpl) CreateOrganization(ctx context.Context, org 
 		return errors.Join(err, validators.FilterSqlPgError(err))
 	}
 
-	perms := map[string]domain.Permission{
-		"admin": domain.AllPermission,
-		"owner": domain.AllPermission,
+	perms := map[string]models.Permission{
+		"admin": models.AllPermission,
+		"owner": models.AllPermission,
 	}
 	for action, perm := range perms {
 		_, err = tx.ExecContext(ctx, `
@@ -102,7 +102,7 @@ func (s *OrganizationServicePgImpl) CreateOrganization(ctx context.Context, org 
 	return errors.Join(err, validators.FilterSqlPgError(err))
 }
 
-func (s *OrganizationServicePgImpl) CreateOrganizationInvite(ctx context.Context, invite domain.OrganizationInvite) error {
+func (s *OrganizationServicePgImpl) CreateOrganizationInvite(ctx context.Context, invite models.OrganizationInvite) error {
 	query := `
 		INSERT INTO organization_invites (
 			organization_id,
@@ -135,7 +135,7 @@ func (s *OrganizationServicePgImpl) ConfirmOrganizationInvite(ctx context.Contex
 	}
 	defer tx.Rollback()
 
-	var inv domain.OrganizationInvite
+	var inv models.OrganizationInvite
 	var permsString string
 	err = tx.QueryRowContext(ctx, `
 		SELECT
@@ -284,7 +284,7 @@ func (s *OrganizationServicePgImpl) DeleteExpiredOrgInvites() error {
 	return errors.Join(err, validators.FilterSqlPgError(err))
 }
 
-func (s *OrganizationServicePgImpl) SetPerms(ctx context.Context, action string, userId uint32, perms domain.Permission) error {
+func (s *OrganizationServicePgImpl) SetPerms(ctx context.Context, action string, userId uint32, perms models.Permission) error {
 	_, err := s.db.Exec(`
         INSERT INTO organization_user_permissions (organization_id, user_id, action_name, permission)
         VALUES ($1, $2, $3, $4)

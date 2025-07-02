@@ -6,8 +6,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/LombardiDaniel/goliath/src/internal/domain"
 	"github.com/LombardiDaniel/goliath/src/internal/dto"
+	"github.com/LombardiDaniel/goliath/src/internal/models"
 	"github.com/LombardiDaniel/goliath/src/pkg/constants"
 	"github.com/LombardiDaniel/goliath/src/pkg/token"
 	"github.com/LombardiDaniel/goliath/src/pkg/validators"
@@ -23,7 +23,7 @@ func NewUserServicePgImpl(db *sql.DB) UserService {
 	}
 }
 
-func (s *UserServicePgImpl) CreateUser(ctx context.Context, user domain.User) error {
+func (s *UserServicePgImpl) CreateUser(ctx context.Context, user models.User) error {
 	query := `
 		INSERT INTO users (email, password_hash, first_name, last_name, date_of_birth)
 		VALUES ($1, $2, $3, $4, $5);
@@ -43,7 +43,7 @@ func (s *UserServicePgImpl) CreateUser(ctx context.Context, user domain.User) er
 	return nil
 }
 
-func (s *UserServicePgImpl) CreateUnconfirmedUser(ctx context.Context, unconfirmedUser domain.UnconfirmedUser) error {
+func (s *UserServicePgImpl) CreateUnconfirmedUser(ctx context.Context, unconfirmedUser models.UnconfirmedUser) error {
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return errors.Join(err, constants.ErrDbTransactionCreate)
@@ -98,7 +98,7 @@ func (s *UserServicePgImpl) ConfirmUser(ctx context.Context, otp string) error {
 	}
 	defer tx.Rollback()
 
-	unconfirmedUser := domain.UnconfirmedUser{}
+	unconfirmedUser := models.UnconfirmedUser{}
 	err = tx.QueryRowContext(ctx, `
 			SELECT
 				email,
@@ -149,7 +149,7 @@ func (s *UserServicePgImpl) ConfirmUser(ctx context.Context, otp string) error {
 	return tx.Commit()
 }
 
-func (s *UserServicePgImpl) GetUser(ctx context.Context, email string) (domain.User, error) {
+func (s *UserServicePgImpl) GetUser(ctx context.Context, email string) (models.User, error) {
 	query := `
 		SELECT
 			user_id,
@@ -165,7 +165,7 @@ func (s *UserServicePgImpl) GetUser(ctx context.Context, email string) (domain.U
 		FROM users WHERE email = $1
 	`
 
-	user := domain.User{}
+	user := models.User{}
 
 	err := s.db.QueryRowContext(ctx, query, email).Scan(
 		&user.UserId,
@@ -186,7 +186,7 @@ func (s *UserServicePgImpl) GetUser(ctx context.Context, email string) (domain.U
 	return user, nil
 }
 
-func (s *UserServicePgImpl) GetUserFromId(ctx context.Context, id uint32) (domain.User, error) {
+func (s *UserServicePgImpl) GetUserFromId(ctx context.Context, id uint32) (models.User, error) {
 	query := `
 		SELECT
 			user_id,
@@ -202,7 +202,7 @@ func (s *UserServicePgImpl) GetUserFromId(ctx context.Context, id uint32) (domai
 		FROM users WHERE user_id = $1
 	`
 
-	user := domain.User{}
+	user := models.User{}
 
 	err := s.db.QueryRowContext(ctx, query, id).Scan(
 		&user.UserId,
@@ -223,7 +223,7 @@ func (s *UserServicePgImpl) GetUserFromId(ctx context.Context, id uint32) (domai
 	return user, nil
 }
 
-func (s *UserServicePgImpl) GetUsers(ctx context.Context) ([]domain.User, error) {
+func (s *UserServicePgImpl) GetUsers(ctx context.Context) ([]models.User, error) {
 	query := `
 		SELECT
 			user_id,
@@ -239,7 +239,7 @@ func (s *UserServicePgImpl) GetUsers(ctx context.Context) ([]domain.User, error)
 		FROM users;
 	`
 
-	users := []domain.User{}
+	users := []models.User{}
 
 	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
@@ -248,7 +248,7 @@ func (s *UserServicePgImpl) GetUsers(ctx context.Context) ([]domain.User, error)
 	defer rows.Close()
 
 	for rows.Next() {
-		u := domain.User{}
+		u := models.User{}
 		err := rows.Scan(
 			&u.UserId,
 			&u.Email,
@@ -318,13 +318,13 @@ func (s *UserServicePgImpl) InitPasswordReset(ctx context.Context, userId uint32
 	return errors.Join(err, validators.FilterSqlPgError(err))
 }
 
-func (s *UserServicePgImpl) GetPasswordReset(ctx context.Context, otp string) (domain.PasswordReset, error) {
+func (s *UserServicePgImpl) GetPasswordReset(ctx context.Context, otp string) (models.PasswordReset, error) {
 	query := `
 		SELECT user_id, otp, exp
 		FROM password_resets
 		WHERE otp = $1 AND exp > NOW();
 	`
-	var passReset domain.PasswordReset
+	var passReset models.PasswordReset
 
 	err := s.db.QueryRowContext(ctx, query, otp).Scan(
 		&passReset.UserId,

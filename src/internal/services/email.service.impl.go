@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/LombardiDaniel/goliath/src/internal/domain"
+	"github.com/LombardiDaniel/goliath/src/internal/models"
 	"github.com/LombardiDaniel/goliath/src/pkg/constants"
 	"github.com/LombardiDaniel/goliath/src/pkg/it"
 	"github.com/resendlabs/resend-go"
@@ -173,7 +173,7 @@ type htmlPaymentAccepted struct {
 	PaymentId string
 }
 
-func (s *EmailServiceResendImpl) SendPaymentAccepted(email string, name string, payment domain.Payment) error {
+func (s *EmailServiceResendImpl) SendPaymentAccepted(email string, name string, payment models.Payment) error {
 	body := new(bytes.Buffer)
 	err := s.paymentAcceptedTemplate.Execute(body, htmlPaymentAccepted{
 		FirstName: name,

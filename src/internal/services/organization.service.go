@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	"github.com/LombardiDaniel/goliath/src/internal/domain"
+	"github.com/LombardiDaniel/goliath/src/internal/models"
 )
 
 // OrganizationService defines the interface for organization-related operations.
@@ -11,13 +11,13 @@ import (
 // and performing administrative tasks such as setting owners and removing users.
 type OrganizationService interface {
 	// GetOrganization retrieves an organization by its ID.
-	GetOrganization(ctx context.Context, orgId string) (domain.Organization, error)
+	GetOrganization(ctx context.Context, orgId string) (models.Organization, error)
 
 	// CreateOrganization creates a new organization.
-	CreateOrganization(ctx context.Context, org domain.Organization) error
+	CreateOrganization(ctx context.Context, org models.Organization) error
 
 	// CreateOrganizationInvite creates an invitation for a user to join an organization.
-	CreateOrganizationInvite(ctx context.Context, invite domain.OrganizationInvite) error
+	CreateOrganizationInvite(ctx context.Context, invite models.OrganizationInvite) error
 
 	// ConfirmOrganizationInvite confirms an organization invite using a one-time password (OTP).
 	ConfirmOrganizationInvite(ctx context.Context, otp string) error
@@ -32,5 +32,5 @@ type OrganizationService interface {
 	DeleteExpiredOrgInvites() error
 
 	// SetPerms changes the permission of a user
-	SetPerms(ctx context.Context, action string, userId uint32, perms domain.Permission) error
+	SetPerms(ctx context.Context, action string, userId uint32, perms models.Permission) error
 }

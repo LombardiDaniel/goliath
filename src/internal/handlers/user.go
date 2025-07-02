@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/LombardiDaniel/goliath/src/internal/domain"
 	"github.com/LombardiDaniel/goliath/src/internal/dto"
 	"github.com/LombardiDaniel/goliath/src/internal/middlewares"
+	"github.com/LombardiDaniel/goliath/src/internal/models"
 	"github.com/LombardiDaniel/goliath/src/internal/services"
 	"github.com/LombardiDaniel/goliath/src/pkg/common"
 	"github.com/LombardiDaniel/goliath/src/pkg/constants"
@@ -62,7 +62,7 @@ func (c *UserHandler) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	unconfirmedUser, err := domain.NewUnconfirmedUser(createUser.Email, createUser.Password, createUser.FirstName, createUser.LastName, createUser.DateOfBirth)
+	unconfirmedUser, err := models.NewUnconfirmedUser(createUser.Email, createUser.Password, createUser.FirstName, createUser.LastName, createUser.DateOfBirth)
 	if err != nil {
 		slog.Error(fmt.Sprintf("Error while generating unconfirmed user '%s': '%s'", createUser.Email, err.Error()))
 		ctx.String(http.StatusBadRequest, "BadRequest")
@@ -126,7 +126,7 @@ func (c *UserHandler) ConfirmUser(ctx *gin.Context) {
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
 // @Router /v1/users/organizations [GET]
 func (c *UserHandler) GetUserOrgs(ctx *gin.Context) {
-	claims, err := token.GetClaimsFromGinCtx[domain.JwtClaims](ctx)
+	claims, err := token.GetClaimsFromGinCtx[models.JwtClaims](ctx)
 	if err != nil {
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
@@ -293,7 +293,7 @@ func (c *UserHandler) EditUser(ctx *gin.Context) {
 		return
 	}
 
-	claims, err := token.GetClaimsFromGinCtx[domain.JwtClaims](ctx)
+	claims, err := token.GetClaimsFromGinCtx[models.JwtClaims](ctx)
 	if err != nil {
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return
@@ -330,7 +330,7 @@ func (c *UserHandler) SetPicture(ctx *gin.Context) {
 		return
 	}
 
-	claims, err := token.GetClaimsFromGinCtx[domain.JwtClaims](ctx)
+	claims, err := token.GetClaimsFromGinCtx[models.JwtClaims](ctx)
 	if err != nil {
 		ctx.String(http.StatusBadGateway, "BadGateway")
 		return

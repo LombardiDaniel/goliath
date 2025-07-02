@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/LombardiDaniel/goliath/src/internal/domain"
 	"github.com/LombardiDaniel/goliath/src/internal/dto"
 	"github.com/LombardiDaniel/goliath/src/internal/middlewares"
+	"github.com/LombardiDaniel/goliath/src/internal/models"
 	"github.com/LombardiDaniel/goliath/src/internal/services"
 	"github.com/LombardiDaniel/goliath/src/pkg/token"
 	"github.com/gin-gonic/gin"
@@ -55,7 +55,7 @@ func (c *BillingHandler) CheckoutSessionUrl(ctx *gin.Context) {
 		return
 	}
 
-	claims, err := token.GetClaimsFromGinCtx[domain.JwtClaims](ctx)
+	claims, err := token.GetClaimsFromGinCtx[models.JwtClaims](ctx)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.String(http.StatusUnauthorized, "Unauthorized")

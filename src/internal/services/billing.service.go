@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	"github.com/LombardiDaniel/goliath/src/internal/domain"
+	"github.com/LombardiDaniel/goliath/src/internal/models"
 	"github.com/stripe/stripe-go/v81"
 )
 
@@ -16,7 +16,7 @@ type BillingService interface {
 	CheckoutSession(ctx context.Context, sessionId string) (*stripe.CheckoutSession, error)
 
 	// SetCheckoutSessionAsComplete is the webhook to be used in a daemon
-	SetCheckoutSessionAsComplete(ctx context.Context, sessionId string) (domain.Payment, error)
+	SetCheckoutSessionAsComplete(ctx context.Context, sessionId string) (models.Payment, error)
 
 	// // Gets the Stripe Client Secret to be used in Embedded Checkout Form
 	// 	//

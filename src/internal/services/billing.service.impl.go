@@ -6,7 +6,7 @@ import (
 	"errors"
 	"net/url"
 
-	"github.com/LombardiDaniel/goliath/src/internal/domain"
+	"github.com/LombardiDaniel/goliath/src/internal/models"
 	"github.com/LombardiDaniel/goliath/src/pkg/constants"
 	"github.com/LombardiDaniel/goliath/src/pkg/validators"
 	"github.com/stripe/stripe-go/v81"
@@ -113,8 +113,8 @@ func (s *BillingServiceStripeImpl) CheckoutSession(ctx context.Context, sessionI
 	return checkout, errors.Join(err, errors.New("could not get session from stripe"))
 }
 
-func (s *BillingServiceStripeImpl) SetCheckoutSessionAsComplete(ctx context.Context, sessionId string) (domain.Payment, error) {
-	var p domain.Payment
+func (s *BillingServiceStripeImpl) SetCheckoutSessionAsComplete(ctx context.Context, sessionId string) (models.Payment, error) {
+	var p models.Payment
 	err := s.db.QueryRowContext(ctx, `
 		UPDATE payments
 		SET payment_status = 'complete'

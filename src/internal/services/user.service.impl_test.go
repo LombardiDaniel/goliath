@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/LombardiDaniel/goliath/src/internal/domain"
+	"github.com/LombardiDaniel/goliath/src/internal/models"
 	"github.com/LombardiDaniel/goliath/src/pkg/helpers"
 )
 
@@ -26,7 +26,7 @@ func TestUserServicePgImpl_CreateUser(t *testing.T) {
 
 	type args struct {
 		ctx  context.Context
-		user domain.User
+		user models.User
 	}
 	tests := []struct {
 		name    string
@@ -37,7 +37,7 @@ func TestUserServicePgImpl_CreateUser(t *testing.T) {
 			"insert new user",
 			args{
 				ctx,
-				domain.User{
+				models.User{
 					Email:        "test1@email.com",
 					PasswordHash: "hashtest",
 					FirstName:    "Test",
@@ -51,7 +51,7 @@ func TestUserServicePgImpl_CreateUser(t *testing.T) {
 			"reinsert same user",
 			args{
 				ctx,
-				domain.User{
+				models.User{
 					Email:        "test1@email.com",
 					PasswordHash: "hashtest",
 					FirstName:    "Test",
@@ -91,7 +91,7 @@ func TestUserServicePgImpl_CreateUnconfirmedUser(t *testing.T) {
 
 	type args struct {
 		ctx             context.Context
-		unconfirmedUser domain.UnconfirmedUser
+		unconfirmedUser models.UnconfirmedUser
 	}
 	tests := []struct {
 		name    string
@@ -102,7 +102,7 @@ func TestUserServicePgImpl_CreateUnconfirmedUser(t *testing.T) {
 			"unconfirmed user",
 			args{
 				ctx,
-				domain.UnconfirmedUser{
+				models.UnconfirmedUser{
 					Email:        "test1@email.com",
 					PasswordHash: "hashtest",
 					FirstName:    "Test",

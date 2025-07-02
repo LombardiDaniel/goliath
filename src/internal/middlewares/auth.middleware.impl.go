@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/LombardiDaniel/goliath/src/internal/domain"
+	"github.com/LombardiDaniel/goliath/src/internal/models"
 	"github.com/LombardiDaniel/goliath/src/internal/services"
 	"github.com/LombardiDaniel/goliath/src/pkg/constants"
 	"github.com/LombardiDaniel/goliath/src/pkg/token"
@@ -24,7 +24,7 @@ func NewAuthMiddlewareJwt(authService services.AuthService) AuthMiddleware {
 	}
 }
 
-// Authorizes the JWT, if it is valid, the attribute `constants.GinCtxJwtClaimKeyName` is set with the `domain.JwtClaimsOutput`
+// Authorizes the JWT, if it is valid, the attribute `constants.GinCtxJwtClaimKeyName` is set with the `models.JwtClaimsOutput`
 // allows use of JWT in cookie
 func (m *AuthMiddlewareJwt) AuthorizeUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -69,7 +69,7 @@ func (m *AuthMiddlewareJwt) AuthorizeUser() gin.HandlerFunc {
 	}
 }
 
-func (m *AuthMiddlewareJwt) AuthorizeOrganization(need map[string]domain.Permission) gin.HandlerFunc {
+func (m *AuthMiddlewareJwt) AuthorizeOrganization(need map[string]models.Permission) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenStr, err := c.Cookie(constants.JwtCookieName)
 		if err != nil && err != http.ErrNoCookie {
@@ -138,7 +138,7 @@ func (m *AuthMiddlewareJwt) AuthorizeOrganization(need map[string]domain.Permiss
 
 func (m *AuthMiddlewareJwt) Reauthorize() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		jwtClaims, err := token.GetClaimsFromGinCtx[domain.JwtClaims](c)
+		jwtClaims, err := token.GetClaimsFromGinCtx[models.JwtClaims](c)
 		if err != nil {
 			slog.Error(err.Error())
 			c.String(http.StatusBadGateway, "BadGateway")

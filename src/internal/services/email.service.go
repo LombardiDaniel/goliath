@@ -1,6 +1,6 @@
 package services
 
-import "github.com/LombardiDaniel/goliath/src/internal/domain"
+import "github.com/LombardiDaniel/goliath/src/internal/models"
 
 // EmailService defines the interface for email-related operations.
 // It provides methods for sending various types of emails, such as
@@ -20,7 +20,7 @@ type EmailService interface {
 	SendPasswordReset(email string, name string, otp string) error
 
 	// SendPaymentAccepted notifies a user that their payment has been accepted.
-	SendPaymentAccepted(email string, name string, payment domain.Payment) error
+	SendPaymentAccepted(email string, name string, payment models.Payment) error
 }
 
 type EmailServiceMock struct{}
@@ -37,6 +37,6 @@ func (s *EmailServiceMock) SendOrganizationInvite(email string, name string, otp
 func (s *EmailServiceMock) SendPasswordReset(email string, name string, otp string) error {
 	return nil
 }
-func (s *EmailServiceMock) SendPaymentAccepted(email string, name string, payment domain.Payment) error {
+func (s *EmailServiceMock) SendPaymentAccepted(email string, name string, payment models.Payment) error {
 	return nil
 }

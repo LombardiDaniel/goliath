@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/LombardiDaniel/goliath/src/internal/domain"
+	"github.com/LombardiDaniel/goliath/src/internal/models"
 	"github.com/LombardiDaniel/goliath/src/pkg/common"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -18,8 +18,8 @@ type TelemetryServiceMongoAsyncImpl struct {
 	metricsCol      *mongo.Collection
 	eventsCol       *mongo.Collection
 	batchInsertSize uint32
-	metricCh        chan domain.Metric
-	eventsCh        chan domain.Event
+	metricCh        chan models.Metric
+	eventsCh        chan models.Event
 	counters        []Counter
 }
 
@@ -60,8 +60,8 @@ func NewTelemetryServiceMongoAsyncImpl(mongoClient *mongo.Client, metricsCol, ev
 		mongoClient:     mongoClient,
 		metricsCol:      metricsCol,
 		eventsCol:       eventsCol,
-		metricCh:        make(chan domain.Metric),
-		eventsCh:        make(chan domain.Event),
+		metricCh:        make(chan models.Metric),
+		eventsCh:        make(chan models.Event),
 		batchInsertSize: batchInsertSize,
 		counters:        []Counter{},
 	}
@@ -80,7 +80,7 @@ func (s *TelemetryServiceMongoAsyncImpl) GetCounter(ctx context.Context, metricN
 }
 
 func (s *TelemetryServiceMongoAsyncImpl) RecordEvent(ctx context.Context, eventName string, metadata map[string]any, tags map[string]string) error {
-	e := domain.Event{
+	e := models.Event{
 		Name:     eventName,
 		Metadata: metadata,
 		Tags:     tags,
@@ -91,7 +91,7 @@ func (s *TelemetryServiceMongoAsyncImpl) RecordEvent(ctx context.Context, eventN
 }
 
 func (s *TelemetryServiceMongoAsyncImpl) RecordMetric(ctx context.Context, metricName string, value float64, tags map[string]string) error {
-	e := domain.Metric{
+	e := models.Metric{
 		Name:  metricName,
 		Value: value,
 		Tags:  tags,

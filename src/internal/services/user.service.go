@@ -3,8 +3,8 @@ package services
 import (
 	"context"
 
-	"github.com/LombardiDaniel/goliath/src/internal/domain"
 	"github.com/LombardiDaniel/goliath/src/internal/dto"
+	"github.com/LombardiDaniel/goliath/src/internal/models"
 )
 
 // UserService defines the interface for user-related operations.
@@ -12,22 +12,22 @@ import (
 // password resets, and user profile updates.
 type UserService interface {
 	// CreateUser creates a new user.
-	CreateUser(ctx context.Context, user domain.User) error
+	CreateUser(ctx context.Context, user models.User) error
 
 	// CreateUnconfirmedUser creates a new unconfirmed user.
-	CreateUnconfirmedUser(ctx context.Context, unconfirmedUser domain.UnconfirmedUser) error
+	CreateUnconfirmedUser(ctx context.Context, unconfirmedUser models.UnconfirmedUser) error
 
 	// ConfirmUser confirms a user using a one-time password (OTP).
 	ConfirmUser(ctx context.Context, otp string) error
 
 	// GetUser retrieves a user by their email address.
-	GetUser(ctx context.Context, email string) (domain.User, error)
+	GetUser(ctx context.Context, email string) (models.User, error)
 
 	// GetUserFromId retrieves a user by their ID.
-	GetUserFromId(ctx context.Context, id uint32) (domain.User, error)
+	GetUserFromId(ctx context.Context, id uint32) (models.User, error)
 
 	// GetUsers retrieves all users.
-	GetUsers(ctx context.Context) ([]domain.User, error)
+	GetUsers(ctx context.Context) ([]models.User, error)
 
 	// GetUserOrgs retrieves the organizations a user belongs to.
 	GetUserOrgs(ctx context.Context, userId uint32) ([]dto.OrganizationOutput, error)
@@ -36,7 +36,7 @@ type UserService interface {
 	InitPasswordReset(ctx context.Context, userId uint32, otp string) error
 
 	// GetPasswordReset retrieves a password reset request by its OTP.
-	GetPasswordReset(ctx context.Context, otp string) (domain.PasswordReset, error)
+	GetPasswordReset(ctx context.Context, otp string) (models.PasswordReset, error)
 
 	// UpdateUserPassword updates a user's password.
 	UpdateUserPassword(ctx context.Context, userId uint32, pw string) error
