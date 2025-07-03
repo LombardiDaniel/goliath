@@ -16,7 +16,7 @@ type Task struct {
 // TaskRunner runs Tasks specified by the user, use TaskRunner.RegisterTask() to
 // specify daemons.
 type TaskRunner struct {
-	// List Of Tasks to be run in the background
+	// List of Tasks to be run in the background
 	tasks []Task
 }
 

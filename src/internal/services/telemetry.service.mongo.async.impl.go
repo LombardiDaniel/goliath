@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/LombardiDaniel/goliath/src/internal/models"
-	"github.com/LombardiDaniel/goliath/src/pkg/common"
+	"github.com/lombardidaniel/tcc/worker/common"
+	"github.com/lombardidaniel/tcc/worker/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -49,10 +49,13 @@ func (c *CounterMongoAsyncImpl) Upload() error {
 	c.val = 0
 	c.valLock.Unlock()
 
-	update := bson.M{"value": bson.M{"$inc": v}}
+	update := bson.M{"$inc": bson.M{"value": v}}
 	upsert := true
 	_, err := c.metricsCol.UpdateOne(context.TODO(), filter, update, &options.UpdateOptions{Upsert: &upsert})
-	return errors.Join(err, errors.New("could not increment counter"))
+	if err != nil {
+		return errors.Join(err, errors.New("could not increment counter"))
+	}
+	return err
 }
 
 func NewTelemetryServiceMongoAsyncImpl(mongoClient *mongo.Client, metricsCol, eventsCol *mongo.Collection, batchInsertSize uint32) TelemetryService {
@@ -60,14 +63,16 @@ func NewTelemetryServiceMongoAsyncImpl(mongoClient *mongo.Client, metricsCol, ev
 		mongoClient:     mongoClient,
 		metricsCol:      metricsCol,
 		eventsCol:       eventsCol,
-		metricCh:        make(chan models.Metric),
-		eventsCh:        make(chan models.Event),
+		metricCh:        make(chan models.Metric, 10*batchInsertSize),
+		eventsCh:        make(chan models.Event, 10*batchInsertSize),
 		batchInsertSize: batchInsertSize,
 		counters:        []Counter{},
 	}
 }
 
 func (s *TelemetryServiceMongoAsyncImpl) GetCounter(ctx context.Context, metricName string, tags map[string]string) (Counter, error) {
+	tags["__type__"] = "counter"
+
 	c := &CounterMongoAsyncImpl{
 		metricsCol: s.metricsCol,
 		metricName: metricName,
@@ -107,6 +112,7 @@ func (s *TelemetryServiceMongoAsyncImpl) Upload() error {
 		if len(batch) == 0 {
 			break
 		}
+
 		docs := make([]any, len(batch))
 		for i, u := range batch {
 			docs[i] = u
