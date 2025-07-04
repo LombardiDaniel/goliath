@@ -15,17 +15,4 @@ type TelemetryService interface {
 	// Upload uploads telemetry the enqueued data. This method should be called
 	// in a separate goroutine to avoid blocking. Should panic if impl is not async.
 	Upload() error
-
-	// Creates a counter metric with the given name and tags.
-	GetCounter(ctx context.Context, metricName string, tags map[string]string) (Counter, error)
-}
-
-// Counter defines the interface for a counter metric.
-type Counter interface {
-	// Increment increments the counter by the given count.
-	Increment(count uint64)
-
-	// Upload uploads telemetry the enqueued data. This method should be called
-	// in a separate goroutine to avoid blocking. Should panic if impl is not async.
-	Upload() error
 }
