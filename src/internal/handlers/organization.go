@@ -47,7 +47,7 @@ func NewOrganizationHandler(
 // @Failure 400 		{string} 	ErrorResponse "Bad Request"
 // @Failure 409 		{string} 	ErrorResponse "Conflict"
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
-// @Router /v1/organizations [PUT]
+// @Router /v1/organizations [POST]
 func (c *OrganizationHandler) CreateOrganization(ctx *gin.Context) {
 	var createOrg dto.CreateOrganization
 
@@ -98,7 +98,7 @@ func (c *OrganizationHandler) CreateOrganization(ctx *gin.Context) {
 // @Failure 400 		{string} 	ErrorResponse "Bad Request"
 // @Failure 409 		{string} 	ErrorResponse "Conflict"
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
-// @Router /v1/organizations/{orgId}/invite [PUT]
+// @Router /v1/organizations/{orgId}/invite [POST]
 func (c *OrganizationHandler) InviteToOrg(ctx *gin.Context) {
 	var createInv dto.CreateOrganizationInvite
 
@@ -236,7 +236,7 @@ func (c *OrganizationHandler) RemoveFromOrg(ctx *gin.Context) {
 // @Failure 400 		{string} 	ErrorResponse "Bad Request"
 // @Failure 409 		{string} 	ErrorResponse "Conflict"
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
-// @Router /v1/organizations/{orgId}/owner [POST]
+// @Router /v1/organizations/{orgId}/owner [PUT]
 func (c *OrganizationHandler) ChangeOwner(ctx *gin.Context) {
 
 	var tgtEmail dto.Email
@@ -295,9 +295,9 @@ func (c *OrganizationHandler) RegisterRoutes(rg *gin.RouterGroup, authMiddleware
 		"owner": models.ReadWritePermission,
 	}
 
-	g.PUT("", authMiddleware.AuthorizeUser(), c.CreateOrganization)
-	g.PUT("/:orgId/invite", authMiddleware.AuthorizeOrganization(adminPerms), c.InviteToOrg)
-	g.POST("/:orgId/owner", authMiddleware.AuthorizeOrganization(ownerPerms), c.ChangeOwner, authMiddleware.Reauthorize())
+	g.POST("", authMiddleware.AuthorizeUser(), c.CreateOrganization)
+	g.POST("/:orgId/invite", authMiddleware.AuthorizeOrganization(adminPerms), c.InviteToOrg)
+	g.PUT("/:orgId/owner", authMiddleware.AuthorizeOrganization(ownerPerms), c.ChangeOwner, authMiddleware.Reauthorize())
 	g.GET("/accept-invite", c.AcceptOrgInvite)
 	g.DELETE("/:orgId/users/:userId", authMiddleware.AuthorizeOrganization(adminPerms), c.RemoveFromOrg)
 }

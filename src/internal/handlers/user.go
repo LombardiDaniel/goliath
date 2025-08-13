@@ -52,7 +52,7 @@ func NewUserHandler(
 // @Failure 400 		{string} 	ErrorResponse "Bad Request"
 // @Failure 409 		{string} 	ErrorResponse "Conflict"
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
-// @Router /v1/users [PUT]
+// @Router /v1/users [POST]
 func (c *UserHandler) CreateUser(ctx *gin.Context) {
 	var createUser dto.CreateUser
 
@@ -283,7 +283,7 @@ func (c *UserHandler) ResetPassword(ctx *gin.Context) {
 // @Failure 400 		{string} 	ErrorResponse "Bad Request"
 // @Failure 409 		{string} 	ErrorResponse "Conflict"
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
-// @Router /v1/users/edit [POST]
+// @Router /v1/users/edit [PUT]
 func (c *UserHandler) EditUser(ctx *gin.Context) {
 	var editUser dto.EditUser
 
@@ -320,7 +320,7 @@ func (c *UserHandler) EditUser(ctx *gin.Context) {
 // @Failure 400 		{string} 	ErrorResponse "Bad Request"
 // @Failure 409 		{string} 	ErrorResponse "Conflict"
 // @Failure 502 		{string} 	ErrorResponse "Bad Gateway"
-// @Router /v1/users/profile-picture [PUT]
+// @Router /v1/users/profile-picture [POST]
 func (c *UserHandler) SetPicture(ctx *gin.Context) {
 	var pic dto.UloadPicture
 
@@ -388,12 +388,12 @@ func (c *UserHandler) SetPicture(ctx *gin.Context) {
 func (c *UserHandler) RegisterRoutes(rg *gin.RouterGroup, authMiddleware middlewares.AuthMiddleware) {
 	g := rg.Group("/users")
 
-	g.PUT("", c.CreateUser)
+	g.POST("", c.CreateUser)
 	g.GET("/confirm", c.ConfirmUser)
 	g.POST("/init-reset-password", c.InitResetPassword)
 	g.GET("/set-password-reset-cookie", c.SetPasswordResetCookie)
 	g.POST("/reset-password", c.ResetPassword)
 	g.GET("/organizations", authMiddleware.AuthorizeUser(), c.GetUserOrgs)
-	g.POST("/edit", authMiddleware.AuthorizeUser(), c.EditUser)
-	g.PUT("/profile-picture", authMiddleware.AuthorizeUser(), c.SetPicture)
+	g.PUT("/edit", authMiddleware.AuthorizeUser(), c.EditUser)
+	g.POST("/profile-picture", authMiddleware.AuthorizeUser(), c.SetPicture)
 }
